@@ -116,9 +116,12 @@ Interfaces in ASTConsumer is called by clang Sema and corresponding method in De
 
 ### 4.7 Calling sequence:
   For preprocess:
+```
   Clang Lex --> PPCallbacks --> PPHandler --> individual PP check
-
+```
   For AST:
+```
   Clang Sema --> ASTConsumer --> DeclVisitor --> DeclHandler --> individual Decl check
                                              --> (FunctionDecl) StmtVisitor --> StmtHandler --> individual Stmt check
                                              --> (TypeDecl) TypeVisitor --> TypeHandler --> individual Type check
+```
