@@ -1,0 +1,1 @@
+This is for common rules shared by different standard. The rule may report different issues by passing different rule meta parameter to rule initializer.

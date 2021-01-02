@@ -40,20 +40,34 @@ xsca will be built in build directory
 ```
 
 ## 2. How to add new ruleset
-### 2.1 Copy the whole example in src/rules directory to new ruleset name
+### 2.1 Create subdirectory in rules for the new rule
+Copy the whole example in src/rules directory to new ruleset name:
 ```
  $ cd src/rules
  $ cp -r example <NEW-RULESET-NAME>
 ```
 rename files in <NEW-RULESET-NAME>.
 
-### 2.2 Modify <NEW-RULESET-NAME>/CMakeLists.txt with correct library and source file name
+### 2.2 Update CMakeLists.txt in new subdirectory
+Modify <NEW-RULESET-NAME>/CMakeLists.txt with correct library and source file name to build the library for new rule
 
-### 2.3 Modify src/rules/CMakeLists.txt to include this new ruleset subdirectory
+### 2.3 Update rules's CMakeLists.txt
+Modify src/rules/CMakeLists.txt to include this new ruleset subdirectory
 
-### 2.4 Modify src/CMakeLists.txt to add the new library to XSCA_LIBS
+### 2.4 Update src's CMakeLists.txt
+Modify src/CMakeLists.txt to add the new library to XSCA_LIBS
 
-### 2.5 Modify src/include/xsca_checker_link.h to add a new function and call this function in Anchor(). Implement this function in example_checker.cpp to make sure the library is correct linked and static objects are initialized correctly.
+### 2.5 Make sure new library is linked correctly
+Modify src/xsca_link.cpp to add new extern and static variable to make sure the library is correct linked and static objects are initialized correctly. Define the new variable in example_checker.cpp.
+In xsca_link.cpp
+```
+extern int __NEW_RULESET_NAME__;   // defined in rules/example/example_checker.cpp
+static ATTRIBUTE_UNUSED int New_Ruleset_Name = __NEW_RULESET_NAME__;
+```
+In example_checker.cpp
+```
+int __NEW_RULESET_NAME__;          // used in xsca_link.cpp
+```
 
 ## 3. How to add new rule
 ### 3.1 Identify the type of the new rule. Possible type can be:
