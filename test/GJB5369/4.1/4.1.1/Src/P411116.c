@@ -15,7 +15,6 @@ unsigned int static_p(void) {
     unsigned int var_1;
 
 static_p:   /* redefined the name "static_p" is forbidden */
-    
     var_1 = 1u;
     return (var_1); 
 }
