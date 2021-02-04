@@ -64,11 +64,9 @@ set (XSCA_CLANG_LIBS
   -Wl,--start-group
   clangAnalysis
   clangAST
-  clangASTMatchers
   clangBasic
   clangDriver
   clangEdit
-  clangFormat
   clangFrontend
   clangFrontendTool
   clangLex
