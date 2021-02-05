@@ -38,7 +38,7 @@ else ()
   set (OPT_FLAGS "-O2")
 endif ()
 
-set (LANG_CXX_FLAGS "-fno-exceptions -fno-rtti -pthread")
+set (LANG_CXX_FLAGS "-fno-exceptions -fno-rtti -pthread -no-pie")
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OPT_FLAGS}")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LANG_CXX_FLAGS} ${OPT_FLAGS}")
 
