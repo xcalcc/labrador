@@ -15,4 +15,5 @@
 
 // make sure example rule linked to executable
 extern int __ExampleRuleLinked__;
-static int ATTRIBUTE_UNUSED ExampleRuleLinked = __ExampleRuleLinked__;
+//static int ATTRIBUTE_UNUSED ExampleRuleLinked = __ExampleRuleLinked__;
+int ExampleRuleLinked = __ExampleRuleLinked__;

@@ -21,4 +21,8 @@ public:
     printf("Hit a goto stmt.\n");
   }
 
+  void VisitCompoundStmt(const clang::CompoundStmt *stmt) {
+    printf("Hit a block stmt.\n");
+  }
+
 };  // CheckStmtExample

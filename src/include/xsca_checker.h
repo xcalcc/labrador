@@ -32,7 +32,7 @@ protected:
 public:
   XcalChecker(XcalCheckerManager *mgr) : _manager(mgr) {}
 
-  ~XcalChecker() {}
+  virtual ~XcalChecker() {}
 
 public:
   virtual void Initialize(clang::CompilerInstance *CI,

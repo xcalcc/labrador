@@ -44,6 +44,16 @@ public:
     }
   }
 
+  void VisitCompoundStmt(const clang::CompoundStmt *stmt) {
+    auto scope_mgr = XcalCheckerManager::GetScopeManager();
+    auto scope_hlp = MakeScopeHelper<clang::CompoundStmt>(scope_mgr, stmt);
+
+    _stmt_handler.VisitCompoundStmt(stmt);
+    for (auto child : stmt->clang::Stmt::children()) {
+      Visit(child);
+    }
+  }
+
   // generate individual Visit##CLASS method
   #define STMT(CLASS, BASE) \
   void Visit##CLASS(const clang::CLASS *stmt) { \
@@ -55,6 +65,7 @@ public:
   #define ABSTRACT_STMT(CLASS)
   #define DECLSTMT(CLASS, BASE)   // already handled above
   #define LABELSTMT(CLASS, BASE)
+  #define COMPOUNDSTMT(CLASS, BASE)
   # include "clang/AST/StmtNodes.inc"
 
   // general Visit method

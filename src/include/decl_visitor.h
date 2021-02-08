@@ -26,7 +26,7 @@ template<typename _DeclHandler,
 class XcalDeclVisitor {
   using _Self = XcalDeclVisitor<_DeclHandler, _StmtHandler, _TypeHandler>;
 private:
-  _DeclHandler                         &_decl_handler;
+  _DeclHandler &_decl_handler;
   XcalStmtVisitor<_StmtHandler, _Self>  _stmt_visitor;
   XcalTypeVisitor<_TypeHandler>         _type_visitor;
 
@@ -84,8 +84,15 @@ public:
   }
 
   void VisitFunction(const clang::FunctionDecl *decl) {
+    auto scope_mgr = XcalCheckerManager::GetScopeManager();
+
+    // Add FunctionDecl to current lexical scope.
+    scope_mgr->CurrentScope()->AddIdentifier<clang::FunctionDecl>(decl);
+    auto scope_hlp = MakeScopeHelper<clang::FunctionDecl>(scope_mgr, decl);
+
     _decl_handler.VisitFunction(decl);
     _type_visitor.Visit(decl->clang::ValueDecl::getType().getTypePtr());
+
     if (decl->doesThisDeclarationHaveABody()) {
       _stmt_visitor.Visit(decl->getBody());
     }

@@ -15,6 +15,7 @@
 
 #include "xsca_defs.h"
 #include "llvm/ADT/PointerIntPair.h"
+#include "clang/AST/Decl.h"
 #include <vector>
 #include <unordered_map>
 
@@ -39,6 +40,7 @@ enum ScopeKind {
   SK_FUNCTION = 1,          // function scope
   SK_BLOCK = 2,             // lexical scope
   SK_LAMBDA = 3,            // lambda function scope
+  SK_ENUM = 4,
 };  // ScopeKind
 
 class LexicalScope;
@@ -48,13 +50,15 @@ class LexicalScope;
 class IdentifierManager {
 private:
   // map identifier to FunctionDecl
-  std::unordered_multimap<std::string, clang::FunctionDecl*> _id_to_func;
+  std::unordered_multimap<std::string, const clang::FunctionDecl*> _id_to_func;
   // map identifier to VarDecl
-  std::unordered_multimap<std::string, clang::VarDecl*>      _id_to_var;
+  std::unordered_multimap<std::string, const clang::VarDecl*>      _id_to_var;
+  // map identifier to ValueDecl
+  std::unordered_multimap<std::string, const clang::ValueDecl*>    _id_to_value;
   // map identifier to TypeDecl
-  std::unordered_multimap<std::string, clang::TypeDecl*>     _id_to_type;
+  std::unordered_multimap<std::string, const clang::TypeDecl*>     _id_to_type;
   // map identifier to LabelDecl
-  std::unordered_multimap<std::string, clang::LabelDecl*>    _id_to_label;
+  std::unordered_multimap<std::string, const clang::LabelDecl*>    _id_to_label;
   // current scope, seems useless. TODO: remove it later
   LexicalScope *_scope;
 
@@ -64,20 +68,69 @@ private:
       = delete;
 
 public:
-  IdentifierManager(LexicalScope *scope) : _scope(_scope) { }
+  IdentifierManager(LexicalScope *scope) : _scope(scope) { }
 
 public:
-  void AddIdentifier(clang::FunctionDecl *decl) {
+  void AddIdentifier(const clang::FunctionDecl *decl) {
     // TODO
+    DBG_ASSERT(decl != nullptr, "FunctionDecl is null");
+    std::string func_name = decl->getNameAsString();
+    _id_to_func.emplace(std::make_pair(func_name, decl));
   }
 
-  void AddIdentifier(clang::VarDecl *decl);
+  void AddIdentifier(const clang::VarDecl *decl) {
+    DBG_ASSERT(decl != nullptr, "VarDecl is null");
+    std::string var_name = decl->getNameAsString();
+    _id_to_var.emplace(std::make_pair(var_name, decl));
+  }
 
-  void AddIdentifier(clang::TypeDecl *decl);
+  void AddIdentifier(const clang::TypeDecl *decl) {
+    DBG_ASSERT(decl != nullptr, "TypeDecl is null");
+    std::string type_name = decl->getNameAsString();
+    _id_to_type.emplace(std::make_pair(type_name, decl));
+  }
 
-  void AddIdentifier(clang::LabelDecl);
+  void AddIdentifier(const clang::LabelDecl *decl) {
+    DBG_ASSERT(decl != nullptr, "LabelDecl is null");
+    std::string label_name = decl->getNameAsString();
+    _id_to_label.emplace(std::make_pair(label_name, decl));
+  }
 
+  void AddIdentifier(const clang::ValueDecl *decl) {
+    DBG_ASSERT(decl != nullptr, "LabelDecl is null");
+    std::string label_name = decl->getNameAsString();
+    _id_to_value.emplace(std::make_pair(label_name, decl));
+  }
+
+public:
   // TODO: lookup identifier
+  /* Find function decl from current scope. */
+  const clang::FunctionDecl *FindFunctionDecl(std::string &func_name) {
+    auto num = _id_to_func.count(func_name);
+    if (num == 0) {
+      return nullptr;
+    } else if (num == 1) {
+      return _id_to_func.find(func_name)->second;
+    } else {
+      // TODO: _id_to_func may contain multi functions with the same name
+    }
+  }
+
+public:
+#define IterDump(vector, info)                      \
+  for (const auto &it : vector) {                   \
+    printf("%s%s: %s\n",                            \
+           ident.c_str(), info, it.first.c_str());  \
+  }
+
+  void Dump(int depth) {
+    std::string ident = std::string(depth * 2, ' ');
+    IterDump(_id_to_func, "Function");
+    IterDump(_id_to_var, "Variable");
+    IterDump(_id_to_value, "Value");
+    IterDump(_id_to_type, "Type");
+    IterDump(_id_to_label, "Label");
+  }
 
 };  // IdentifierManager
 
@@ -87,7 +140,7 @@ class LexicalScope {
 private:
   // ScopeId is formed by higher 30/62 bit for scope pointer, which may be
   // FunctionDecl, CompoundStmt, or LambdaExpr, and lower 2 bit for kind
-  using ScopeId = llvm::PointerIntPair<void *, 2>;
+  using ScopeId = llvm::PointerIntPair<const void *, 2>;
   // unique pointer for LexicalScope
   using LexicalScopePtr = std::unique_ptr<LexicalScope>;
   // vector of LexicalScope unique pointer
@@ -107,41 +160,44 @@ private:
 
 public:
   // Global scope
-  LexicalScope(LexicalScope *parent, clang::TranslationUnitDecl *decl)
+  LexicalScope(LexicalScope *parent, const clang::TranslationUnitDecl *decl)
     : _scope(decl, SK_GLOBAL), _parent(parent),
       _identifiers(std::make_unique<IdentifierManager>(this)) {
     DBG_ASSERT(parent == nullptr, "global scope parent is not null");
   }
 
   // Function scope
-  LexicalScope(LexicalScope *parent, clang::FunctionDecl *decl)
+  LexicalScope(LexicalScope *parent, const clang::FunctionDecl *decl)
     : _scope(decl, SK_FUNCTION), _parent(parent),
       _identifiers(std::make_unique<IdentifierManager>(this)) { }
 
   // Block scope
-  LexicalScope(LexicalScope *parent, clang::CompoundStmt *stmt)
+  LexicalScope(LexicalScope *parent, const clang::CompoundStmt *stmt)
     : _scope(stmt, SK_BLOCK), _parent(parent),
       _identifiers(std::make_unique<IdentifierManager>(this)) { }
 
   // Lambda scope
-  LexicalScope(LexicalScope *parent, clang::LambdaExpr *expr)
-    : _scope(expr, SK_LAMBDA), _parent(parent),
-      _identifiers(std::make_unique<IdentifierManager>(this)) { }
+  LexicalScope(LexicalScope *parent, const clang::LambdaExpr *expr)
+      : _scope(expr, SK_LAMBDA), _parent(parent),
+        _identifiers(std::make_unique<IdentifierManager>(this)) { }
 
 public:
   // Add identifier IdentifierManager
   template<typename _DECL>
-  void AddIdentifier(_DECL *decl) {
+  void AddIdentifier(const _DECL *decl) {
     _identifiers->AddIdentifier(decl);
   }
 
   // TODO: lookup identifier
+  const clang::FunctionDecl *FindFunctionDecl(std::string &func_name) {
+    return _identifiers->FindFunctionDecl(func_name);
+  }
 
 public:
   // Create new child scope started by _NODE, add to children vector
   // and return the new scope
   template<typename _NODE>
-  LexicalScope *NewScope(_NODE *node) {
+  LexicalScope *NewScope(const _NODE *node) {
     LexicalScopePtr scope = std::make_unique<LexicalScope>(this, node);
     _children.push_back(std::move(scope));
     return _children.back().get();
@@ -157,6 +213,18 @@ public:
   template<typename _NODE>
   _NODE *GetNode() const {
     return static_cast<_NODE*>(_scope.getPointer());
+  }
+
+public:
+  // Dump scope info
+  void Dump(bool recursive, int depth = 0) {
+    _identifiers->Dump(depth);
+    if (recursive){
+      depth++;
+      for (const auto &it : _children) {
+          it->Dump(recursive, depth);
+      }
+    }
   }
 
 };  // LexicalScope
@@ -179,16 +247,16 @@ public:
 
 public:
   // Initialize global scope with clang TranslationUnitDecl
-  void InitializeScope(clang::TranslationUnitDecl *decl) {
+  void InitializeScope(const clang::TranslationUnitDecl *decl) {
     DBG_ASSERT(_root.get() == nullptr, ("root is not null"));
     _root = std::make_unique<LexicalScope>(nullptr, decl);
     _current = _root.get();
   }
 
   // Finalize global scope
-  void FinalizeScope(clang::TranslationUnitDecl *decl) {
+  void FinalizeScope(const clang::TranslationUnitDecl *decl) {
     DBG_ASSERT(_current == _root.get(), "current scope mismatch");
-    DBG_ASSERT(_current->GetNode<clang::TranslationUnitDecl>() == decl,
+    DBG_ASSERT(_current->GetNode<const clang::TranslationUnitDecl>() == decl,
                "current scope mismatch");
   }
 
@@ -219,6 +287,14 @@ public:
     return _current;
   }
 
+  void DumpAll() const {
+    _root->Dump(true);
+  }
+
+  void DumpCurrent() const {
+    _current->Dump(false);
+  }
+
 };  // ScopeManager
 
 // class ScopeHelper
@@ -227,11 +303,12 @@ template<typename _NODE>
 class ScopeHelper {
 private:
   ScopeManager *_mgr;     // Scope manager
-  _NODE        *_node;    // node starts the scope
+  const _NODE        *_node;    // node starts the scope
 
 public:
   // Constructor, push the scope
-  ScopeHelper(ScopeManager* mgr, _NODE *node) : _node(node) {
+  ScopeHelper(ScopeManager* mgr, const _NODE *node)
+      :_mgr(mgr), _node(node) {
     _mgr->PushScope(_node);
   }
 
@@ -256,7 +333,8 @@ private:
 
 public:
   // Constructor, initialize the scope
-  ScopeHelper(ScopeManager* mgr, clang::TranslationUnitDecl *node) {
+  ScopeHelper(ScopeManager* mgr, clang::TranslationUnitDecl *node)
+  :_mgr(mgr), _node(node) {
     _mgr->InitializeScope(_node);
   }
 
@@ -269,7 +347,24 @@ public:
   LexicalScope *CurrentScope() const {
     return _mgr->CurrentScope();
   }
+
+  void DumpAll() {
+    _mgr->DumpAll();
+  }
 };  // ScopeHelper<clang::TranslationUnitDecl>
+
+template<typename _NODE>
+using ScopeHelperPtr = std::unique_ptr<ScopeHelper<_NODE>>;
+
+template<typename _NODE>
+ScopeHelperPtr<_NODE> MakeScopeHelper(ScopeManager *mgr, const _NODE *node){
+  return std::make_unique<ScopeHelper<_NODE>>(mgr, node);
+}
+
+template<typename _NODE>
+ScopeHelperPtr<_NODE> MakeScopeHelper(ScopeManager *mgr, _NODE *node){
+  return std::make_unique<ScopeHelper<_NODE>>(mgr, node);
+}
 
 }  // namespace xsca
 

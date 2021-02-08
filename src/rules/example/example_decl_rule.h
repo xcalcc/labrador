@@ -24,7 +24,6 @@ namespace example {
 // decl based rules
 #include "check_decl_example.inc"
 
-
 #define GetClass(CLASS, ...) CLASS
 using ExampleDeclHandler = DeclListHandler<ALL_DECL_RULES(GetClass)>;
 

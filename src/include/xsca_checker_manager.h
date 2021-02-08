@@ -66,9 +66,6 @@ private:
 
   void FiniCheckers();
 
-  ScopeManager *etScopeManager() const {
-  }
-
 public:
   static ScopeManager *
   GetScopeManager() {

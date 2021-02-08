@@ -13,6 +13,7 @@
 #ifndef AST_CONSUMER_INCLUDED
 #define AST_CONSUMER_INCLUDED
 
+#include "clang/AST/ASTContext.h"
 #include "xsca_defs.h"
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/AST/ASTConsumer.h"
@@ -37,13 +38,20 @@ private:
   // Handle ASTConsumer interfaces
   void Initialize(clang::ASTContext &Context) override {
     // TODO: initialize handlers
+    ScopeManager *mgr = XcalCheckerManager::GetScopeManager();
+    auto scope_hlp =
+        MakeScopeHelper<clang::TranslationUnitDecl>(mgr,_CI->getASTContext().getTranslationUnitDecl());
   }
 
   bool HandleTopLevelDecl(clang::DeclGroupRef D) override {
+    printf("Top Level\n");
     for (clang::DeclGroupRef::iterator it = D.begin(), end = D.end();
          it != end; ++it) {
       _decl_visitor.Visit(*it);
     }
+
+    ScopeManager *mgr = XcalCheckerManager::GetScopeManager();
+    mgr->DumpAll();
   }
 
   void HandleInlineFunctionDefinition(clang::FunctionDecl *D) override {
@@ -59,10 +67,13 @@ private:
 
   void HandleTranslationUnit(clang::ASTContext &Ctx) override {
     // TODO: finalize handlers
+    clang::TranslationUnitDecl* decl = Ctx.getTranslationUnitDecl();
+    auto *mgr = XcalCheckerManager::GetScopeManager();
+    auto scope_hlp = MakeScopeHelper<clang::TranslationUnitDecl>(mgr, decl);
   }
 
   void HandleTagDeclDefinition(clang::TagDecl *D) override {
-    _decl_visitor.Visit(D);
+//    _decl_visitor.Visit(D);
   }
 
   void HandleTagDeclRequiredDefinition(const clang::TagDecl *D) override {
