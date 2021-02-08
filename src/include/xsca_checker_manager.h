@@ -17,6 +17,7 @@
 #include "xsca_defs.h"
 #include "xsca_checker.h"
 #include "xsca_report.h"
+#include "scope_manager.h"
 #include <memory>
 #include <vector>
 
@@ -36,10 +37,12 @@ class XcalCheckerManager {
 private:
   std::unique_ptr<XcalReport>                        _report;
   std::unique_ptr<XcalChecker>                       _dump_checker;
+  std::unique_ptr<ScopeManager>                      _scope_mgr;
   std::vector< std::unique_ptr<XcalChecker> >        _checkers;
   std::vector< std::unique_ptr<XcalCheckerFactory> > _factories;
 
-  XcalCheckerManager() {}
+  XcalCheckerManager()
+    : _scope_mgr(std::make_unique<ScopeManager>()) {}
   ~XcalCheckerManager() {}
 
   XcalCheckerManager(const XcalCheckerManager&)
@@ -63,7 +66,16 @@ private:
 
   void FiniCheckers();
 
+  ScopeManager *etScopeManager() const {
+  }
+
 public:
+  static ScopeManager *
+  GetScopeManager() {
+    DBG_ASSERT(_instance._scope_mgr.get() != nullptr, "scope manager is null");
+    return _instance._scope_mgr.get();
+  }
+
   static std::unique_ptr<clang::ASTConsumer>
   Initialize(clang::CompilerInstance &CI, llvm::StringRef InFile) {
     return _instance.InitCheckers(CI, InFile);
