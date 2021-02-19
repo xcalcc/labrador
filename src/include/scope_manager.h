@@ -116,20 +116,22 @@ public:
     }
   }
 
-public:
-#define IterDump(vector, info)                      \
-  for (const auto &it : vector) {                   \
-    printf("%s%s: %s\n",                            \
-           ident.c_str(), info, it.first.c_str());  \
+private:
+  template<typename _MAP>
+  static void Dump(int depth, const _MAP &map, const char* name) {
+    for (const auto &it : map) {
+      printf("%*s%s: %s\n",
+             depth, " ", name, it.first.c_str());
+    }
   }
 
-  void Dump(int depth) {
-    std::string ident = std::string(depth * 2, ' ');
-    IterDump(_id_to_func, "Function");
-    IterDump(_id_to_var, "Variable");
-    IterDump(_id_to_value, "Value");
-    IterDump(_id_to_type, "Type");
-    IterDump(_id_to_label, "Label");
+public:
+  void Dump(int depth) const {
+    Dump(depth, _id_to_func, "Function");
+    Dump(depth, _id_to_var, "Variable");
+    Dump(depth, _id_to_value, "Value");
+    Dump(depth, _id_to_type, "Type");
+    Dump(depth, _id_to_label, "Label");
   }
 
 };  // IdentifierManager
@@ -352,19 +354,6 @@ public:
     _mgr->DumpAll();
   }
 };  // ScopeHelper<clang::TranslationUnitDecl>
-
-template<typename _NODE>
-using ScopeHelperPtr = std::unique_ptr<ScopeHelper<_NODE>>;
-
-template<typename _NODE>
-ScopeHelperPtr<_NODE> MakeScopeHelper(ScopeManager *mgr, const _NODE *node){
-  return std::make_unique<ScopeHelper<_NODE>>(mgr, node);
-}
-
-template<typename _NODE>
-ScopeHelperPtr<_NODE> MakeScopeHelper(ScopeManager *mgr, _NODE *node){
-  return std::make_unique<ScopeHelper<_NODE>>(mgr, node);
-}
 
 }  // namespace xsca
 

@@ -88,7 +88,9 @@ public:
 
     // Add FunctionDecl to current lexical scope.
     scope_mgr->CurrentScope()->AddIdentifier<clang::FunctionDecl>(decl);
-    auto scope_hlp = MakeScopeHelper<clang::FunctionDecl>(scope_mgr, decl);
+
+    // setup function scope
+    ScopeHelper<clang::FunctionDecl> scope(scope_mgr, decl);
 
     _decl_handler.VisitFunction(decl);
     _type_visitor.Visit(decl->clang::ValueDecl::getType().getTypePtr());

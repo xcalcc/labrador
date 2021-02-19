@@ -46,7 +46,7 @@ public:
 
   void VisitCompoundStmt(const clang::CompoundStmt *stmt) {
     auto scope_mgr = XcalCheckerManager::GetScopeManager();
-    auto scope_hlp = MakeScopeHelper<clang::CompoundStmt>(scope_mgr, stmt);
+    ScopeHelper<clang::CompoundStmt> scope(scope_mgr, stmt);
 
     _stmt_handler.VisitCompoundStmt(stmt);
     for (auto child : stmt->clang::Stmt::children()) {

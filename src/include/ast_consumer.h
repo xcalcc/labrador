@@ -38,9 +38,10 @@ private:
   // Handle ASTConsumer interfaces
   void Initialize(clang::ASTContext &Context) override {
     // TODO: initialize handlers
+
+    // initialize global scope
     ScopeManager *mgr = XcalCheckerManager::GetScopeManager();
-    auto scope_hlp =
-        MakeScopeHelper<clang::TranslationUnitDecl>(mgr,_CI->getASTContext().getTranslationUnitDecl());
+    mgr->InitializeScope(_CI->getASTContext().getTranslationUnitDecl());
   }
 
   bool HandleTopLevelDecl(clang::DeclGroupRef D) override {
@@ -49,62 +50,61 @@ private:
          it != end; ++it) {
       _decl_visitor.Visit(*it);
     }
-
-    ScopeManager *mgr = XcalCheckerManager::GetScopeManager();
-    mgr->DumpAll();
   }
 
   void HandleInlineFunctionDefinition(clang::FunctionDecl *D) override {
-    _decl_visitor.VisitFunction(D);
+    //_decl_visitor.VisitFunction(D);
   }
 
   void HandleInterestingDecl(clang::DeclGroupRef D) override {
-    for (clang::DeclGroupRef::iterator it = D.begin(), end = D.end();
-         it != end; ++it) {
-      _decl_visitor.Visit(*it);
-    }
+    //for (clang::DeclGroupRef::iterator it = D.begin(), end = D.end();
+    //     it != end; ++it) {
+    //  _decl_visitor.Visit(*it);
+    //}
   }
 
   void HandleTranslationUnit(clang::ASTContext &Ctx) override {
     // TODO: finalize handlers
     clang::TranslationUnitDecl* decl = Ctx.getTranslationUnitDecl();
-    auto *mgr = XcalCheckerManager::GetScopeManager();
-    auto scope_hlp = MakeScopeHelper<clang::TranslationUnitDecl>(mgr, decl);
+    ScopeManager *mgr = XcalCheckerManager::GetScopeManager();
+    mgr->DumpAll();
+
+    mgr->FinalizeScope(decl);
   }
 
   void HandleTagDeclDefinition(clang::TagDecl *D) override {
-//    _decl_visitor.Visit(D);
+    //_decl_visitor.Visit(D);
   }
 
   void HandleTagDeclRequiredDefinition(const clang::TagDecl *D) override {
-    _decl_visitor.Visit(D);
+    //_decl_visitor.Visit(D);
   }
 
   void HandleCXXImplicitFunctionInstantiation(clang::FunctionDecl *D) override {
-    _decl_visitor.VisitFunction(D);
+    //_decl_visitor.VisitFunction(D);
   }
 
   void HandleTopLevelDeclInObjCContainer(clang::DeclGroupRef D) override {
-    for (clang::DeclGroupRef::iterator it = D.begin(), end = D.end();
-         it != end; ++it) {
-      _decl_visitor.Visit(*it);
-    }
+    //for (clang::DeclGroupRef::iterator it = D.begin(), end = D.end();
+    //     it != end; ++it) {
+    //  _decl_visitor.Visit(*it);
+    //}
   }
 
   void HandleImplicitImportDecl(clang::ImportDecl *D) override {
-    _decl_visitor.VisitImport(D);
+    //_decl_visitor.VisitImport(D);
   }
 
   void CompleteTentativeDefinition(clang::VarDecl *D) override {
-    _decl_visitor.VisitVar(D);
+    //_decl_visitor.VisitVar(D);
   }
 
   void CompleteExternalDeclaration(clang::VarDecl *D) override {
-    _decl_visitor.VisitVar(D);
+    //_decl_visitor.VisitVar(D);
   }
 
   void AssignInheritanceModel(clang::CXXRecordDecl *RD) override {
-    _decl_visitor.VisitCXXRecord(RD);
+    //_decl_visitor.VisitCXXRecord(RD);
   }
 
   void HandleCXXStaticMemberVarInstantiation(clang::VarDecl *D) override {
@@ -112,7 +112,7 @@ private:
   }
 
   void HandleVTable(clang::CXXRecordDecl *RD) override {
-    _decl_visitor.VisitCXXRecord(RD);
+    //_decl_visitor.VisitCXXRecord(RD);
   }
 };  // XcalAstConsumer
 
