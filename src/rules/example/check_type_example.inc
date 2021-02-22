@@ -9,7 +9,6 @@
 //
 // example to describe how to write checker which checks clang Type
 //
-
 class CheckTypeExample : public TypeNullHandler {
 public:
   ~CheckTypeExample() {
@@ -18,7 +17,7 @@ public:
 
 public:
   void VisitEnum(const clang::EnumType *type) {
-    printf("Hit an enum type.\n");
+//    printf("Hit an enum type.\n");
   }
 
 };  // CheckTypeExample

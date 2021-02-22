@@ -74,6 +74,12 @@ public:
   }
 
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
+    auto scope_mgr = XcalCheckerManager::GetScopeManager();
+
+    // Add CXXRecord to current lexical scope.
+    scope_mgr->CurrentScope()->
+        AddIdentifier<clang::TypeDecl>(clang::dyn_cast<clang::TypeDecl>(decl));
+
     _decl_handler.VisitCXXRecord(decl);
     _type_visitor.Visit(decl->getTypeForDecl());
   }

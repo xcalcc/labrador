@@ -28,8 +28,8 @@ public:
     auto scope_mgr = XcalCheckerManager::GetScopeManager();
     for (const auto &it : decl->enumerators()) {
       if (clang::dyn_cast<clang::ValueDecl>(it)) {
-        scope_mgr->CurrentScope()->
-          AddIdentifier<clang::ValueDecl>(clang::dyn_cast<clang::ValueDecl>(it));
+        scope_mgr->CurrentScope()->AddIdentifier<clang::ValueDecl>(
+            clang::dyn_cast<clang::ValueDecl>(it));
       } else {
         printf("Cast failed\n");
       }
@@ -43,8 +43,8 @@ public:
     /* Add FuncParamDecl to the lexical scope. */
     for (const auto &it : decl->parameters()) {
       if (clang::dyn_cast<clang::VarDecl>(it)) {
-        scope_mgr->CurrentScope()->
-            AddIdentifier<clang::VarDecl>(clang::dyn_cast<clang::VarDecl>(it));
+        scope_mgr->CurrentScope()->AddIdentifier<clang::VarDecl>(
+            clang::dyn_cast<clang::VarDecl>(it));
       }
     }
   }
@@ -57,12 +57,12 @@ public:
   }
 
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
-    printf("Hit a CXXRecord.\n");
+    auto scope_mgr = XcalCheckerManager::GetScopeManager();
+    for (const auto &it : decl->fields()) {
+      scope_mgr->CurrentScope()->AddIdentifier<clang::FieldDecl>(it);
+    }
   }
 
-  void VisitRecord(const clang::RecordDecl *decl) {
-    printf("Hit a Record.\n");
-  }
+  void VisitRecord(const clang::RecordDecl *decl) { printf("Hit a Record.\n"); }
 
-
-};  // CheckDeclExample
+}; // CheckDeclExample

@@ -39,13 +39,17 @@ private:
   _ASTHandler              _ast_handler;
   _PPHandler               _pp_handler;
 
+  std::function<void()>      _checkCallBack;
 public:
   XcalCheckerTmpl(XcalCheckerManager *mgr)
       : XcalChecker(mgr),
         _CI(NULL),
+        _checkCallBack([](){}),
         _ast_handler(_decl_handler, _stmt_handler, _type_handler) {}
 
-  ~XcalCheckerTmpl() {}
+  ~XcalCheckerTmpl() {
+    Finalize();
+  }
 
 public:
   // Handle XcalChecker interfaces
@@ -55,12 +59,21 @@ public:
     _CI = CI;
   }
 
+  void Finalize() override {
+    TRACE0();
+    _checkCallBack();
+  }
+
   std::unique_ptr<clang::ASTConsumer> GetAstConsumer() override {
     return std::make_unique<_ASTConsumer>(_ast_handler, _CI);
   }
 
   std::unique_ptr<clang::PPCallbacks> GetPPCallbacks() override {
     return std::make_unique<_PPCallback>(_pp_handler, _CI);
+  }
+
+  void SetCheckCallBack(std::function<void()> checkCallBack) {
+    _checkCallBack = checkCallBack;
   }
 
 };  // XcalCheckerTmpl

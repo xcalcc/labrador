@@ -16,6 +16,7 @@
 #include "xsca_defs.h"
 #include "llvm/ADT/PointerIntPair.h"
 #include "clang/AST/Decl.h"
+#include <bitset>
 #include <vector>
 #include <unordered_map>
 
@@ -40,7 +41,6 @@ enum ScopeKind {
   SK_FUNCTION = 1,          // function scope
   SK_BLOCK = 2,             // lexical scope
   SK_LAMBDA = 3,            // lambda function scope
-  SK_ENUM = 4,
 };  // ScopeKind
 
 class LexicalScope;
@@ -59,6 +59,9 @@ private:
   std::unordered_multimap<std::string, const clang::TypeDecl*>     _id_to_type;
   // map identifier to LabelDecl
   std::unordered_multimap<std::string, const clang::LabelDecl*>    _id_to_label;
+  // map identifier to FieldDecl
+  std::unordered_multimap<std::string, const clang::FieldDecl*>    _id_to_field;
+
   // current scope, seems useless. TODO: remove it later
   LexicalScope *_scope;
 
@@ -102,6 +105,12 @@ public:
     _id_to_value.emplace(std::make_pair(label_name, decl));
   }
 
+  void AddIdentifier(const clang::FieldDecl *decl) {
+    DBG_ASSERT(decl != nullptr, "FieldDecl is null");
+    std::string field_name = decl->getNameAsString();
+    _id_to_field.emplace(std::make_pair(field_name, decl));
+  }
+
 public:
   // TODO: lookup identifier
   /* Find function decl from current scope. */
@@ -116,6 +125,12 @@ public:
     }
   }
 
+  /* Check if the identifier is in the function map. */
+  bool HasFunctionName(const std::string &func_name) {
+    int num = _id_to_func.count(func_name);
+    return num;
+  }
+
 private:
   template<typename _MAP>
   static void Dump(int depth, const _MAP &map, const char* name) {
@@ -125,13 +140,47 @@ private:
     }
   }
 
+  template<typename _MAP>
+   void TraverseMap(const _MAP &map,
+                   const std::function<void(const std::string&, IdentifierManager *)>& rule) {
+    for (const auto &it : map) {
+      rule(it.first, this);
+    }
+  }
+
 public:
+  enum class TraverseExclude {
+    FUNCTION=1,
+    VAR=2,
+    VALUE=4,
+    TYPE=8,
+    LABEL=16,
+    FIELD=32
+  };
+
   void Dump(int depth) const {
     Dump(depth, _id_to_func, "Function");
     Dump(depth, _id_to_var, "Variable");
     Dump(depth, _id_to_value, "Value");
     Dump(depth, _id_to_type, "Type");
     Dump(depth, _id_to_label, "Label");
+    Dump(depth, _id_to_field, "Field");
+  }
+
+  void TraverseAll(const std::function<void(std::string, IdentifierManager *)>& rule,
+              std::bitset<6> exclude) {
+    if (!exclude[0])
+      TraverseMap(_id_to_func,  rule);
+    if (!exclude[1])
+      TraverseMap(_id_to_var,   rule);
+    if (!exclude[2])
+      TraverseMap(_id_to_value, rule);
+    if (!exclude[3])
+      TraverseMap(_id_to_type,  rule);
+    if (!exclude[4])
+      TraverseMap(_id_to_label, rule);
+    if (!exclude[5])
+      TraverseMap(_id_to_field, rule);
   }
 
 };  // IdentifierManager
@@ -229,6 +278,14 @@ public:
     }
   }
 
+  void TraverseAll(const std::function<void(const std::string&, IdentifierManager *)>& rule,
+                   std::bitset<6> exclude) {
+    _identifiers->TraverseAll(rule, exclude);
+    for (const auto &it : _children) {
+      it->TraverseAll(rule, exclude);
+    }
+  }
+
 };  // LexicalScope
 
 // class ScopeManager
@@ -293,10 +350,6 @@ public:
     _root->Dump(true);
   }
 
-  void DumpCurrent() const {
-    _current->Dump(false);
-  }
-
 };  // ScopeManager
 
 // class ScopeHelper
@@ -304,7 +357,7 @@ public:
 template<typename _NODE>
 class ScopeHelper {
 private:
-  ScopeManager *_mgr;     // Scope manager
+  ScopeManager       *_mgr;     // Scope manager
   const _NODE        *_node;    // node starts the scope
 
 public:
