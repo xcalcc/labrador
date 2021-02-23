@@ -61,7 +61,7 @@ private:
   // map identifier to FieldDecl
   std::unordered_multimap<std::string, const clang::FieldDecl*>    _id_to_field;
 
-  // current scope, seems useless. TODO: remove it later
+  // current scope
   LexicalScope *_scope;
 
   IdentifierManager(const IdentifierManager&)
@@ -129,6 +129,9 @@ public:
     return _id_to_func.count(func_name) > 0;
   }
 
+  /* Check if the identifier is in the variable map. */
+  bool HasVariableName(const std::string &var_name, bool recursive=false) const;
+
 private:
   template<typename _MAP>
   static void Dump(int depth, const _MAP &map, const char* name) {
@@ -144,7 +147,7 @@ private:
       rule(it.first, this);
     }
   }
-
+  
 public:
   enum IdentifierKind {
     FUNCTION = 0x01,
@@ -250,6 +253,8 @@ public:
     return _identifiers->HasFunctionName(func_name);
   }
 
+  bool HasVariableName(const std::string &var_name, bool recursive=false) const;
+
 public:
   // Create new child scope started by _NODE, add to children vector
   // and return the new scope
@@ -272,9 +277,17 @@ public:
     return static_cast<_NODE*>(_scope.getPointer());
   }
 
+  const LexicalScopeVec &Children() const {
+    return _children;
+  }
+
+  ScopeKind GetScopeKind() const {
+    return static_cast<ScopeKind>(_scope.getInt());
+  }
+
 public:
   // Dump scope info
-  void Dump(bool recursive, int depth = 0) {
+  void Dump(bool recursive, int depth = 1) {
     _identifiers->Dump(depth);
     if (recursive){
       depth++;

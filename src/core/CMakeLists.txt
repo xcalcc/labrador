@@ -5,4 +5,5 @@ add_library (xscaCore STATIC
   type_dump_handler.cpp
   xsca_checker_manager.cpp
   xsca_opts.cpp
-  )
+  scope_manager.cpp
+)

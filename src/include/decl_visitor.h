@@ -97,7 +97,11 @@ public:
     _type_visitor.Visit(decl->clang::ValueDecl::getType().getTypePtr());
 
     if (decl->doesThisDeclarationHaveABody()) {
-      _stmt_visitor.Visit(decl->getBody());
+//      _stmt_visitor.Visit(decl->getBody());
+      for (const auto &it :
+           clang::dyn_cast<clang::CompoundStmt>(decl->getBody())->body()) {
+        _stmt_visitor.Visit(it);
+      }
     }
   }
 

@@ -9,28 +9,46 @@
 //
 // example to describe how to write a checker to check clang Decl.
 //
+#include "scope_manager.h"
 #include <clang/AST/Decl.h>
 class CheckDeclExample : public DeclNullHandler {
 public:
-  ~CheckDeclExample() {
-    TRACE0();
-  }
+  ~CheckDeclExample() { TRACE0(); }
 
 private:
   void CheckFunctionNameReuse() {
     auto scope_mgr = XcalCheckerManager::GetScopeManager();
     auto top_scope = scope_mgr->GlobalScope();
     top_scope->TraverseAll<IdentifierManager::IdentifierKind::NON_FUNC>(
-      [&top_scope](const std::string &x, IdentifierManager *id_mgr) -> void {
-        if (top_scope->HasFunctionName(x)) {
-          printf("Function name reused: %s\n", x.c_str());
-        }
-      });
+        [&top_scope](const std::string &x, IdentifierManager *id_mgr) -> void {
+          if (top_scope->HasFunctionName(x)) {
+            printf("Function name reused: %s\n", x.c_str());
+          }
+        });
+  }
+
+  void CheckVariableNameReuse() {
+    using IdentifierKind = IdentifierManager::IdentifierKind;
+    auto scope_mgr = XcalCheckerManager::GetScopeManager();
+    auto top_scope = scope_mgr->GlobalScope();
+    constexpr uint32_t kind =
+        IdentifierKind::VALUE | IdentifierKind ::LABEL | IdentifierKind::FIELD;
+    for (const auto &it : top_scope->Children()) {
+      if (it->GetScopeKind() == SK_FUNCTION) {
+        it->TraverseAll<kind>(
+            [&it](const std::string &x, IdentifierManager *id_mgr) -> void {
+              if (it->HasVariableName(x)) {
+                printf("Variable name reused: %s\n", x.c_str());
+              }
+            });
+      }
+    }
   }
 
 public:
   void Finalize() {
     CheckFunctionNameReuse();
+    CheckVariableNameReuse();
   }
 
   void VisitLabel(const clang::LabelDecl *decl) {
@@ -77,8 +95,8 @@ public:
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
     auto scope_mgr = XcalCheckerManager::GetScopeManager();
     // Add CXXRecord to current lexical scope.
-    scope_mgr->CurrentScope()->
-        AddIdentifier<clang::TypeDecl>(clang::cast<clang::TypeDecl>(decl));
+    scope_mgr->CurrentScope()->AddIdentifier<clang::TypeDecl>(
+        clang::cast<clang::TypeDecl>(decl));
 
     // Add field to current lexical scope.
     for (const auto &it : decl->fields()) {
