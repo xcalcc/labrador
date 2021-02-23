@@ -16,7 +16,6 @@
 #include "example_type_rule.h"
 #include "example_pp_rule.h"
 #include "xsca_checker_tmpl.h"
-#include "check_rules.hpp"
 
 // used by xsca_link.cpp to make sure this library is linked correctly
 int __ExampleRuleLinked__;
@@ -32,9 +31,7 @@ class ExampleCheckerFactory : public XcalCheckerFactory {
 public:
   std::unique_ptr<XcalChecker>
   CreateChecker(XcalCheckerManager *mgr) {
-    auto checker = std::make_unique<ExampleChecker>(mgr);
-    checker->SetCheckCallBack(RunCheck);
-    return checker;
+    return std::make_unique<ExampleChecker>(mgr);
   }
 };
 

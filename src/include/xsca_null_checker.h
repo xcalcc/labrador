@@ -55,10 +55,6 @@ public:
     _CI = CI;
   }
 
-  void Finalize() override {
-    TRACE0();
-  }
-
   std::unique_ptr<clang::ASTConsumer> GetAstConsumer() override {
     return std::make_unique<XcalNullConsumer>(_decl_handler, _CI);
   }

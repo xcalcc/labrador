@@ -25,6 +25,12 @@ private:
   DeclListHandler<_Rest...> _rest;
 
 public:
+  // finalize handler
+  void Finalize() {
+    _first.Finalize();
+    _rest.Finalize();
+  }
+
   // generate Visit* function from DeclNodes.inc
   #define DECL(DERIVED, BASE) \
       void Visit##DERIVED(const clang::DERIVED##Decl *decl) { \
@@ -45,6 +51,11 @@ private:
   _First _first;
 
 public:
+  // finalize handler
+  void Finalize() {
+    _first.Finalize();
+  }
+
   // generate Visit* function from DeclNodes.inc
   #define DECL(DERIVED, BASE) \
       void Visit##DERIVED(const clang::DERIVED##Decl *decl) { \

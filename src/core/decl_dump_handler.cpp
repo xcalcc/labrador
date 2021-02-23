@@ -14,6 +14,11 @@
 
 namespace xsca {
 
+// finalize dump handler
+void
+XcalDeclDumpHandler::Finalize() {
+}
+
 // generate function body from DeclNodes.inc
 #define DECL(DERIVED, BASE) \
     void \

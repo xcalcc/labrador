@@ -27,6 +27,9 @@ namespace xsca {
 class XcalDeclDumpHandler {
 
 public:
+  // finalize handler
+  void Finalize();
+
   // generate function prototype from DeclNodes.inc
   #define DECL(DERIVED, BASE) \
       void Visit##DERIVED(const clang::DERIVED##Decl *decl);

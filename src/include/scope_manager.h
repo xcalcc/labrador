@@ -16,7 +16,6 @@
 #include "xsca_defs.h"
 #include "llvm/ADT/PointerIntPair.h"
 #include "clang/AST/Decl.h"
-#include <bitset>
 #include <vector>
 #include <unordered_map>
 
@@ -127,8 +126,7 @@ public:
 
   /* Check if the identifier is in the function map. */
   bool HasFunctionName(const std::string &func_name) {
-    int num = _id_to_func.count(func_name);
-    return num;
+    return _id_to_func.count(func_name) > 0;
   }
 
 private:
@@ -140,22 +138,25 @@ private:
     }
   }
 
-  template<typename _MAP>
-   void TraverseMap(const _MAP &map,
-                   const std::function<void(const std::string&, IdentifierManager *)>& rule) {
+  template<typename _MAP, typename _RULE>
+   void TraverseMap(const _MAP &map, const _RULE& rule) {
     for (const auto &it : map) {
       rule(it.first, this);
     }
   }
 
 public:
-  enum class TraverseExclude {
-    FUNCTION=1,
-    VAR=2,
-    VALUE=4,
-    TYPE=8,
-    LABEL=16,
-    FIELD=32
+  enum IdentifierKind {
+    FUNCTION = 0x01,
+    VAR      = 0x02,
+    VALUE    = 0x04,
+    TYPE     = 0x08,
+    LABEL    = 0x10,
+    FIELD    = 0x20,
+    // combinations for readability
+    NONE     = 0x00,
+    ALL      = 0xff,
+    NON_FUNC = (ALL & (~FUNCTION)),
   };
 
   void Dump(int depth) const {
@@ -167,19 +168,19 @@ public:
     Dump(depth, _id_to_field, "Field");
   }
 
-  void TraverseAll(const std::function<void(std::string, IdentifierManager *)>& rule,
-              std::bitset<6> exclude) {
-    if (!exclude[0])
+  template<uint32_t _IDKIND, typename _RULE>
+  void TraverseAll(const _RULE& rule) {
+    if ((_IDKIND & IdentifierKind::FUNCTION) != 0)
       TraverseMap(_id_to_func,  rule);
-    if (!exclude[1])
+    if ((_IDKIND & IdentifierKind::VAR) != 0)
       TraverseMap(_id_to_var,   rule);
-    if (!exclude[2])
+    if ((_IDKIND & IdentifierKind::VALUE) != 0)
       TraverseMap(_id_to_value, rule);
-    if (!exclude[3])
+    if ((_IDKIND & IdentifierKind::TYPE) != 0)
       TraverseMap(_id_to_type,  rule);
-    if (!exclude[4])
+    if ((_IDKIND & IdentifierKind::LABEL) != 0)
       TraverseMap(_id_to_label, rule);
-    if (!exclude[5])
+    if ((_IDKIND & IdentifierKind::FIELD) != 0)
       TraverseMap(_id_to_field, rule);
   }
 
@@ -244,6 +245,11 @@ public:
     return _identifiers->FindFunctionDecl(func_name);
   }
 
+  /* Check if the identifier is in the function map. */
+  bool HasFunctionName(const std::string &func_name) {
+    return _identifiers->HasFunctionName(func_name);
+  }
+
 public:
   // Create new child scope started by _NODE, add to children vector
   // and return the new scope
@@ -278,11 +284,11 @@ public:
     }
   }
 
-  void TraverseAll(const std::function<void(const std::string&, IdentifierManager *)>& rule,
-                   std::bitset<6> exclude) {
-    _identifiers->TraverseAll(rule, exclude);
+  template<uint32_t _IDKIND>
+  void TraverseAll(const std::function<void(const std::string&, IdentifierManager *)>& rule) {
+    _identifiers->TraverseAll<_IDKIND>(rule);
     for (const auto &it : _children) {
-      it->TraverseAll(rule, exclude);
+      it->TraverseAll<_IDKIND>(rule);
     }
   }
 

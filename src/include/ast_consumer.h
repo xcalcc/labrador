@@ -70,6 +70,8 @@ private:
     mgr->DumpAll();
 
     mgr->FinalizeScope(decl);
+    // finalize decl visitor
+    _decl_visitor.Finalize();
   }
 
   void HandleTagDeclDefinition(clang::TagDecl *D) override {

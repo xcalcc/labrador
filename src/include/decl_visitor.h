@@ -38,6 +38,10 @@ public:
         _stmt_visitor(stmt_handler, *this),
         _type_visitor(type_handler) {}
 
+  void Finalize() {
+    _decl_handler.Finalize();
+  }
+
   void VisitClassScopeFunctionSpecialization(
            const clang::ClassScopeFunctionSpecializationDecl *decl) {
     VisitCXXRecord(clang::cast<clang::CXXRecordDecl>(decl));
@@ -74,12 +78,6 @@ public:
   }
 
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
-    auto scope_mgr = XcalCheckerManager::GetScopeManager();
-
-    // Add CXXRecord to current lexical scope.
-    scope_mgr->CurrentScope()->
-        AddIdentifier<clang::TypeDecl>(clang::dyn_cast<clang::TypeDecl>(decl));
-
     _decl_handler.VisitCXXRecord(decl);
     _type_visitor.Visit(decl->getTypeForDecl());
   }
@@ -91,9 +89,6 @@ public:
 
   void VisitFunction(const clang::FunctionDecl *decl) {
     auto scope_mgr = XcalCheckerManager::GetScopeManager();
-
-    // Add FunctionDecl to current lexical scope.
-    scope_mgr->CurrentScope()->AddIdentifier<clang::FunctionDecl>(decl);
 
     // setup function scope
     ScopeHelper<clang::FunctionDecl> scope(scope_mgr, decl);

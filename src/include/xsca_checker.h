@@ -37,7 +37,6 @@ public:
 public:
   virtual void Initialize(clang::CompilerInstance *CI,
                           llvm::StringRef InFile) = 0;
-  virtual void Finalize() = 0;
   virtual std::unique_ptr<clang::ASTConsumer> GetAstConsumer() = 0;
   virtual std::unique_ptr<clang::PPCallbacks> GetPPCallbacks() = 0;
 

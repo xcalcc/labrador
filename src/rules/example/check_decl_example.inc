@@ -16,7 +16,23 @@ public:
     TRACE0();
   }
 
+private:
+  void CheckFunctionNameReuse() {
+    auto scope_mgr = XcalCheckerManager::GetScopeManager();
+    auto top_scope = scope_mgr->GlobalScope();
+    top_scope->TraverseAll<IdentifierManager::IdentifierKind::NON_FUNC>(
+      [&top_scope](const std::string &x, IdentifierManager *id_mgr) -> void {
+        if (top_scope->HasFunctionName(x)) {
+          printf("Function name reused: %s\n", x.c_str());
+        }
+      });
+  }
+
 public:
+  void Finalize() {
+    CheckFunctionNameReuse();
+  }
+
   void VisitLabel(const clang::LabelDecl *decl) {
     printf("Hit a LabelDecl.\n");
     auto scope_mgr = XcalCheckerManager::GetScopeManager();
@@ -39,6 +55,8 @@ public:
   void VisitFunction(const clang::FunctionDecl *decl) {
     printf("Hit a Function Decl.\n");
     auto scope_mgr = XcalCheckerManager::GetScopeManager();
+    /* Add FunctionDecl to global scope */
+    scope_mgr->GlobalScope()->AddIdentifier<clang::FunctionDecl>(decl);
 
     /* Add FuncParamDecl to the lexical scope. */
     for (const auto &it : decl->parameters()) {
@@ -58,6 +76,11 @@ public:
 
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
     auto scope_mgr = XcalCheckerManager::GetScopeManager();
+    // Add CXXRecord to current lexical scope.
+    scope_mgr->CurrentScope()->
+        AddIdentifier<clang::TypeDecl>(clang::cast<clang::TypeDecl>(decl));
+
+    // Add field to current lexical scope.
     for (const auto &it : decl->fields()) {
       scope_mgr->CurrentScope()->AddIdentifier<clang::FieldDecl>(it);
     }
