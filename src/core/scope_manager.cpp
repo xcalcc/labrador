@@ -14,7 +14,6 @@
 
 namespace xsca {
 
-
 /* Check if the identifier is in the variable map. */
 bool IdentifierManager::HasVariableName(const std::string &var_name,
                                         bool recursive) const {
@@ -29,7 +28,8 @@ bool IdentifierManager::HasVariableName(const std::string &var_name,
   return num;
 }
 
-bool LexicalScope::HasVariableName(const std::string &var_name, bool recursive) const {
+bool LexicalScope::HasVariableName(const std::string &var_name,
+                                   bool recursive) const {
   bool res = _identifiers->HasVariableName(var_name, recursive);
   return res;
 }

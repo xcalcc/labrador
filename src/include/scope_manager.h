@@ -142,12 +142,12 @@ private:
   }
 
   template<typename _MAP, typename _RULE>
-   void TraverseMap(const _MAP &map, const _RULE& rule) {
+  void TraverseMap(const _MAP &map, const _RULE &rule) {
     for (const auto &it : map) {
       rule(it.first, this);
     }
   }
-  
+
 public:
   enum IdentifierKind {
     FUNCTION = 0x01,
