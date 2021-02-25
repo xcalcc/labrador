@@ -1,5 +1,18 @@
 #! /usr/bin/env python3
+#
+# Copyright (C) 2020-2021 Xcalibyte Limited, Inc.  All Rights Reserved.
+#
+
+#
+# ====================================================================
+# run_test.py
+# ====================================================================
+#
+# The driver to run the checking routines.
+#
+
 import os
+import shutil
 import sys
 import argparse
 import subprocess
@@ -8,6 +21,9 @@ import coloredlogs, logging
 # set up logger
 logger = logging.getLogger(__name__)
 coloredlogs.install(level='DEBUG', logger=logger)
+
+# set tmp result directory
+TMP_RESULT = "./tmp"
 
 
 def parse_dir(cur_dir):
@@ -22,6 +38,7 @@ def parse_file(cur_dir):
     subdirs = parse_dir(cur_dir)
     files = []
     for i in subdirs:
+        os.makedirs(os.path.join(TMP_RESULT, i), exist_ok=True)
         tmp = parse_dir(os.path.join(i, "Src"))
         files += tmp
     return files
@@ -37,29 +54,41 @@ def make_masters(dirs):
         os.mkdir(os.path.join(dir, "Masters"))
 
 
-def check_routine(cmd, file):
+def check_routine(cmd, file, save_as_std):
     path_lst = file.split("/")
     file_name = path_lst[-1].split(".")[0]
+
     master_dir = os.path.join(path_lst[0], path_lst[1], "Masters")
     stdout_file = os.path.join(master_dir, file_name + ".out")
     stderr_file = os.path.join(master_dir, file_name + ".err")
 
-    cmd += " > " + stdout_file + " 2>" + stderr_file
+    out_file = os.path.join(TMP_RESULT, path_lst[0], path_lst[1], file_name + ".out")
+    err_file = os.path.join(TMP_RESULT, path_lst[0], path_lst[1], file_name + ".err")
+
+    cmd += " > " + out_file + " 2>" + err_file
+    print(cmd)
+    # exit(0)
+
     check_process = subprocess.run(cmd, shell=True,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE)
 
+    if save_as_std:
+        shutil.copyfile(out_file, stdout_file)
+        shutil.copyfile(err_file, stderr_file)
 
-def run_check(checker, items):
+
+def run_check(checker, items, save_as_std):
+    os.makedirs(TMP_RESULT, exist_ok=True)
     cmd = checker + " -cc1 " + "-emit-llvm "
     for i in items:
+        os.makedirs(os.path.join(TMP_RESULT, i), exist_ok=True)
         files = parse_file(i)
         # print(files)
         for file in files:
             tmp_cmd = cmd + file
-            check_routine(tmp_cmd, file)
+            check_routine(tmp_cmd, file, save_as_std)
             exit(0)
-        # check_process = subprocess.Popen()
 
 
 def main(args):
@@ -72,7 +101,7 @@ def main(args):
             if os.path.exists(xsca_path):
                 if args.items:
                     items = args.items[0]
-                    run_check(xsca_path, items)
+                    run_check(xsca_path, items, args.save_as_standard)
                 else:
                     logger.error("Set the ckeck items please.")
                     exit(1)
@@ -82,6 +111,14 @@ def main(args):
         else:
             logger.error("xsca path not set.")
             exit(1)
+
+    if args.clean:
+        if os.path.exists(TMP_RESULT):
+            try:
+                shutil.rmtree(TMP_RESULT)
+            except OSError as e:
+                logger.error(e)
+                pass
 
 
 if __name__ == "__main__":
@@ -107,6 +144,9 @@ if __name__ == "__main__":
 
     parser.add_argument("-s", "--save-as-standard", action="store_true", default=False,
                         help="Save the checking result as a standard.")
+
+    parser.add_argument("-C", "--clean", action="store_true", default=False,
+                        help="Clean the checking result.")
 
     args = parser.parse_args()
 
