@@ -12,9 +12,7 @@
 
 class CheckStmtExample : public StmtNullHandler {
 public:
-  ~CheckStmtExample() {
-    TRACE0();
-  }
+  ~CheckStmtExample() { TRACE0(); }
 
 public:
   void VisitGotoStmt(const clang::GotoStmt *stmt) {
@@ -25,4 +23,20 @@ public:
     printf("Hit a block stmt.\n");
   }
 
-};  // CheckStmtExample
+  void VisitLabelStmt(const clang::LabelStmt *stmt) {
+
+    /*
+     * GJB5369 4.1.1.4
+     * Check multiple consecutive labels.
+     */
+    if (clang::dyn_cast<clang::LabelStmt>(stmt->getSubStmt())) {
+      printf("Multiple consecutive labels: %s and %s\n",
+             stmt->getDecl()->getNameAsString().c_str(),
+             clang::dyn_cast<clang::LabelStmt>(stmt->getSubStmt())
+                 ->getDecl()
+                 ->getNameAsString()
+                 .c_str());
+    }
+
+  }
+}; // CheckStmtExample

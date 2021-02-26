@@ -77,14 +77,12 @@ public:
       break;
     #define ABSTRACT_STMT(CLASS)
     # include "clang/AST/StmtNodes.inc"
-
+      
     default:
       TRACE("TODO: handle %s\n", stmt->getStmtClassName());
       break;
     }
   }
 };  // XcalStmtVisitor
-
 }  // namespace xsca
-
 #endif  // STMT_VISITOR_INCLUDED

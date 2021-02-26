@@ -41,6 +41,8 @@ private:
   std::vector< std::unique_ptr<XcalChecker> >        _checkers;
   std::vector< std::unique_ptr<XcalCheckerFactory> > _factories;
 
+  clang::SourceManager                              *_source_mgr;
+
   XcalCheckerManager()
     : _scope_mgr(std::make_unique<ScopeManager>()) {}
   ~XcalCheckerManager() {}
@@ -71,6 +73,15 @@ public:
   GetScopeManager() {
     DBG_ASSERT(_instance._scope_mgr.get() != nullptr, "scope manager is null");
     return _instance._scope_mgr.get();
+  }
+
+  static clang::SourceManager *
+  GetSourceManager() {
+    return _instance._source_mgr;
+  }
+
+  static void SetSourceManager(clang::SourceManager * mgr) {
+    _instance._source_mgr = mgr;
   }
 
   static std::unique_ptr<clang::ASTConsumer>

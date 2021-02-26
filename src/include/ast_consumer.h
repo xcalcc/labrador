@@ -42,6 +42,9 @@ private:
     // initialize global scope
     ScopeManager *mgr = XcalCheckerManager::GetScopeManager();
     mgr->InitializeScope(_CI->getASTContext().getTranslationUnitDecl());
+
+    // set source manager
+    XcalCheckerManager::SetSourceManager(&Context.getSourceManager());
   }
 
   bool HandleTopLevelDecl(clang::DeclGroupRef D) override {

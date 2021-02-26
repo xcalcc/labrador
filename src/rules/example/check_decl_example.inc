@@ -82,6 +82,17 @@ public:
         scope_mgr->CurrentScope()->AddIdentifier<clang::VarDecl>(
             clang::dyn_cast<clang::VarDecl>(it));
       }
+
+      /*
+       * GJB5369: 4.1.1.7
+       * Only type but no identifiers in function prototype.
+       */
+      if (it->getNameAsString() == "") {
+        clang::SourceManager *src_mgr = XcalCheckerManager::GetSourceManager();
+        printf("Only type but no identifiers in function %s, loc: %s\n",
+               decl->getNameAsString().c_str(),
+               it->getLocation().printToString(*src_mgr).c_str());
+      }
     }
   }
 
