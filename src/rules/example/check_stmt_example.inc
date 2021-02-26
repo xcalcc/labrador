@@ -14,17 +14,8 @@ class CheckStmtExample : public StmtNullHandler {
 public:
   ~CheckStmtExample() { TRACE0(); }
 
-public:
-  void VisitGotoStmt(const clang::GotoStmt *stmt) {
-    printf("Hit a goto stmt.\n");
-  }
-
-  void VisitCompoundStmt(const clang::CompoundStmt *stmt) {
-    printf("Hit a block stmt.\n");
-  }
-
-  void VisitLabelStmt(const clang::LabelStmt *stmt) {
-
+private:
+  void CheckConsecutiveLabels(const clang::LabelStmt *stmt) {
     /*
      * GJB5369 4.1.1.4
      * Check multiple consecutive labels.
@@ -37,6 +28,18 @@ public:
                  ->getNameAsString()
                  .c_str());
     }
+  }
 
+public:
+  void VisitGotoStmt(const clang::GotoStmt *stmt) {
+    printf("Hit a goto stmt.\n");
+  }
+
+  void VisitCompoundStmt(const clang::CompoundStmt *stmt) {
+    printf("Hit a block stmt.\n");
+  }
+
+  void VisitLabelStmt(const clang::LabelStmt *stmt) {
+    CheckConsecutiveLabels(stmt);
   }
 }; // CheckStmtExample

@@ -132,6 +132,9 @@ public:
   /* Check if the identifier is in the variable map. */
   bool HasVariableName(const std::string &var_name, bool recursive=false) const;
 
+  /* Check if the identifier is the C/C++ keywords. */
+  bool IsKeyword(const std::string &var_name) const;
+
 private:
   template<typename _MAP>
   static void Dump(int depth, const _MAP &map, const char* name) {

@@ -45,10 +45,41 @@ private:
     }
   }
 
+  /* GJB5369: 4.1.1.9
+   * redefining the keywords of C/C++ is forbidden
+   */
+  void CheckKeywordRedefine() {
+    using IdentifierKind = IdentifierManager::IdentifierKind;
+    auto scope_mgr = XcalCheckerManager::GetScopeManager();
+    auto top_scope = scope_mgr->GlobalScope();
+    top_scope->TraverseAll<IdentifierKind::VAR>(
+        [](const std::string &x, IdentifierManager *id_mgr) -> void {
+          if (id_mgr->IsKeyword(x)) {
+            printf("Redefining the keywords of C/C++ is forbidden: %s\n",
+                   x.c_str());
+          }
+        });
+  }
+
+  /* GJB5369: 4.1.1.7
+   * Only type but no identifiers in function prototype.
+   */
+  void CheckFunctionParameter(const clang::FunctionDecl *decl) {
+    for (const auto &it : decl->parameters()) {
+      if (it->getNameAsString() == "") {
+        clang::SourceManager *src_mgr = XcalCheckerManager::GetSourceManager();
+        printf("Only type but no identifiers in function %s, loc: %s\n",
+               decl->getNameAsString().c_str(),
+               it->getLocation().printToString(*src_mgr).c_str());
+      }
+    }
+  }
+
 public:
   void Finalize() {
     CheckFunctionNameReuse();
     CheckVariableNameReuse();
+    CheckKeywordRedefine();
   }
 
   void VisitLabel(const clang::LabelDecl *decl) {
@@ -82,18 +113,9 @@ public:
         scope_mgr->CurrentScope()->AddIdentifier<clang::VarDecl>(
             clang::dyn_cast<clang::VarDecl>(it));
       }
-
-      /*
-       * GJB5369: 4.1.1.7
-       * Only type but no identifiers in function prototype.
-       */
-      if (it->getNameAsString() == "") {
-        clang::SourceManager *src_mgr = XcalCheckerManager::GetSourceManager();
-        printf("Only type but no identifiers in function %s, loc: %s\n",
-               decl->getNameAsString().c_str(),
-               it->getLocation().printToString(*src_mgr).c_str());
-      }
     }
+
+    CheckFunctionParameter(decl);
   }
 
   void VisitVar(const clang::VarDecl *decl) {
