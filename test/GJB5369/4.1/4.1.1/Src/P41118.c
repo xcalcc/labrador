@@ -1,6 +1,6 @@
 /*
  * GJB5369: 4.1.1.8
- * ellipsis in the funtion's parameter list is forbidden
+ * ellipsis in the function's parameter list is forbidden
  */
 
 /* ellipsis in the parameter list is forbidden */

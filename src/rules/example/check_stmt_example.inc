@@ -21,7 +21,7 @@ private:
      * Check multiple consecutive labels.
      */
     if (clang::dyn_cast<clang::LabelStmt>(stmt->getSubStmt())) {
-      printf("Multiple consecutive labels: %s and %s\n",
+      printf("GJB5396:4.1.1.4: Multiple consecutive labels: %s and %s\n",
              stmt->getDecl()->getNameAsString().c_str(),
              clang::dyn_cast<clang::LabelStmt>(stmt->getSubStmt())
                  ->getDecl()
@@ -31,13 +31,9 @@ private:
   }
 
 public:
-  void VisitGotoStmt(const clang::GotoStmt *stmt) {
-    printf("Hit a goto stmt.\n");
-  }
+  void VisitGotoStmt(const clang::GotoStmt *stmt) {}
 
-  void VisitCompoundStmt(const clang::CompoundStmt *stmt) {
-    printf("Hit a block stmt.\n");
-  }
+  void VisitCompoundStmt(const clang::CompoundStmt *stmt) {}
 
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
