@@ -19,20 +19,6 @@ std::set<std::string> keywords{
     "new",    "template", "virtual",   "delete",
     "friend", "cout",     "cin",       "endl"};
 
-/* Check if the identifier is in the variable map. */
-bool IdentifierManager::HasVariableName(const std::string &var_name,
-                                        bool recursive) const {
-  int num = _id_to_var.count(var_name);
-  if (!recursive)
-    return num;
-  if (num == 0) {
-    for (const auto &it : _scope->Children()) {
-      num = it->HasVariableName(var_name, recursive);
-    }
-  }
-  return num;
-}
-
 bool IdentifierManager::IsKeyword(const std::string &var_name) const {
   auto res = keywords.find(var_name);
   if (res != keywords.end()) {
@@ -41,10 +27,5 @@ bool IdentifierManager::IsKeyword(const std::string &var_name) const {
   return false;
 }
 
-bool LexicalScope::HasVariableName(const std::string &var_name,
-                                   bool recursive) const {
-  bool res = _identifiers->HasVariableName(var_name, recursive);
-  return res;
-}
-
 }; // namespace xsca
+

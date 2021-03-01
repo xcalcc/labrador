@@ -130,7 +130,8 @@ public:
   }
 
   /* Check if the identifier is in the variable map. */
-  bool HasVariableName(const std::string &var_name, bool recursive=false) const;
+  template<bool _RECURSIVE>
+  bool HasVariableName(const std::string &var_name) const;
 
   /* Check if the identifier is the C/C++ keywords. */
   bool IsKeyword(const std::string &var_name) const;
@@ -256,7 +257,10 @@ public:
     return _identifiers->HasFunctionName(func_name);
   }
 
-  bool HasVariableName(const std::string &var_name, bool recursive=false) const;
+  template<bool _RECURSIVE>
+  bool HasVariableName(const std::string &var_name) const {
+    return _identifiers->HasVariableName<_RECURSIVE>(var_name);
+  }
 
 public:
   // Create new child scope started by _NODE, add to children vector
@@ -373,6 +377,22 @@ public:
   }
 
 };  // ScopeManager
+
+// IdentifierManager::HasVariableName
+// implement because it depends on the definition of ScopeManager
+template<bool _RECURSIVE> inline bool
+IdentifierManager::HasVariableName(const std::string &var_name) const {
+  bool res = _id_to_var.count(var_name) > 0;
+  if (_RECURSIVE && res == false) {
+    for (const auto &it : _scope->Children()) {
+      res = it->HasVariableName<_RECURSIVE>(var_name);
+      if (res)
+        break;
+    }
+  }
+  return res;
+}  // IdentifierManager::HasVariableName
+
 
 // class ScopeHelper
 // helper class to push and pop scope

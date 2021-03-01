@@ -38,7 +38,7 @@ private:
       if (it->GetScopeKind() == SK_FUNCTION) {
         it->TraverseAll<kind>([&it](const std::string &x,
                                     IdentifierManager *id_mgr) -> void {
-          if (it->HasVariableName(x)) {
+          if (it->HasVariableName<false>(x)) {
             printf("GJB5396:4.1.1.2: Variable name reused: %s\n", x.c_str());
           }
         });
