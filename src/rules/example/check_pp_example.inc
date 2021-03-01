@@ -18,24 +18,22 @@
 // #include "stdio.h"   // not compliance
 //
 
+#include <clang/Lex/Preprocessor.h>
 class CheckPPExample : public PPNullHandler {
 public:
-  ~CheckPPExample() {
-    TRACE0();
-  }
+  ~CheckPPExample() {}
 
 public:
   void InclusionDirective(clang::SourceLocation DirectiveLoc,
-           const clang::Token &IncludeToken,
-           llvm::StringRef IncludedFilename,
-           bool IsAngled,
-           clang::CharSourceRange FilenameRange,
-           const clang::FileEntry *IncludedFile,
-           llvm::StringRef SearchPath,
-           llvm::StringRef RelativePath,
-           const clang::Module *Imported,
-           clang::SrcMgr::CharacteristicKind FileType) {
+                          const clang::Token &IncludeToken,
+                          llvm::StringRef IncludedFilename, bool IsAngled,
+                          clang::CharSourceRange FilenameRange,
+                          const clang::FileEntry *IncludedFile,
+                          llvm::StringRef SearchPath,
+                          llvm::StringRef RelativePath,
+                          const clang::Module *Imported,
+                          clang::SrcMgr::CharacteristicKind FileType) {
     printf("Hit include %s.\n", IncludedFilename.str().c_str());
   }
 
-};  // CheckPPExample
+}; // CheckPPExample

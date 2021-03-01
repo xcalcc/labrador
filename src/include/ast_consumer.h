@@ -48,7 +48,6 @@ private:
   }
 
   bool HandleTopLevelDecl(clang::DeclGroupRef D) override {
-    printf("Top Level\n");
     for (clang::DeclGroupRef::iterator it = D.begin(), end = D.end();
          it != end; ++it) {
       _decl_visitor.Visit(*it);
@@ -70,7 +69,7 @@ private:
     // TODO: finalize handlers
     clang::TranslationUnitDecl* decl = Ctx.getTranslationUnitDecl();
     ScopeManager *mgr = XcalCheckerManager::GetScopeManager();
-    mgr->DumpAll();
+//    mgr->DumpAll();
 
     mgr->FinalizeScope(decl);
     // finalize decl visitor

@@ -14,7 +14,7 @@
 #include <vector>
 class CheckDeclExample : public DeclNullHandler {
 public:
-  ~CheckDeclExample() { TRACE0(); }
+  ~CheckDeclExample() {}
 
 private:
   void CheckFunctionNameReuse() {
@@ -36,12 +36,25 @@ private:
         IdentifierKind::VALUE | IdentifierKind ::LABEL | IdentifierKind::FIELD;
     for (const auto &it : top_scope->Children()) {
       if (it->GetScopeKind() == SK_FUNCTION) {
-        it->TraverseAll<kind>(
-            [&it](const std::string &x, IdentifierManager *id_mgr) -> void {
-              if (it->HasVariableName(x)) {
-                printf("GJB5396:4.1.1.2: Variable name reused: %s\n", x.c_str());
-              }
-            });
+        it->TraverseAll<kind>([&it](const std::string &x,
+                                    IdentifierManager *id_mgr) -> void {
+          if (it->HasVariableName(x)) {
+            printf("GJB5396:4.1.1.2: Variable name reused: %s\n", x.c_str());
+          }
+        });
+      }
+    }
+  }
+
+  /** GJB5396
+   * 4.1.1.3 struct with empty field is forbidden
+   */
+  void CheckStructEmptyField(const clang::RecordDecl *decl) {
+    for (const auto &it : decl->fields()) {
+      if (it->isAnonymousStructOrUnion()) {
+        printf("GJB5396:4.1.1.3: Struct with empty field is forbidden: struct: "
+               "%s\n",
+               decl->getNameAsString().c_str());
       }
     }
   }
@@ -70,7 +83,7 @@ private:
      * Such as clang::SourceRange and clang::Lexer.
      * TODO: Refine the tokenize methods with clang APIs
      */
-     do {
+    do {
       *func_raw_chars++; // eat '(' or  ',' or ' '
       while ((*func_raw_chars != ',') && (*func_raw_chars != ' ') &&
              (*func_raw_chars != ')')) {
@@ -123,7 +136,8 @@ private:
     for (const auto &it : decl->parameters()) {
       if (it->getNameAsString() == "") {
         clang::SourceManager *src_mgr = XcalCheckerManager::GetSourceManager();
-        printf("GJB5396:4.1.1.7: Only type but no identifiers in function %s, loc: %s\n",
+        printf("GJB5396:4.1.1.7: Only type but no identifiers in function %s, "
+               "loc: %s\n",
                decl->getNameAsString().c_str(),
                it->getLocation().printToString(*src_mgr).c_str());
       }
@@ -140,7 +154,8 @@ private:
     top_scope->TraverseAll<IdentifierKind::VAR>(
         [](const std::string &x, IdentifierManager *id_mgr) -> void {
           if (id_mgr->IsKeyword(x)) {
-            printf("GJB5396:4.1.1.9: Redefining the keywords of C/C++ is forbidden: %s\n",
+            printf("GJB5396:4.1.1.9: Redefining the keywords of C/C++ is "
+                   "forbidden: %s\n",
                    x.c_str());
           }
         });
@@ -206,6 +221,8 @@ public:
     }
   }
 
-  void VisitRecord(const clang::RecordDecl *decl) { printf("Hit a Record.\n"); }
+  void VisitRecord(const clang::RecordDecl *decl) {
+    CheckStructEmptyField(decl);
+  }
 
 }; // CheckDeclExample

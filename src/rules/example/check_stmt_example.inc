@@ -12,7 +12,7 @@
 
 class CheckStmtExample : public StmtNullHandler {
 public:
-  ~CheckStmtExample() { TRACE0(); }
+  ~CheckStmtExample() {}
 
 private:
   void CheckConsecutiveLabels(const clang::LabelStmt *stmt) {

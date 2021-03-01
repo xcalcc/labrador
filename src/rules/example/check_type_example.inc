@@ -9,15 +9,18 @@
 //
 // example to describe how to write checker which checks clang Type
 //
+#include <clang/AST/Type.h>
 class CheckTypeExample : public TypeNullHandler {
 public:
-  ~CheckTypeExample() {
-    TRACE0();
-  }
+  ~CheckTypeExample() {}
 
 public:
   void VisitEnum(const clang::EnumType *type) {
-//    printf("Hit an enum type.\n");
+    //    printf("Hit an enum type.\n");
   }
 
-};  // CheckTypeExample
+  void VisitRecord(const clang::RecordType *type) {
+//    type->dump();
+  }
+
+}; // CheckTypeExample
