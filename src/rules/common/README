@@ -1,1 +1,8 @@
-This is for common rules shared by different standard. The rule may report different issues by passing different rule meta parameter to rule initializer.
+This is for common code shared by different standard.
+
+1. Common infrastructure work
+The following infrastructure work is implemented as common code because all checkers are relying on these common infrastructure.
+ - Identifier Management
+
+2. Common rules
+Different standard may have rules with the same checking logic but different rule number or description. The common checking logic can be put here and shared by different rule checkers. Rule checkers report different issues according to the standard.

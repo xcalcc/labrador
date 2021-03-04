@@ -1,1 +1,5 @@
-This is for SJ/T 11682: Source code defect control and testing guidelines for C/C++
+This is for SJT11682 with the following rules:
+
+Rule		Kind		Implementation
+--------------+---------------+--------------------------------
+

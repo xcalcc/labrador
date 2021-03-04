@@ -57,7 +57,7 @@ list (APPEND XCSA_LIBS xscaCore)
 
 # rule files
 add_subdirectory (rules)
-list (APPEND XCSA_LIBS xscaRuleExample)
+list (APPEND XCSA_LIBS xscaRule xscaRuleExample)
 
 set (XSCA_CLANG_LIBS
   PRIVATE
