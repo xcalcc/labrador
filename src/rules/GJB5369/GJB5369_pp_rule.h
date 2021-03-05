@@ -69,11 +69,8 @@ private:
       return;
     }
 
-    if (!macro_info->isFunctionLike()) {
-      printf("GJB5396:4.1.1.12: Macro which is unlike a function is forbidden: "
-             "%s\n",
-             macro_loc.printToString(*src_mgr).c_str());
-    } else {
+    if (macro_info->isFunctionLike()) {
+
       // check if the marco is start with '{'
       auto begin = macro_info->tokens_begin();
       if (!begin->is(clang::tok::TokenKind::l_brace)) {
@@ -134,12 +131,48 @@ private:
     }
   }
 
+  /*
+   * GJB5369: 4.1.1.14
+   * Redefining reserved words is forbidden
+   */
+  void CheckReservedWordRedefine(const clang::MacroDirective *MD) {
+    auto macro_info = MD->getMacroInfo();
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    auto macro_loc = macro_info->getDefinitionLoc();
+    auto end_loc = macro_info->getDefinitionEndLoc();
+    auto conf_mgr = XcalCheckerManager::GetConfigureManager();
+
+    // return if encounter builtin marco
+    if (src_mgr->isWrittenInBuiltinFile(macro_loc)) {
+      return;
+    }
+
+    if (macro_info->isFunctionLike()) {
+      return;
+    }
+
+    auto start = src_mgr->getCharacterData(macro_loc);
+    auto end = src_mgr->getCharacterData(end_loc);
+    std::string token = "";
+    while (*start != ' ' && start != end) {
+      token += *start;
+      start++;
+    }
+
+    if (conf_mgr->FindCAndCXXKeyword(token)) {
+      printf("GJB5396:4.1.1.14: Redefining reserved words is forbidden: %s -> "
+             "%s\n",
+             token.c_str(), macro_loc.printToString(*src_mgr).c_str());
+    }
+  }
+
 public:
   void MacroDefined(const clang::Token &MacroNameTok,
                     const clang::MacroDirective *MD) {
     CheckMultipleSharp(MD);
     CheckUnFunctionLike(MD);
     CheckMacroKeywords(MD);
+    CheckReservedWordRedefine(MD);
   }
 
 }; // GJB5369PPRule
