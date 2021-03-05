@@ -74,7 +74,34 @@ private:
              "%s\n",
              macro_loc.printToString(*src_mgr).c_str());
     } else {
-      // TODO: parser for checking '{'
+      // check if the marco is start with '{'
+      auto begin = macro_info->tokens_begin();
+      if (!begin->is(clang::tok::TokenKind::l_brace)) {
+        printf(
+            "GJB5396:4.1.1.12: Macro which is unlike a function is forbidden: "
+            "%s\n",
+            macro_loc.printToString(*src_mgr).c_str());
+        return;
+      }
+
+      // Check if the macro's braces are paired
+      int match = 0;
+      for (const auto &it : macro_info->tokens()) {
+        if (it.is(clang::tok::TokenKind::l_brace)) {
+          match++;
+        } else if (it.is(clang::tok::TokenKind::r_brace)) {
+          match--;
+        } else {
+          continue;
+        }
+      }
+
+      if (match != 0) {
+        printf(
+            "GJB5396:4.1.1.12: Macro which is unlike a function is forbidden: "
+            "%s\n",
+            macro_loc.printToString(*src_mgr).c_str());
+      }
     }
   }
 
@@ -101,8 +128,7 @@ private:
         if (isKeyword) {
           printf("GJB5396:4.1.1.13: keywords in macro is forbidden: %s -> "
                  "%s\n",
-                 token.c_str(),
-                 macro_loc.printToString(*src_mgr).c_str());
+                 token.c_str(), macro_loc.printToString(*src_mgr).c_str());
         }
       }
     }
