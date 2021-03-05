@@ -7,6 +7,6 @@
 
 void static_p(void) {
   bool test = true;
-  IF_X(test) test != test;
+  IF_X(test) test = !test;
   }
 }

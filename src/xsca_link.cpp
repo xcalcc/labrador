@@ -13,7 +13,6 @@
 
 #define ATTRIBUTE_UNUSED __attribute__((__unused__))
 
-// make sure example rule linked to executable
-extern int __ExampleRuleLinked__;
-//static int ATTRIBUTE_UNUSED ExampleRuleLinked = __ExampleRuleLinked__;
-int ExampleRuleLinked = __ExampleRuleLinked__;
+// make sure rule linked to executable
+extern int __RuleLinked__;
+int RuleLinked = __RuleLinked__;

@@ -18,6 +18,9 @@ public:
   ~GJB5369PPRule() {}
 
 private:
+  /* GJB5369: 4.1.1.11
+   * Using '#' and '##' in the same macro is forbidden
+   */
   void CheckMultipleSharp(const clang::MacroDirective *MD) {
     auto src_mgr = XcalCheckerManager::GetSourceManager();
     auto macro_info = MD->getMacroInfo();
@@ -33,11 +36,11 @@ private:
     const char *end = src_mgr->getCharacterData(end_loc);
 
     std::vector<std::string> tokens;
-    while(start != end) {
+    while (start != end) {
       if ((*start) != '#') {
         start++;
         continue;
-      } else if (*(start+1) == '#') {
+      } else if (*(start + 1) == '#') {
         tokens.push_back(std::string("##"));
         start += 2;
       } else {
@@ -53,11 +56,64 @@ private:
     }
   }
 
+  /* GJB5369: 4.1.1.12
+   * Macro which is unlike a function is forbidden
+   */
+  void CheckUnFunctionLike(const clang::MacroDirective *MD) {
+    auto macro_info = MD->getMacroInfo();
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    auto macro_loc = macro_info->getDefinitionLoc();
+
+    // return if encounter builtin marco
+    if (src_mgr->isWrittenInBuiltinFile(macro_loc)) {
+      return;
+    }
+
+    if (!macro_info->isFunctionLike()) {
+      printf("GJB5396:4.1.1.12: Macro which is unlike a function is forbidden: "
+             "%s\n",
+             macro_loc.printToString(*src_mgr).c_str());
+    } else {
+      // TODO: parser for checking '{'
+    }
+  }
+
+  /*
+   * GJB5369: 4.1.1.13
+   * keywords in macro is forbidden
+   */
+  void CheckMacroKeywords(const clang::MacroDirective *MD) {
+    auto macro_info = MD->getMacroInfo();
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    auto macro_loc = macro_info->getDefinitionLoc();
+    auto conf_mgr = XcalCheckerManager::GetConfigureManager();
+
+    // return if encounter builtin marco
+    if (src_mgr->isWrittenInBuiltinFile(macro_loc)) {
+      return;
+    }
+
+    for (const auto &it : macro_info->tokens()) {
+      auto token_name = it.getIdentifierInfo();
+      if (token_name != nullptr) {
+        const std::string token = token_name->getName().str();
+        auto isKeyword = conf_mgr->FindCAndCXXKeyword(token);
+        if (isKeyword) {
+          printf("GJB5396:4.1.1.13: keywords in macro is forbidden: %s -> "
+                 "%s\n",
+                 token.c_str(),
+                 macro_loc.printToString(*src_mgr).c_str());
+        }
+      }
+    }
+  }
+
 public:
   void MacroDefined(const clang::Token &MacroNameTok,
                     const clang::MacroDirective *MD) {
     CheckMultipleSharp(MD);
+    CheckUnFunctionLike(MD);
+    CheckMacroKeywords(MD);
   }
 
 }; // GJB5369PPRule
-

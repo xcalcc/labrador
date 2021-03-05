@@ -17,6 +17,9 @@
 #include "xsca_pp_rule.h"
 #include "xsca_checker_tmpl.h"
 
+int __RuleLinked__;
+
+
 namespace xsca {
 namespace rule {
 

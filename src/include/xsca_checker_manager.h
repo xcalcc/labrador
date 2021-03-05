@@ -18,6 +18,7 @@
 #include "xsca_checker.h"
 #include "xsca_report.h"
 #include "scope_manager.h"
+#include "conf_manager.h"
 #include <memory>
 #include <vector>
 
@@ -38,13 +39,15 @@ private:
   std::unique_ptr<XcalReport>                        _report;
   std::unique_ptr<XcalChecker>                       _dump_checker;
   std::unique_ptr<ScopeManager>                      _scope_mgr;
+  std::unique_ptr<ConfigureManager>                  _conf_mgr;
   std::vector< std::unique_ptr<XcalChecker> >        _checkers;
   std::vector< std::unique_ptr<XcalCheckerFactory> > _factories;
 
   clang::SourceManager                              *_source_mgr;
 
   XcalCheckerManager()
-    : _scope_mgr(std::make_unique<ScopeManager>()) {}
+    : _scope_mgr(std::make_unique<ScopeManager>()) ,
+      _conf_mgr(std::make_unique<ConfigureManager>(std::string("../conf/"))) {}
   ~XcalCheckerManager() {}
 
   XcalCheckerManager(const XcalCheckerManager&)
@@ -78,6 +81,12 @@ public:
   static clang::SourceManager *
   GetSourceManager() {
     return _instance._source_mgr;
+  }
+
+  static ConfigureManager *
+  GetConfigureManager() {
+    DBG_ASSERT(_instance._conf_mgr.get() != nullptr, "configure manager is null");
+    return _instance._conf_mgr.get();
   }
 
   static void SetSourceManager(clang::SourceManager * mgr) {
