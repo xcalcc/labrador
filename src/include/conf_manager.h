@@ -14,6 +14,7 @@
 #include <fstream>
 #include <utility>
 #include <vector>
+
 namespace xsca {
 
 class ConfigureManager {
@@ -21,7 +22,9 @@ private:
   std::string _conf_path;
   std::vector<std::string> _cxx_identifiers;
   std::vector<std::string> _c_cxx_identifiers;
+
   ConfigureManager(const ConfigureManager &) = delete;
+
   ConfigureManager &operator=(const ConfigureManager &) = delete;
 
   enum {
@@ -34,6 +37,7 @@ public:
   ConfigureManager(std::string conf_path) : _conf_path(std::move(conf_path)) {
     Initialize();
   }
+
   ~ConfigureManager() = default;
 
   void Initialize() {
@@ -41,7 +45,8 @@ public:
     LoadFile<C_CXX_IDENTIFIERS>("c_cxx_identifier.conf");
   }
 
-  template <unsigned conf> void LoadFile(const std::string& conf_name) {
+  template<unsigned conf>
+  void LoadFile(const std::string &conf_name) {
     std::fstream istream;
     std::string identifier;
 
@@ -69,13 +74,14 @@ public:
 
   bool FindCAndCXXKeyword(
       std::basic_string<char, std::char_traits<char>, std::allocator<char>>
-          str) {
+      str) {
     auto res =
         std::find(_c_cxx_identifiers.begin(), _c_cxx_identifiers.end(), str);
     return (res != _c_cxx_identifiers.end());
   }
 
-  template <unsigned conf> bool Match(std::string &str) {
+  template<unsigned conf>
+  bool Match(std::string &str) {
     if (conf == CXX_IDENTIFIERS) {
       return FindCXXKeyword(str);
     } else if (conf == C_CXX_IDENTIFIERS) {

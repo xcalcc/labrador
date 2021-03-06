@@ -35,7 +35,7 @@ private:
     auto scope_mgr = XcalCheckerManager::GetScopeManager();
     auto top_scope = scope_mgr->GlobalScope();
     constexpr uint32_t kind =
-        IdentifierKind::VALUE | IdentifierKind ::LABEL | IdentifierKind::FIELD;
+        IdentifierKind::VALUE | IdentifierKind::LABEL | IdentifierKind::FIELD;
     for (const auto &it : top_scope->Children()) {
       if (it->GetScopeKind() == SK_FUNCTION) {
         it->TraverseAll<kind>([&it](const std::string &x,
@@ -163,6 +163,29 @@ private:
         });
   }
 
+  /*
+   * GJB5369: 4.1.1.15
+   * the sign of the char type should be explicit
+   */
+  void CheckExplictCharType(const clang::VarDecl *decl) {
+    // return if decl is not char type
+    if (!decl->getType()->isCharType()) {
+      return;
+    }
+
+    std::string type_name = decl->getType().getAsString();
+    if (type_name.find("unsigned") != std::string::npos) {
+      return;
+    } else {
+      if (type_name.find("signed") != std::string::npos) {
+        return;
+      }
+    }
+
+    printf("GJB5396:4.1.1.15: The sign of the char type should be explicit: %s\n",
+           decl->getNameAsString().c_str());
+  }
+
 public:
   void Finalize() {
     CheckFunctionNameReuse();
@@ -177,6 +200,10 @@ public:
 
   void VisitRecord(const clang::RecordDecl *decl) {
     CheckStructEmptyField(decl);
+  }
+
+  void VisitVar(const clang::VarDecl *decl) {
+    CheckExplictCharType(decl);
   }
 
 }; // GJB5369DeclRule

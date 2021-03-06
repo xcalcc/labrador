@@ -166,6 +166,7 @@ private:
     }
   }
 
+
 public:
   void MacroDefined(const clang::Token &MacroNameTok,
                     const clang::MacroDirective *MD) {
