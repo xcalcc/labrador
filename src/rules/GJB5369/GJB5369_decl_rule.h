@@ -241,6 +241,19 @@ private:
     }
   }
 
+  /*
+   * GJB5369: 4.1.1.21
+   * the incomplete declaration of struct is forbidden
+   */
+  void CheckIncompleteStruct(const clang::RecordDecl *decl) {
+    if (!decl->isBeingDefined()) {
+      printf("GJB5396:4.1.1.19: The incomplete declaration of struct "
+             "is forbidden: %s\n",
+             decl->getNameAsString().c_str());
+
+    }
+  }
+
 public:
   void Finalize() {
     CheckFunctionNameReuse();
@@ -256,6 +269,12 @@ public:
 
   void VisitRecord(const clang::RecordDecl *decl) {
     CheckStructEmptyField(decl);
+    CheckIncompleteStruct(decl);
+  }
+
+  void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
+    CheckStructEmptyField(decl);
+    CheckIncompleteStruct(decl);
   }
 
   void VisitVar(const clang::VarDecl *decl) {
