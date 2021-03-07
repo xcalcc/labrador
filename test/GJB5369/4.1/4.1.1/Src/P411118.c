@@ -3,6 +3,6 @@
  * with "#if" but no "#endif" in the same file is forbidden
  */
 
-#if
+#if 1
 
 int test = 1;

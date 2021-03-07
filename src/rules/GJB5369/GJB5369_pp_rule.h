@@ -18,8 +18,6 @@ public:
   ~GJB5369PPRule() {}
 
 private:
-  int _if_endif_record;
-
   /* GJB5369: 4.1.1.11
    * Using '#' and '##' in the same macro is forbidden
    */
@@ -168,6 +166,20 @@ private:
     }
   }
 
+  /*
+   * GJB5369: 4.1.1.18
+   * with "#if" but no "#endif" in the same file is forbidden
+   * TODO: Clang will catch this mistake. We need to collect clang's error report.
+   */
+  void CheckUnterminatedIf(clang::SourceLocation &Loc, clang::SourceLocation &IfLoc) {
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    auto res = src_mgr->isWrittenInSameFile(Loc, IfLoc);
+    if (!res) {
+      printf("GJB5396:4.1.1.18: with \"#if\" but no \"#endif\" in the same "
+             "file is forbidden:line: If: %s -> EndIf %s\n",
+             IfLoc.printToString(*src_mgr).c_str(), Loc.printToString(*src_mgr).c_str());
+    }
+  }
 
 public:
   void MacroDefined(const clang::Token &MacroNameTok,
@@ -178,13 +190,8 @@ public:
     CheckReservedWordRedefine(MD);
   }
 
-  void If(clang::SourceLocation Loc, clang::SourceRange ConditionalRange,
-          clang::PPCallbacks::ConditionValueKind ConditionalValue) {
-    _if_endif_record++;
-  }
-
   void Endif(clang::SourceLocation Loc, clang::SourceLocation IfLoc) {
-    _if_endif_record--;
+    CheckUnterminatedIf(Loc, IfLoc);
   }
 
 }; // GJB5369PPRule
