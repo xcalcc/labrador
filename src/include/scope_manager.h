@@ -60,6 +60,8 @@ private:
   std::unordered_multimap<std::string, const clang::LabelDecl*>    _id_to_label;
   // map identifier to FieldDecl
   std::unordered_multimap<std::string, const clang::FieldDecl*>    _id_to_field;
+  // map identifier to TypedefDecl
+  std::unordered_multimap<std::string, const clang::TypedefDecl*>  _id_to_typedef;
 
   // current scope
   LexicalScope *_scope;
@@ -108,6 +110,12 @@ public:
     DBG_ASSERT(decl != nullptr, "FieldDecl is null");
     std::string field_name = decl->getNameAsString();
     _id_to_field.emplace(std::make_pair(field_name, decl));
+  }
+
+  void AddIdentifier(const clang::TypedefDecl *decl) {
+    DBG_ASSERT(decl != nullptr, "TypedefDecl is null");
+    std::string typedef_name = decl->getNameAsString();
+    _id_to_typedef.emplace(std::make_pair(typedef_name, decl));
   }
 
 public:
@@ -160,6 +168,7 @@ public:
     TYPE     = 0x08,
     LABEL    = 0x10,
     FIELD    = 0x20,
+    TYPEDEF  = 0x40,
     // combinations for readability
     NONE     = 0x00,
     ALL      = 0xff,
@@ -173,6 +182,7 @@ public:
     Dump(depth, _id_to_type, "Type");
     Dump(depth, _id_to_label, "Label");
     Dump(depth, _id_to_field, "Field");
+    Dump(depth, _id_to_typedef, "Typedef");
   }
 
   template<uint32_t _IDKIND, typename _RULE>
@@ -189,6 +199,8 @@ public:
       TraverseMap(_id_to_label, rule);
     if ((_IDKIND & IdentifierKind::FIELD) != 0)
       TraverseMap(_id_to_field, rule);
+    if ((_IDKIND & IdentifierKind::TYPEDEF) != 0)
+      TraverseMap(_id_to_typedef, rule);
   }
 
 };  // IdentifierManager

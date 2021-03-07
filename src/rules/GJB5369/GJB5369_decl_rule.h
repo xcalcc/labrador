@@ -12,7 +12,7 @@
 
 #include "scope_manager.h"
 //#include <clang/AST/Decl.h>
-//#include <vector>
+#include <set>
 
 class GJB5369DeclRule : public DeclNullHandler {
 public:
@@ -186,11 +186,36 @@ private:
            decl->getNameAsString().c_str());
   }
 
+  /*
+   * GJB5369: 4.1.1.17
+   * self-defined types(typedef) redefined as other types is forbidden
+   */
+  void CheckTypedefRedefine() {
+    using IdentifierKind = IdentifierManager::IdentifierKind;
+    auto scope_mgr = XcalCheckerManager::GetScopeManager();
+    auto top_scope = scope_mgr->GlobalScope();
+
+    std::set<std::string> user_types;
+    top_scope->TraverseAll<IdentifierKind::TYPEDEF> (
+        [&user_types](const std::string &x, IdentifierManager *id_mgr) -> void {
+          auto res = user_types.find(x);
+          if (res == user_types.end()) {
+            user_types.insert(x);
+          } else {
+            printf("GJB5396:4.1.1.17: Self-defined types(typedef) redefined as "
+                   "other types is forbidden: %s\n",
+                   x.c_str());
+          }
+        }
+    );
+  }
+
 public:
   void Finalize() {
     CheckFunctionNameReuse();
     CheckVariableNameReuse();
     CheckKeywordRedefine();
+    CheckTypedefRedefine();
   }
 
   void VisitFunction(const clang::FunctionDecl *decl) {
@@ -204,6 +229,9 @@ public:
 
   void VisitVar(const clang::VarDecl *decl) {
     CheckExplictCharType(decl);
+  }
+
+  void VisitTypedef(const clang::TypedefDecl *decl) {
   }
 
 }; // GJB5369DeclRule
