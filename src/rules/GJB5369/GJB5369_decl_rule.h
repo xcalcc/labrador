@@ -196,7 +196,7 @@ private:
     auto top_scope = scope_mgr->GlobalScope();
 
     std::set<std::string> user_types;
-    top_scope->TraverseAll<IdentifierKind::TYPEDEF> (
+    top_scope->TraverseAll<IdentifierKind::TYPEDEF>(
         [&user_types](const std::string &x, IdentifierManager *id_mgr) -> void {
           auto res = user_types.find(x);
           if (res == user_types.end()) {
@@ -208,6 +208,37 @@ private:
           }
         }
     );
+  }
+
+  /*
+   * GJB5369: 4.1.1.19
+   * arrays without boundary limitation is forbidden
+   */
+  void CheckArrayBoundary(const clang::VarDecl *decl) {
+    auto decl_type = decl->getType().getAsString();
+
+    // return if not array type
+    if (decl_type.find('[') == std::string::npos) {
+      return;
+    }
+
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    auto start_loc = decl->getBeginLoc();
+    auto end_loc = decl->getEndLoc();
+    auto start = src_mgr->getCharacterData(start_loc);
+    auto end = src_mgr->getCharacterData(end_loc);
+
+    while (start != end) {
+      if (*start == '[') {
+        start++;
+        if (*start == ']') {
+          printf("GJB5396:4.1.1.19: Arrays without boundary limitation "
+                 "is forbidden %s\n",
+                 decl->getNameAsString().c_str());
+        }
+      }
+      ++start;
+    }
   }
 
 public:
@@ -229,9 +260,7 @@ public:
 
   void VisitVar(const clang::VarDecl *decl) {
     CheckExplictCharType(decl);
-  }
-
-  void VisitTypedef(const clang::TypedefDecl *decl) {
+    CheckArrayBoundary(decl);
   }
 
 }; // GJB5369DeclRule

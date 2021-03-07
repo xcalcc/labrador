@@ -18,6 +18,8 @@ public:
   ~GJB5369PPRule() {}
 
 private:
+  int _if_endif_record;
+
   /* GJB5369: 4.1.1.11
    * Using '#' and '##' in the same macro is forbidden
    */
@@ -174,6 +176,15 @@ public:
     CheckUnFunctionLike(MD);
     CheckMacroKeywords(MD);
     CheckReservedWordRedefine(MD);
+  }
+
+  void If(clang::SourceLocation Loc, clang::SourceRange ConditionalRange,
+          clang::PPCallbacks::ConditionValueKind ConditionalValue) {
+    _if_endif_record++;
+  }
+
+  void Endif(clang::SourceLocation Loc, clang::SourceLocation IfLoc) {
+    _if_endif_record--;
   }
 
 }; // GJB5369PPRule
