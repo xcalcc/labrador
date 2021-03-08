@@ -12,18 +12,18 @@ Rule		Kind		Implementation
 4.1.1.8		Decl		CheckParameterTypeDecl
 4.1.1.9		Decl		CheckKeywordRedefine
 4.1.1.10	Decl		CheckParameterTypeDecl
-4.1.1.11	PP		CheckMultipleSharp
-4.1.1.12
-4.1.1.13
-4.1.1.14
-4.1.1.15
+4.1.1.11	PP		    CheckMultipleSharp
+4.1.1.12    PP          CheckUnFunctionLike
+4.1.1.13    PP          CheckMacroKeywords
+4.1.1.14    PP          CheckReservedWordRedefine
+4.1.1.15    Decl        CheckExplictCharType
 4.1.1.16
-4.1.1.17
-4.1.1.18
-4.1.1.19
-4.1.1.20
-4.1.1.21
-4.1.1.22
+4.1.1.17    Decl        CheckTypedefRedefine
+4.1.1.18    PP          CheckUnterminatedIf
+4.1.1.19    Decl        CheckArrayBoundary
+4.1.1.20    PP          CheckAbsolutePathInclude
+4.1.1.21    Decl        CheckIncompleteStruct
+4.1.1.22    Decl        CheckDifferentParamForms
 --------------+------------------------------------------------
 4.1.2
 4.1.2.1

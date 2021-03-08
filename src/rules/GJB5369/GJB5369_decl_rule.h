@@ -233,7 +233,7 @@ private:
         start++;  // eat '['
 
         // eat space
-        while (*start == ' ') {
+        while (std::isspace(*start)) {
           start++;
         }
 
@@ -260,6 +260,25 @@ private:
     }
   }
 
+  /*
+   * GJB5369: 4.1.1.22
+   * the forms of the parameter declarations in the parameter list
+   * should keep in line
+   */
+  void CheckDifferentParamForms(const clang::FunctionDecl *decl) {
+    bool with_name = (decl->getParamDecl(0)->getNameAsString() == "") ? false : true;
+    bool tmp;
+
+    for (const auto &it : decl->parameters()) {
+      tmp = (it->getNameAsString() == "") ? false : true;
+      if (tmp ^ with_name) {
+        printf("GJB5396:4.1.1.22: The forms of the parameter declarations"
+               " in the parameter list is forbidden: %s\n",
+               decl->getNameAsString().c_str());
+      }
+    }
+  }
+
 public:
   void Finalize() {
     CheckFunctionNameReuse();
@@ -271,6 +290,7 @@ public:
   void VisitFunction(const clang::FunctionDecl *decl) {
     CheckParameterNoIdentifier(decl);
     CheckParameterTypeDecl(decl);
+    CheckDifferentParamForms(decl);
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {

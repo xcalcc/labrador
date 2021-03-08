@@ -184,14 +184,23 @@ private:
   /*
    * GJB5369: 4.1.1.20
    * Using absolute path in the "#include <...>" is forbidden
-   * TODO: Unix only for now. Add win path checker.
    */
   void CheckAbsolutePathInclude(llvm::StringRef IncludedFilename) {
     auto filename = IncludedFilename.str();
+
+    // unix
     if (filename[0] == '/') {
       printf("Using absolute path in the \"#include <...>\" is forbidden %s\n",
              filename.c_str());
     }
+
+    if ((filename.find(":\\") != std::string::npos) ||
+        (filename.find(":\\") != std::string::npos) ||
+        (filename.find(":/") != std::string::npos)) {
+      printf("Using absolute path in the \"#include <...>\" is forbidden %s\n",
+             filename.c_str());
+    }
+
   }
 
 public:
