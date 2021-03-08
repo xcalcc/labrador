@@ -230,7 +230,13 @@ private:
 
     while (start != end) {
       if (*start == '[') {
-        start++;
+        start++;  // eat '['
+
+        // eat space
+        while (*start == ' ') {
+          start++;
+        }
+
         if (*start == ']') {
           printf("GJB5396:4.1.1.19: Arrays without boundary limitation "
                  "is forbidden %s\n",

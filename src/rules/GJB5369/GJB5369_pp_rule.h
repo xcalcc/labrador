@@ -10,8 +10,8 @@
 // implement preprocess related rules in GJB5369
 //
 
-#include <clang/Lex/Preprocessor.h>
 #include <vector>
+#include <clang/Lex/Preprocessor.h>
 
 class GJB5369PPRule : public PPNullHandler {
 public:
@@ -181,6 +181,19 @@ private:
     }
   }
 
+  /*
+   * GJB5369: 4.1.1.20
+   * Using absolute path in the "#include <...>" is forbidden
+   * TODO: Unix only for now. Add win path checker.
+   */
+  void CheckAbsolutePathInclude(llvm::StringRef IncludedFilename) {
+    auto filename = IncludedFilename.str();
+    if (filename[0] == '/') {
+      printf("Using absolute path in the \"#include <...>\" is forbidden %s\n",
+             filename.c_str());
+    }
+  }
+
 public:
   void MacroDefined(const clang::Token &MacroNameTok,
                     const clang::MacroDirective *MD) {
@@ -192,6 +205,15 @@ public:
 
   void Endif(clang::SourceLocation Loc, clang::SourceLocation IfLoc) {
     CheckUnterminatedIf(Loc, IfLoc);
+  }
+
+  void InclusionDirective(clang::SourceLocation DirectiveLoc,
+                          const clang::Token &IncludeToken, llvm::StringRef IncludedFilename,
+                          bool IsAngled, clang::CharSourceRange FilenameRange,
+                          const clang::FileEntry *IncludedFile, llvm::StringRef SearchPath,
+                          llvm::StringRef RelativePath, const clang::Module *Imported,
+                          clang::SrcMgr::CharacteristicKind FileType) {
+    CheckAbsolutePathInclude(IncludedFilename);
   }
 
 }; // GJB5369PPRule
