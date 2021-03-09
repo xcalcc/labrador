@@ -25,7 +25,7 @@ private:
     top_scope->TraverseAll<IdentifierManager::IdentifierKind::NON_FUNC>(
         [&top_scope](const std::string &x, IdentifierManager *id_mgr) -> void {
           if (top_scope->HasFunctionName(x)) {
-            printf("GJB5396:4.1.1.1: Function name reused: %s\n", x.c_str());
+            REPORT("GJB5396:4.1.1.1: Function name reused: %s\n", x.c_str());
           }
         });
   }
@@ -41,7 +41,7 @@ private:
         it->TraverseAll<kind>([&it](const std::string &x,
                                     IdentifierManager *id_mgr) -> void {
           if (it->HasVariableName<false>(x)) {
-            printf("GJB5396:4.1.1.2: Variable name reused: %s\n", x.c_str());
+            REPORT("GJB5396:4.1.1.2: Variable name reused: %s\n", x.c_str());
           }
         });
       }
@@ -54,7 +54,7 @@ private:
   void CheckStructEmptyField(const clang::RecordDecl *decl) {
     for (const auto &it : decl->fields()) {
       if (it->isAnonymousStructOrUnion()) {
-        printf("GJB5396:4.1.1.3: Struct with empty field is forbidden: struct: "
+        REPORT("GJB5396:4.1.1.3: Struct with empty field is forbidden: struct: "
                "%s\n",
                decl->getNameAsString().c_str());
       }
@@ -107,7 +107,7 @@ private:
       if ((tokens.size() == 1) && (tokens[0] == "void")) {
         return;
       } else if (token.size() == 0) {
-        printf("GJB5396:4.1.1.10: The empty function parameter list is "
+        REPORT("GJB5396:4.1.1.10: The empty function parameter list is "
                "forbidden: %s\n",
                decl->getNameAsString().c_str());
       } else {
@@ -120,14 +120,14 @@ private:
      */
     for (const auto &it : tokens) {
       if (it == "...") {
-        printf("GJB5396:4.1.1.8: \"...\" in the funtion's parameter list is "
+        REPORT("GJB5396:4.1.1.8: \"...\" in the funtion's parameter list is "
                "forbidden: %s\n",
                decl->getNameAsString().c_str());
       }
     }
 
     //    for (const auto &it : tokens) {
-    //      printf("Token: %s\n", it.c_str());
+    //      REPORT("Token: %s\n", it.c_str());
     //    }
   }
 
@@ -138,7 +138,7 @@ private:
     for (const auto &it : decl->parameters()) {
       if (it->getNameAsString() == "") {
         clang::SourceManager *src_mgr = XcalCheckerManager::GetSourceManager();
-        printf("GJB5396:4.1.1.7: Only type but no identifiers in function %s, "
+        REPORT("GJB5396:4.1.1.7: Only type but no identifiers in function %s, "
                "loc: %s\n",
                decl->getNameAsString().c_str(),
                it->getLocation().printToString(*src_mgr).c_str());
@@ -156,7 +156,7 @@ private:
     top_scope->TraverseAll<IdentifierKind::VAR>(
         [](const std::string &x, IdentifierManager *id_mgr) -> void {
           if (id_mgr->IsKeyword(x)) {
-            printf("GJB5396:4.1.1.9: Redefining the keywords of C/C++ is "
+            REPORT("GJB5396:4.1.1.9: Redefining the keywords of C/C++ is "
                    "forbidden: %s\n",
                    x.c_str());
           }
@@ -182,7 +182,7 @@ private:
       }
     }
 
-    printf("GJB5396:4.1.1.15: The sign of the char type should be explicit: %s\n",
+    REPORT("GJB5396:4.1.1.15: The sign of the char type should be explicit: %s\n",
            decl->getNameAsString().c_str());
   }
 
@@ -202,7 +202,7 @@ private:
           if (res == user_types.end()) {
             user_types.insert(x);
           } else {
-            printf("GJB5396:4.1.1.17: Self-defined types(typedef) redefined as "
+            REPORT("GJB5396:4.1.1.17: Self-defined types(typedef) redefined as "
                    "other types is forbidden: %s\n",
                    x.c_str());
           }
@@ -238,7 +238,7 @@ private:
         }
 
         if (*start == ']') {
-          printf("GJB5396:4.1.1.19: Arrays without boundary limitation "
+          REPORT("GJB5396:4.1.1.19: Arrays without boundary limitation "
                  "is forbidden %s\n",
                  decl->getNameAsString().c_str());
         }
@@ -252,8 +252,8 @@ private:
    * the incomplete declaration of struct is forbidden
    */
   void CheckIncompleteStruct(const clang::RecordDecl *decl) {
-    if (!decl->isBeingDefined()) {
-      printf("GJB5396:4.1.1.19: The incomplete declaration of struct "
+    if (decl->getDefinition() == nullptr) {
+      REPORT("GJB5396:4.1.1.21: The incomplete declaration of struct "
              "is forbidden: %s\n",
              decl->getNameAsString().c_str());
 
@@ -266,17 +266,68 @@ private:
    * should keep in line
    */
   void CheckDifferentParamForms(const clang::FunctionDecl *decl) {
+    if (decl->param_empty()) return;
     bool with_name = (decl->getParamDecl(0)->getNameAsString() == "") ? false : true;
     bool tmp;
 
     for (const auto &it : decl->parameters()) {
       tmp = (it->getNameAsString() == "") ? false : true;
       if (tmp ^ with_name) {
-        printf("GJB5396:4.1.1.22: The forms of the parameter declarations"
+        REPORT("GJB5396:4.1.1.22: The forms of the parameter declarations"
                " in the parameter list is forbidden: %s\n",
                decl->getNameAsString().c_str());
       }
     }
+  }
+
+  /*
+   * GJB5369: 4.1.2.2
+   * avoid using the function as parameter
+   */
+  void CheckFunctionAsParameter(const clang::FunctionDecl *decl) {
+    for (const auto &it : decl->parameters()) {
+      if (it->getType()->isFunctionPointerType()) {
+        REPORT("GJB5396:4.1.2.2: Avoid using the function as parameter: %s\n",
+               it->getNameAsString().c_str());
+      }
+    }
+  }
+
+  /*
+   * GJB5369: 4.1.2.3
+   * using too much parameters(more than 20) is forbidden
+   */
+  void CheckPlethoraParameters(const clang::FunctionDecl *decl) {
+    if (decl->param_size() > 20) {
+      REPORT("GJB5396:4.1.2.3: Using too much parameters(more than 20)"
+             " is forbidden: %s\n",
+             decl->getNameAsString().c_str());
+    }
+  }
+
+  /*
+   * GJB5369: 4.1.2.4
+   * using bit-field in struct should be carefully
+   */
+  void CheckBitfieldInStruct(const clang::RecordDecl *decl) {
+//    decl->dump();
+    for (const auto &it : decl->fields()) {
+      if (it->isBitField()) {
+        REPORT("GJB5396:4.1.2.4: Using bit-field in struct "
+               "should be carefully: %s\n",
+               decl->getNameAsString().c_str());
+      }
+    }
+  }
+
+  /*
+   * GJB5369: 4.1.2.8
+   * using "union" carefully
+   */
+  void CheckUnionDecl(const clang::RecordDecl *decl) {
+    if (!decl->isUnion()) return;
+    REPORT("GJB5396:4.1.2.8: Using \"union\" carefully: %s\n",
+           decl->getNameAsString().c_str());
   }
 
 public:
@@ -291,16 +342,22 @@ public:
     CheckParameterNoIdentifier(decl);
     CheckParameterTypeDecl(decl);
     CheckDifferentParamForms(decl);
+    CheckFunctionAsParameter(decl);
+    CheckPlethoraParameters(decl);
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {
     CheckStructEmptyField(decl);
     CheckIncompleteStruct(decl);
+    CheckBitfieldInStruct(decl);
+    CheckUnionDecl(decl);
   }
 
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
     CheckStructEmptyField(decl);
     CheckIncompleteStruct(decl);
+    CheckBitfieldInStruct(decl);
+    CheckUnionDecl(decl);
   }
 
   void VisitVar(const clang::VarDecl *decl) {

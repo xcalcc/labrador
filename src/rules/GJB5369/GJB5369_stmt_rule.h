@@ -21,7 +21,7 @@ private:
      * Check multiple consecutive labels.
      */
     if (clang::dyn_cast<clang::LabelStmt>(stmt->getSubStmt())) {
-      printf("GJB5396:4.1.1.4: Multiple consecutive labels: %s and %s\n",
+      REPORT("GJB5396:4.1.1.4: Multiple consecutive labels: %s and %s\n",
              stmt->getDecl()->getNameAsString().c_str(),
              clang::dyn_cast<clang::LabelStmt>(stmt->getSubStmt())
                  ->getDecl()

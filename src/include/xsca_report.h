@@ -22,11 +22,14 @@ namespace xsca {
 class XcalReport {
 public:
   XcalReport() {}
+
   ~XcalReport() {}
 
 private:
 
 };  // XcalReport
+
+#define REPORT(fmt, ...) printf(fmt, ##__VA_ARGS__);
 
 }  // namespace xsca
 

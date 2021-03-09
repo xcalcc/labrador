@@ -17,7 +17,7 @@ Rule		Kind		Implementation
 4.1.1.13    PP          CheckMacroKeywords
 4.1.1.14    PP          CheckReservedWordRedefine
 4.1.1.15    Decl        CheckExplictCharType
-4.1.1.16
+4.1.1.16    Decl        4.1.1.2
 4.1.1.17    Decl        CheckTypedefRedefine
 4.1.1.18    PP          CheckUnterminatedIf
 4.1.1.19    Decl        CheckArrayBoundary
@@ -27,13 +27,13 @@ Rule		Kind		Implementation
 --------------+------------------------------------------------
 4.1.2
 4.1.2.1
-4.1.2.2
-4.1.2.3
-4.1.2.4
+4.1.2.2     Decl        CheckFunctionAsParameter
+4.1.2.3     Decl        CheckPlethoraParameters
+4.1.2.4     Decl        CheckBitfieldInStruct
 4.1.2.5
 4.1.2.6
-4.1.2.7
-4.1.2.8
+4.1.2.7     PP          CheckProgram
+4.1.2.8     Decl        CheckUnionDecl
 4.1.2.9
 --------------+------------------------------------------------
 4.2.1.1

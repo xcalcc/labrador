@@ -50,7 +50,7 @@ private:
     }
 
     if (tokens.size() >= 2) {
-      printf("GJB5396:4.1.1.11: Using '#' and '##' in the same macro is "
+      REPORT("GJB5396:4.1.1.11: Using '#' and '##' in the same macro is "
              "forbidden: %s\n",
              macro_loc.printToString(*src_mgr).c_str());
     }
@@ -74,7 +74,7 @@ private:
       // check if the marco is start with '{'
       auto begin = macro_info->tokens_begin();
       if (!begin->is(clang::tok::TokenKind::l_brace)) {
-        printf(
+        REPORT(
             "GJB5396:4.1.1.12: Macro which is unlike a function is forbidden: "
             "%s\n",
             macro_loc.printToString(*src_mgr).c_str());
@@ -94,7 +94,7 @@ private:
       }
 
       if (match != 0) {
-        printf(
+        REPORT(
             "GJB5396:4.1.1.12: Macro which is unlike a function is forbidden: "
             "%s\n",
             macro_loc.printToString(*src_mgr).c_str());
@@ -123,7 +123,7 @@ private:
         const std::string token = token_name->getName().str();
         auto isKeyword = conf_mgr->FindCAndCXXKeyword(token);
         if (isKeyword) {
-          printf("GJB5396:4.1.1.13: keywords in macro is forbidden: %s -> "
+          REPORT("GJB5396:4.1.1.13: keywords in macro is forbidden: %s -> "
                  "%s\n",
                  token.c_str(), macro_loc.printToString(*src_mgr).c_str());
         }
@@ -160,7 +160,7 @@ private:
     }
 
     if (conf_mgr->FindCAndCXXKeyword(token)) {
-      printf("GJB5396:4.1.1.14: Redefining reserved words is forbidden: %s -> "
+      REPORT("GJB5396:4.1.1.14: Redefining reserved words is forbidden: %s -> "
              "%s\n",
              token.c_str(), macro_loc.printToString(*src_mgr).c_str());
     }
@@ -175,7 +175,7 @@ private:
     auto src_mgr = XcalCheckerManager::GetSourceManager();
     auto res = src_mgr->isWrittenInSameFile(Loc, IfLoc);
     if (!res) {
-      printf("GJB5396:4.1.1.18: with \"#if\" but no \"#endif\" in the same "
+      REPORT("GJB5396:4.1.1.18: with \"#if\" but no \"#endif\" in the same "
              "file is forbidden:line: If: %s -> EndIf %s\n",
              IfLoc.printToString(*src_mgr).c_str(), Loc.printToString(*src_mgr).c_str());
     }
@@ -190,17 +190,51 @@ private:
 
     // unix
     if (filename[0] == '/') {
-      printf("Using absolute path in the \"#include <...>\" is forbidden %s\n",
+      REPORT("GJB5396:4.1.1.20: Using absolute path in the \"#include <...>\" "
+             "is forbidden: %s\n",
              filename.c_str());
     }
 
     if ((filename.find(":\\") != std::string::npos) ||
         (filename.find(":\\") != std::string::npos) ||
         (filename.find(":/") != std::string::npos)) {
-      printf("Using absolute path in the \"#include <...>\" is forbidden %s\n",
+      REPORT("GJB5396:4.1.1.20: Using absolute path in the \"#include <...>\" "
+             "is forbidden: %s\n",
              filename.c_str());
     }
 
+  }
+
+#if 0
+  /*
+   * GJB5369: 4.1.2.5
+   * using "#define" in functions is forbidden
+   * TODO: function decls have not been collected yet
+   * TODO: the same as 4.1.2.6
+   */
+  void CheckDefineInFunction(const clang::MacroDirective *MD) {
+    auto def_loc = MD->getLocation();
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    auto scope_mgr = XcalCheckerManager::GetScopeManager();
+    auto top_scope = scope_mgr->GlobalScope();
+
+    bool in_func = top_scope->InFunctionRange(def_loc);
+    if (in_func) {
+      REPORT("GJB5396:4.1.2.5: Using \"#define\" in functions is forbidden: %s\n",
+             def_loc.printToString(*src_mgr).c_str());
+    }
+  }
+#endif
+
+  /*
+   * GJB5369: 4.1.2.7
+   * using "#pragma" carefully
+   */
+  void CheckProgram(clang::SourceLocation Loc,
+                    clang::PragmaIntroducerKind &Introducer) {
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    REPORT("GJB5369: 4.1.2.7: using \"#pragma\" carefully: %s\n",
+           Loc.printToString(*src_mgr).c_str());
   }
 
 public:
@@ -223,6 +257,11 @@ public:
                           llvm::StringRef RelativePath, const clang::Module *Imported,
                           clang::SrcMgr::CharacteristicKind FileType) {
     CheckAbsolutePathInclude(IncludedFilename);
+  }
+
+  void PragmaDirective(clang::SourceLocation Loc,
+                       clang::PragmaIntroducerKind Introducer) {
+    CheckProgram(Loc, Introducer);
   }
 
 }; // GJB5369PPRule

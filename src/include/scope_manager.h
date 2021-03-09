@@ -14,8 +14,9 @@
 #define SCOPE_MANAGER_INCLUDED
 
 #include "xsca_defs.h"
-#include "llvm/ADT/PointerIntPair.h"
 #include "clang/AST/Decl.h"
+#include "llvm/ADT/PointerIntPair.h"
+#include "clang/Basic/SourceManager.h"
 #include <vector>
 #include <unordered_map>
 
@@ -203,6 +204,9 @@ public:
       TraverseMap(_id_to_typedef, rule);
   }
 
+  /* Check if source location in the function define range. */
+  bool InFunctionRange(clang::SourceLocation Loc) const;
+
 };  // IdentifierManager
 
 // class LexicalScope
@@ -273,6 +277,9 @@ public:
   bool HasVariableName(const std::string &var_name) const {
     return _identifiers->HasVariableName<_RECURSIVE>(var_name);
   }
+
+  /* Check if source location in the function define range. */
+  bool InFunctionRange(clang::SourceLocation Loc) const;
 
 public:
   // Create new child scope started by _NODE, add to children vector
