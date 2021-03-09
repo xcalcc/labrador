@@ -34,7 +34,7 @@ Rule		Kind		Implementation
 4.1.2.6
 4.1.2.7     PP          CheckProgram
 4.1.2.8     Decl        CheckUnionDecl
-4.1.2.9
+4.1.2.9     Decl        CheckBitfieldInStruct
 --------------+------------------------------------------------
 4.2.1.1
 4.2.1.2

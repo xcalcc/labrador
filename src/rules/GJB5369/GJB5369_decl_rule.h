@@ -308,14 +308,22 @@ private:
   /*
    * GJB5369: 4.1.2.4
    * using bit-field in struct should be carefully
+   * GJB5369: 4.1.2.9
+   * using non-named bit fields carefully
    */
   void CheckBitfieldInStruct(const clang::RecordDecl *decl) {
-//    decl->dump();
+    std::string field_name;
     for (const auto &it : decl->fields()) {
+      field_name = it->getNameAsString().c_str();
       if (it->isBitField()) {
         REPORT("GJB5396:4.1.2.4: Using bit-field in struct "
-               "should be carefully: %s\n",
-               decl->getNameAsString().c_str());
+               "should be carefully: struct %s -> field %s\n",
+               decl->getNameAsString().c_str(),
+               (field_name == "") ? "NAMELESS" : field_name.c_str());
+        if (field_name == "") {
+          REPORT("GJB5396:4.1.2.9: Using non-named bit fields carefully : %s\n",
+                 decl->getNameAsString().c_str());
+        }
       }
     }
   }
