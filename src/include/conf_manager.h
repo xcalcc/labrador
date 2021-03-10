@@ -67,14 +67,12 @@ public:
     }
   }
 
-  bool FindCXXKeyword(std::string &str) {
+  bool FindCXXKeyword(const std::string &str) {
     auto res = std::find(_cxx_identifiers.begin(), _cxx_identifiers.end(), str);
     return (res != _cxx_identifiers.end());
   }
 
-  bool FindCAndCXXKeyword(
-      std::basic_string<char, std::char_traits<char>, std::allocator<char>>
-      str) {
+  bool FindCAndCXXKeyword(const std::string &str) {
     auto res =
         std::find(_c_cxx_identifiers.begin(), _c_cxx_identifiers.end(), str);
     return (res != _c_cxx_identifiers.end());

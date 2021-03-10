@@ -11,6 +11,7 @@
 //
 
 #include "scope_manager.h"
+
 //#include <clang/AST/Decl.h>
 #include <set>
 
@@ -19,6 +20,38 @@ public:
   ~GJB5369DeclRule() {}
 
 private:
+  std::string GetTypeString(clang::QualType type) {
+    std::string type_name;
+    if (type->getTypeClass() == clang::Type::Typedef) {
+      auto underlying_tp =
+          clang::dyn_cast<clang::TypedefType>(type)->getDecl()->getUnderlyingType();
+      type_name = underlying_tp.getAsString();
+    } else {
+      type_name = type.getAsString();
+    }
+    return type_name;
+  }
+
+  bool IsExplicitSign(std::string type_name) {
+    if (type_name.find("unsigned") != std::string::npos) {
+      return false;
+    } else {
+      if (type_name.find("signed") != std::string::npos) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  bool IsTypedefBasicType(clang::QualType &decl_type) {
+    if (decl_type->isBuiltinType()) {
+      if (decl_type->getTypeClass() != clang::Type::Typedef) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   void CheckFunctionNameReuse() {
     auto scope_mgr = XcalCheckerManager::GetScopeManager();
     auto top_scope = scope_mgr->GlobalScope();
@@ -167,23 +200,57 @@ private:
    * GJB5369: 4.1.1.15
    * the sign of the char type should be explicit
    */
-  void CheckExplictCharType(const clang::VarDecl *decl) {
-    // return if decl is not char type
-    if (!decl->getType()->isCharType()) {
-      return;
-    }
+  void CheckExplicitCharType(const clang::FunctionDecl *decl) {
+    std::string type_name;
 
-    std::string type_name = decl->getType().getAsString();
-    if (type_name.find("unsigned") != std::string::npos) {
-      return;
-    } else {
-      if (type_name.find("signed") != std::string::npos) {
-        return;
+    // Check parameters and return type
+    for (const auto &it : decl->parameters()) {
+      if (!it->getType()->isCharType()) { continue; }
+      if (IsExplicitSign(GetTypeString(it->getType()))) {
+        REPORT("GJB5396:4.1.1.15: The sign of the char type should be explicit: "
+               "Function :%s -> Param: %s\n",
+               decl->getNameAsString().c_str(),
+               it->getNameAsString().c_str());
+      }
+
+      auto ret_type = decl->getReturnType();
+      if ((ret_type->isVoidType()) || (!ret_type->isCharType())) return;
+
+      if (IsExplicitSign(GetTypeString(ret_type))) {
+        REPORT("GJB5396:4.1.1.15: The sign of the char type should be explicit: "
+               "Function :%s -> Return: %s\n",
+               decl->getNameAsString().c_str(),
+               ret_type.getAsString().c_str());
+      }
+    }
+  }
+
+  void checkExplicitCharType(const clang::RecordDecl *decl) {
+    for (const auto &it : clang::dyn_cast<clang::RecordDecl>(decl)->fields()) {
+      if (!it->getType()->isCharType()) { continue; }
+      if (IsExplicitSign(GetTypeString(it->getType()))) {
+        REPORT("GJB5396:4.1.1.15: The sign of the char type should be explicit: "
+               "Struct: %s -> Field: %s\n",
+               decl->getNameAsString().c_str(),
+               it->getNameAsString().c_str());
       }
     }
 
-    REPORT("GJB5396:4.1.1.15: The sign of the char type should be explicit: %s\n",
-           decl->getNameAsString().c_str());
+  }
+
+  void CheckExplicitCharType(const clang::VarDecl *decl) {
+    auto decl_type = decl->getType();
+
+    // return if decl is not char type
+    if (!decl_type->isCharType()) {
+      return;
+    }
+
+    if (IsExplicitSign(GetTypeString(decl_type))) {
+      REPORT("GJB5396:4.1.1.15: The sign of the char type should be explicit: %s\n",
+             decl->getNameAsString().c_str());
+    }
+
   }
 
   /*
@@ -281,6 +348,54 @@ private:
   }
 
   /*
+   * GJB5369: 4.1.2.1
+   * Use typedef redefine the basic type
+   */
+  void CheckTypedefBasicType(const clang::FunctionDecl *decl) {
+    // check parameters
+    for (const auto &it : decl->parameters()) {
+      auto param_type = it->getType();
+      if (IsTypedefBasicType(param_type)) {
+        REPORT("GJB5396:4.1.2.1: Use typedef redefine the basic type :"
+               " Function: %s -> Param: %s\n",
+               decl->getNameAsString().c_str(),
+               it->getNameAsString().c_str());
+      }
+    }
+
+    // check return type
+    auto ret_type = decl->getReturnType();
+    if (ret_type->isVoidType()) return;
+    if (IsTypedefBasicType(ret_type)) {
+      REPORT("GJB5396:4.1.2.1: Use typedef redefine the basic type :"
+             " Function: %s -> return : %s\n",
+             decl->getNameAsString().c_str(),
+             ret_type.getAsString().c_str());
+    }
+  }
+
+  void CheckTypedefBasicType(const clang::RecordDecl *decl) {
+    for (const auto &it : decl->fields()) {
+      auto field_type = it->getType();
+      if (IsTypedefBasicType(field_type)) {
+        REPORT("GJB5396:4.1.2.1: Use typedef redefine the basic type :"
+               " Struct: %s -> Field: %s\n",
+               decl->getNameAsString().c_str(),
+               it->getNameAsString().c_str());
+      }
+    }
+  }
+
+  void CheckTypedefBasicType(const clang::VarDecl *decl) {
+    auto decl_type = decl->getType();
+    if (IsTypedefBasicType(decl_type)) {
+      REPORT("GJB5396:4.1.2.1: Use typedef redefine the basic type :"
+             " variable: %s\n",
+             decl->getNameAsString().c_str());
+    }
+  }
+
+  /*
    * GJB5369: 4.1.2.2
    * avoid using the function as parameter
    */
@@ -314,7 +429,7 @@ private:
   void CheckBitfieldInStruct(const clang::RecordDecl *decl) {
     std::string field_name;
     for (const auto &it : decl->fields()) {
-      field_name = it->getNameAsString().c_str();
+      field_name = it->getNameAsString();
       if (it->isBitField()) {
         REPORT("GJB5396:4.1.2.4: Using bit-field in struct "
                "should be carefully: struct %s -> field %s\n",
@@ -352,6 +467,8 @@ public:
     CheckDifferentParamForms(decl);
     CheckFunctionAsParameter(decl);
     CheckPlethoraParameters(decl);
+    CheckTypedefBasicType(decl);
+    CheckExplicitCharType(decl);
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {
@@ -359,6 +476,8 @@ public:
     CheckIncompleteStruct(decl);
     CheckBitfieldInStruct(decl);
     CheckUnionDecl(decl);
+    CheckTypedefBasicType(decl);
+    checkExplicitCharType(decl);
   }
 
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
@@ -366,11 +485,14 @@ public:
     CheckIncompleteStruct(decl);
     CheckBitfieldInStruct(decl);
     CheckUnionDecl(decl);
+    CheckTypedefBasicType(decl);
+    checkExplicitCharType(decl);
   }
 
   void VisitVar(const clang::VarDecl *decl) {
-    CheckExplictCharType(decl);
+    CheckExplicitCharType(decl);
     CheckArrayBoundary(decl);
+    CheckTypedefBasicType(decl);
   }
 
 }; // GJB5369DeclRule
