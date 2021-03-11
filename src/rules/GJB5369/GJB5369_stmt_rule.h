@@ -15,6 +15,14 @@ public:
   ~GJB5369StmtRule() {}
 
 private:
+  bool CheckExprParentheses(const clang::Expr *expr) {
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    auto expr_loc = expr->getBeginLoc();
+    const char *start = src_mgr->getCharacterData(expr_loc);
+    if (*start != '(') { return true; }
+    return false;
+  }
+
   /*
    * GJB5369 4.1.1.4
    * Check multiple consecutive labels.
@@ -39,7 +47,7 @@ private:
     auto body_loc = stmt->getBody()->getBeginLoc();
     const char *start = src_mgr->getCharacterData(body_loc);
     if (*start != '{') {
-      REPORT("GJB5396:4.2.1.2: The loop must be enclosed in braces: %s\n",
+      REPORT("GJB5396:4.2.1.2: The while-loop must be enclosed in braces: %s\n",
              body_loc.printToString(*src_mgr).c_str());
     }
   }
@@ -49,7 +57,7 @@ private:
     auto body_loc = stmt->getBody()->getBeginLoc();
     const char *start = src_mgr->getCharacterData(body_loc);
     if (*start != '{') {
-      REPORT("GJB5396:4.2.1.2: The loop must be enclosed in braces: %s\n",
+      REPORT("GJB5396:4.2.1.2: The for-loop must be enclosed in braces: %s\n",
              body_loc.printToString(*src_mgr).c_str());
     }
   }
@@ -74,7 +82,29 @@ private:
                body_loc.printToString(*src_mgr).c_str());
       }
     }
+  }
 
+  /*
+   * GJB5369: 4.2.1.4
+   * logic expression should be enclosed in parentheses
+   */
+  void CheckLogicExprParen(const clang::BinaryOperator *stmt) {
+    if (!stmt->isLogicalOp()) return;
+    auto lhs = stmt->getLHS();
+    auto rhs = stmt->getRHS();
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+
+    if (CheckExprParentheses(lhs)) {
+      auto lhs_loc = lhs->getBeginLoc();
+      REPORT("GJB5396:4.2.1.4: logic expression should be enclosed in parentheses: %s\n",
+             lhs_loc.printToString(*src_mgr).c_str());
+    }
+
+    if (CheckExprParentheses(rhs)) {
+      auto rhs_loc = rhs->getBeginLoc();
+      REPORT("GJB5396:4.2.1.4: logic expression should be enclosed in parentheses: %s\n",
+             rhs_loc.printToString(*src_mgr).c_str());
+    }
   }
 
 public:
@@ -92,6 +122,10 @@ public:
 
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckIfBrace(stmt);
+  }
+
+  void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
+    CheckLogicExprParen(stmt);
   }
 }; // GJB5369StmtRule
 

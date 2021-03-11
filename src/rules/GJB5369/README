@@ -39,7 +39,7 @@ Rule		Kind		Implementation
 4.2.1.1
 4.2.1.2     Stmt        CheckLoopBrace
 4.2.1.3     Stmt        CheckIfBrace
-4.2.1.4
+4.2.1.4     Stmt        CheckLogicExprParen
 4.2.1.5
 4.2.1.6
 4.2.1.7
