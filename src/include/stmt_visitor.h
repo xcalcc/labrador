@@ -70,6 +70,7 @@ public:
 
   // general Visit method
   void Visit(const clang::Stmt *stmt) {
+    if (stmt == nullptr) return;
     switch (stmt->getStmtClass()) {
     #define STMT(CLASS, BASE) \
     case clang::Stmt::CLASS##Class: \
@@ -77,7 +78,7 @@ public:
       break;
     #define ABSTRACT_STMT(CLASS)
     # include "clang/AST/StmtNodes.inc"
-      
+
     default:
       TRACE("TODO: handle %s\n", stmt->getStmtClassName());
       break;

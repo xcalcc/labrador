@@ -3,3 +3,4 @@
  * procedure must be enclosed in braces
  */
 
+void
