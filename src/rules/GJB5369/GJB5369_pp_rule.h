@@ -202,7 +202,6 @@ private:
              "is forbidden: %s\n",
              filename.c_str());
     }
-
   }
 
 #if 0
@@ -237,6 +236,59 @@ private:
            Loc.printToString(*src_mgr).c_str());
   }
 
+  /*
+   * GJB5369: 4.2.1.6
+   * the macro parameters should be enclosed in parentheses
+   */
+  void CheckParamWithParentheses(const clang::MacroDirective *MD) {
+    auto macro_info = MD->getMacroInfo();
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    auto macro_loc = macro_info->getDefinitionLoc();
+    auto end_loc = macro_info->getDefinitionEndLoc();
+
+    // return if encounter builtin marco
+    if (src_mgr->isWrittenInBuiltinFile(macro_loc)) {
+      return;
+    }
+
+    std::vector<std::string> params;
+    std::string param_name;
+    for (const auto &it : macro_info->params()) {
+      param_name = it->getName().str();
+      params.push_back(param_name);
+    }
+
+    bool is_previous_paren = false, is_next_paren = false, end = false;
+    for (auto it = macro_info->tokens_begin(); it != macro_info->tokens_end(); it++) {
+      if (it->is(clang::tok::l_paren)) {
+        is_previous_paren = true;
+        continue;
+      }
+
+      if (it->is(clang::tok::identifier)) {
+        auto ident = it->getIdentifierInfo()->getName();
+        if (std::find(params.begin(), params.end(), ident) != params.end()) {
+          auto Loc = it->getLocation();
+          if (++it == macro_info->tokens_end()) {
+            is_next_paren = false;
+            end = true;
+          }
+          if (!end && it->is(clang::tok::r_paren)) {
+            is_next_paren = true;
+          }
+          if (!is_previous_paren || !is_next_paren) {
+            REPORT("GJB5369: 4.2.1.6: the macro parameters should be "
+                   "enclosed in parentheses: %s\n",
+                   Loc.printToString(*src_mgr).c_str());
+          }
+        }
+      }
+      if (end) break;
+      is_previous_paren = false;
+      is_next_paren = false;
+    }
+  }
+
 public:
   void MacroDefined(const clang::Token &MacroNameTok,
                     const clang::MacroDirective *MD) {
@@ -244,6 +296,7 @@ public:
     CheckUnFunctionLike(MD);
     CheckMacroKeywords(MD);
     CheckReservedWordRedefine(MD);
+    CheckParamWithParentheses(MD);
   }
 
   void Endif(clang::SourceLocation Loc, clang::SourceLocation IfLoc) {
