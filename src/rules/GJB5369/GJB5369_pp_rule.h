@@ -289,6 +289,22 @@ private:
     }
   }
 
+  /*
+   * GJB5369: 4.2.1.8
+   * header file name contain ' \ /* is forbidden
+   */
+  void CheckIncludeName(llvm::StringRef IncludedFilename) {
+    std::string filename = IncludedFilename.str();
+    if (filename.find("'") != std::string::npos ||
+        filename.find("\\") != std::string::npos ||
+        filename.find("/") != std::string::npos ||
+        filename.find("*") != std::string::npos) {
+      REPORT("GJB5369: header file name contain ' \\ /* is forbidden "
+             "is forbidden: %s\n",
+             filename.c_str());
+    }
+  }
+
 public:
   void MacroDefined(const clang::Token &MacroNameTok,
                     const clang::MacroDirective *MD) {
@@ -310,6 +326,7 @@ public:
                           llvm::StringRef RelativePath, const clang::Module *Imported,
                           clang::SrcMgr::CharacteristicKind FileType) {
     CheckAbsolutePathInclude(IncludedFilename);
+    CheckIncludeName(IncludedFilename);
   }
 
   void PragmaDirective(clang::SourceLocation Loc,

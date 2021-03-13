@@ -77,7 +77,6 @@ public:
 
 public:
   void AddIdentifier(const clang::FunctionDecl *decl) {
-    // TODO
     DBG_ASSERT(decl != nullptr, "FunctionDecl is null");
     std::string func_name = decl->getNameAsString();
     _id_to_func.emplace(std::make_pair(func_name, decl));
