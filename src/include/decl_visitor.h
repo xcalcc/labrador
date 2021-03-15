@@ -98,9 +98,15 @@ public:
 
     if (decl->doesThisDeclarationHaveABody()) {
 //      _stmt_visitor.Visit(decl->getBody());
-      for (const auto &it :
-           clang::dyn_cast<clang::CompoundStmt>(decl->getBody())->body()) {
-        _stmt_visitor.Visit(it);
+
+      // distinguish the CompoundStmt and the try-catch stmt
+      if (clang::dyn_cast<clang::CompoundStmt>(decl->getBody())) {
+        for (const auto &it :
+            clang::dyn_cast<clang::CompoundStmt>(decl->getBody())->body()) {
+          _stmt_visitor.Visit(it);
+        }
+      } else {
+        _stmt_visitor.Visit(decl->getBody());
       }
     }
   }

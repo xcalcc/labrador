@@ -467,6 +467,28 @@ private:
   }
 
   /*
+   * GJB5369: 4.2.1.1
+   * procedure must be enclosed in braces
+   */
+  void CheckProcedureWithBraces(const clang::FunctionDecl *decl) {
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    auto func_loc = decl->getLocation();
+    auto end_loc = decl->getEndLoc();
+    const char *start = src_mgr->getCharacterData(func_loc);
+    const char *end = src_mgr->getCharacterData(end_loc);
+
+    while ((start != end) && (*start != ')')) start++;  // eat prototype
+    do { start++; } while ((start != end) && std::isspace(*start));  // eat space
+
+    if (*start != '{') {
+      REPORT("GJB5396:4.1.2.8: Procedure must be enclosed in braces:"
+             " %s -> %s\n",
+             decl->getNameAsString().c_str(),
+             func_loc.printToString(*src_mgr).c_str());
+    }
+  }
+
+  /*
    * GJB5369: 4.2.1.10
    * main function should be defined as:
    * 1. int main(void)
@@ -521,6 +543,7 @@ public:
     CheckTypedefBasicType(decl);
     CheckExplicitCharType(decl);
     CheckMainFunctionDefine(decl);
+    CheckProcedureWithBraces(decl);
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {
