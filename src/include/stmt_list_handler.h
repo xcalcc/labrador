@@ -37,6 +37,11 @@ public:
   #undef ABSTRACT_STMT
   #undef STMT
 
+  void VisitFunctionBody(const clang::Stmt *stmt) {
+    _first.VisitFunctionBody(stmt);
+    _rest.VisitFunctionBody(stmt);
+  }
+
 };  // StmtListHandler
 
 // class StmtListHandler with single template parameters as handlers
@@ -55,6 +60,10 @@ public:
   # include "clang/AST/StmtNodes.inc"
   #undef ABSTRACT_STMT
   #undef STMT
+
+  void VisitFunctionBody(const clang::Stmt *stmt) {
+    _first.VisitFunctionBody(stmt);
+  }
 
 };  // StmtListHandler
 

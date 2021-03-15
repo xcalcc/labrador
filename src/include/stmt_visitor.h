@@ -54,6 +54,20 @@ public:
     }
   }
 
+  void VisitFunctionBody(const clang::Stmt *stmt) {
+    _stmt_handler.VisitFunctionBody(stmt);
+
+    // distinguish the CompoundStmt and the try-catch stmt
+    if (clang::dyn_cast<clang::CompoundStmt>(stmt)) {
+      for (const auto &it :
+          clang::dyn_cast<clang::CompoundStmt>(stmt)->body()) {
+        this->Visit(it);
+      }
+    } else {
+      this->Visit(stmt);
+    }
+  }
+
   // generate individual Visit##CLASS method
   #define STMT(CLASS, BASE) \
   void Visit##CLASS(const clang::CLASS *stmt) { \

@@ -38,6 +38,8 @@ public:
   #undef ABSTRACT_STMT
   #undef STMT
 
+  void VisitFunctionBody(const clang::Stmt *stmt) {}
+
 };  // StmtNullHandler
 
 }  // namespace xsca

@@ -8,7 +8,7 @@ void static_p(void) {
   x = 0u;
 
   /* the assemble procedure should be pure assemble */
-  _asm {
-        mov eax, x
-  }
+  __asm__ (
+  "mov eax, x;"
+  );
 }

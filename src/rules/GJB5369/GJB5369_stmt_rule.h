@@ -10,11 +10,15 @@
 // implement all stmt related rules in GJB5369
 //
 
+#include <map>
+
 class GJB5369StmtRule : public StmtNullHandler {
 public:
   ~GJB5369StmtRule() {}
 
 private:
+  bool _is_single_asm_stmt;
+
   bool CheckExprParentheses(const clang::Expr *expr) {
     auto src_mgr = XcalCheckerManager::GetSourceManager();
     auto expr_loc = expr->getBeginLoc();
@@ -107,6 +111,36 @@ private:
     }
   }
 
+  /*
+   * GJB5369: 4.2.1.7
+   * the assemble procedure should be pure assemble
+   */
+  void CheckAsmInProcedure(const clang::Stmt *stmt) {
+    int stmt_num = 0;
+    for (const auto &it : stmt->children()) {
+      stmt_num++;
+      if (it->getStmtClass() == clang::Stmt::StmtClass::GCCAsmStmtClass) {
+        if (stmt_num > 1) {
+          _is_single_asm_stmt = false;
+          return;
+        }
+      } else {
+        _is_single_asm_stmt = false;
+        return;
+      }
+    }
+  }
+
+  void CheckAsmInProcedure(const clang::GCCAsmStmt *stmt) {
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    auto location = stmt->getBeginLoc();
+    if (!_is_single_asm_stmt) {
+      REPORT("GJB5396:4.2.1.7: The assemble procedure should be pure assemble:"
+             " %s\n",
+             location.printToString(*src_mgr).c_str());
+    }
+  }
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -126,6 +160,14 @@ public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
     CheckLogicExprParen(stmt);
+  }
+
+  void VisitFunctionBody(const clang::Stmt *stmt) {
+    CheckAsmInProcedure(stmt);
+  }
+
+  void VisitGCCAsmStmt(const clang::GCCAsmStmt *stmt) {
+    CheckAsmInProcedure(stmt);
   }
 }; // GJB5369StmtRule
 
