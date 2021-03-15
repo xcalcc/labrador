@@ -45,7 +45,7 @@ Rule		Kind		Implementation
 4.2.1.7
 4.2.1.8     PP          CheckIncludeName
 4.2.1.9
-4.2.1.10
+4.2.1.10    Stmt        CheckMainFunctionDefine
 --------------+------------------------------------------------
 4.2.2
 4.2.2.1

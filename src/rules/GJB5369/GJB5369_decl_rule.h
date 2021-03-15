@@ -52,6 +52,53 @@ private:
     return false;
   };
 
+  void GetFunctionTokens(const clang::FunctionDecl *decl,
+                         std::vector<std::string> &tokens) {
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+
+    auto func_loc = decl->getLocation();
+    auto func_raw_chars = src_mgr->getCharacterData(func_loc);
+
+    std::string token = "";
+
+    // eat function name
+    while (*func_raw_chars != '(')
+      func_raw_chars++;
+
+    /* Maybe there are some APIs for getting tokens of parameter decl.
+     * Such as clang::SourceRange and clang::Lexer.
+     * TODO: Refine the tokenize methods with clang APIs
+     */
+    do {
+      *func_raw_chars++; // eat '(' or  ',' or ' '
+      while ((*func_raw_chars != ',') && (!std::isspace(*func_raw_chars)) &&
+             (*func_raw_chars != ')')) {
+        token += *func_raw_chars;
+        func_raw_chars++;
+      }
+
+      if (token != "") {
+        tokens.push_back(token);
+        token = "";
+      }
+
+    } while (*func_raw_chars != ')');
+  }
+
+  bool IsEmptyParamList(const clang::FunctionDecl *decl,
+                        std::vector<std::string> &tokens) {
+    if (decl->param_empty()) {
+      if ((tokens.size() == 1) && (tokens[0] == "void")) {
+        return false;
+      } else if (tokens.size() == 0) {
+        return true;
+      } else {
+        DBG_ASSERT(0, "Unknown fault.");
+      }
+    }
+    return false;
+  }
+
   void CheckFunctionNameReuse() {
     auto scope_mgr = XcalCheckerManager::GetScopeManager();
     auto top_scope = scope_mgr->GlobalScope();
@@ -102,50 +149,16 @@ private:
    * 4.1.1.10 the empty function parameter list is forbidden
    * */
   void CheckParameterTypeDecl(const clang::FunctionDecl *decl) {
-    auto src_mgr = XcalCheckerManager::GetSourceManager();
-
-    auto func_loc = decl->getLocation();
-    auto func_raw_chars = src_mgr->getCharacterData(func_loc);
-
-    std::string token = "";
     std::vector<std::string> tokens;
-
-    // eat function name
-    while (*func_raw_chars != '(')
-      func_raw_chars++;
-
-    /* Maybe there are some APIs for getting tokens of parameter decl.
-     * Such as clang::SourceRange and clang::Lexer.
-     * TODO: Refine the tokenize methods with clang APIs
-     */
-    do {
-      *func_raw_chars++; // eat '(' or  ',' or ' '
-      while ((*func_raw_chars != ',') && (*func_raw_chars != ' ') &&
-             (*func_raw_chars != ')')) {
-        token += *func_raw_chars;
-        func_raw_chars++;
-      }
-
-      if (token != "") {
-        tokens.push_back(token);
-        token = "";
-      }
-
-    } while (*func_raw_chars != ')');
+    GetFunctionTokens(decl, tokens);
 
     /* 4.1.1.10
      * The empty function parameter list is forbidden
      */
-    if (decl->param_empty()) {
-      if ((tokens.size() == 1) && (tokens[0] == "void")) {
-        return;
-      } else if (token.size() == 0) {
-        REPORT("GJB5396:4.1.1.10: The empty function parameter list is "
-               "forbidden: %s\n",
-               decl->getNameAsString().c_str());
-      } else {
-        DBG_ASSERT(0, "Unknown fault.");
-      }
+    if (IsEmptyParamList(decl, tokens)) {
+      REPORT("GJB5396:4.1.1.10: The empty function parameter list is "
+             "forbidden: %s\n",
+             decl->getNameAsString().c_str());
     }
 
     /* 4.1.1.8
@@ -453,6 +466,44 @@ private:
            decl->getNameAsString().c_str());
   }
 
+  /*
+   * GJB5369: 4.2.1.10
+   * main function should be defined as:
+   * 1. int main(void)
+   * 2. int main(int, char*[])
+   */
+  void CheckMainFunctionDefine(const clang::FunctionDecl *decl) {
+    if (decl->getNameAsString() != "main") return;
+    std::vector<std::string> tokens;
+    GetFunctionTokens(decl, tokens);
+
+    // check parameter
+    bool need_report = false;
+    if (decl->param_empty()) {
+      need_report = (tokens.size() == 0) ? true : false;
+    } else {
+      if (tokens.size() != 2) {
+        need_report = true;
+      } else {
+        if (tokens[0] == "int" && tokens[1] == "char*[]") {
+          need_report = false;
+        } else {
+          need_report = true;
+        }
+      }
+    }
+
+    // check return type
+    if (decl->getReturnType().getAsString() != "int") {
+      need_report = true;
+    }
+
+    if (need_report) {
+      REPORT("GJB5396:4.1.2.8: main function should be defined as: "
+             "int main(void) or int main(int, char*[])\n");
+    }
+  }
+
 public:
   void Finalize() {
     CheckFunctionNameReuse();
@@ -469,6 +520,7 @@ public:
     CheckPlethoraParameters(decl);
     CheckTypedefBasicType(decl);
     CheckExplicitCharType(decl);
+    CheckMainFunctionDefine(decl);
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {
