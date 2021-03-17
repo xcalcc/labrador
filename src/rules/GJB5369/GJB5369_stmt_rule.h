@@ -184,6 +184,21 @@ private:
     }
   }
 
+  /*
+   * GJB5369: 4.3.1.2
+   * 'else' must be used in the "if...else if" statement
+   */
+  void CheckIfWithoutElseStmt(const clang::IfStmt *stmt) {
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+
+    if (!stmt->hasElseStorage()) {
+      auto location = stmt->getBeginLoc();
+      REPORT("GJB5396:4.3.1.2: 'else' must be used in "
+             "the \"if...else if\" statement: %s\n",
+             location.printToString(*src_mgr).c_str());
+    }
+  }
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -200,6 +215,7 @@ public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckIfBrace(stmt);
     CheckEmptyIfElseStmt(stmt);
+    CheckIfWithoutElseStmt(stmt);
   }
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
