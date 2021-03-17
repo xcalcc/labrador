@@ -141,6 +141,49 @@ private:
     }
   }
 
+  /*
+   * GJB5369: 4.3.1.1
+   * non-statement is forbidden as the conditional
+   * judgement is true:
+   * 1. if (...) else
+   * 2. if (...) {} else
+   * 3. if (...) {;} else
+   */
+  void CheckEmptyIfElseStmt(const clang::IfStmt *stmt) {
+    bool need_report = false;
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+
+    // check if-blcok
+    auto _then = stmt->getThen();
+    if (clang::dyn_cast<clang::NullStmt>(_then)) {
+      need_report = true;
+    } else if (clang::dyn_cast<clang::CompoundStmt>(_then)) {
+      if (_then->child_begin() == _then->child_end()) {
+        need_report = true;
+      }
+    }
+
+    // check else-block
+    auto _else = stmt->getElse();
+    if (stmt->hasElseStorage()) {
+      if (clang::dyn_cast<clang::NullStmt>(_else)) {
+        need_report = true;
+      } else if (clang::dyn_cast<clang::CompoundStmt>(_else)) {
+        if (_else->child_begin() == _else->child_end()) {
+          need_report = true;
+        }
+      }
+    }
+
+    if (need_report) {
+      auto location = stmt->getBeginLoc();
+      REPORT("GJB5396:4.3.1.1: non-statement is forbidden as the conditional"
+             " judgement is true:"
+             " %s\n",
+             location.printToString(*src_mgr).c_str());
+    }
+  }
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -156,6 +199,7 @@ public:
 
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckIfBrace(stmt);
+    CheckEmptyIfElseStmt(stmt);
   }
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -172,7 +216,7 @@ public:
 
   void VisitStringLiteral(const clang::StringLiteral *stmt) {
     TRACE0();
-    CheckStringLiteralEnd(stmt);
+//    CheckStringLiteralEnd(stmt);
   }
 }; // GJB5369StmtRule
 
