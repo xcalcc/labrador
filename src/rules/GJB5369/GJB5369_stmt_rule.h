@@ -167,6 +167,8 @@ private:
       if (_then->child_begin() == _then->child_end()) {
         need_report_if = true;
       }
+    } else {
+      DBG_ASSERT(0, "unknown if body");
     }
 
     // check else-block
@@ -178,6 +180,8 @@ private:
         if (_else->child_begin() == _else->child_end()) {
           need_report_else = true;
         }
+      } else {
+        DBG_ASSERT(0, "unknown else body");
       }
     }
 
@@ -214,9 +218,14 @@ private:
   /*
    * GJB5369: 4.3.1.4
    * "default" statement should be used in the "switch" statement
+   *
+   * GJB5369: 4.3.1.6
+   * "switch" only containing "default" is forbidden
    */
   void CheckSwitchWithoutDefaultStmt(const clang::SwitchStmt *stmt) {
-    bool has_default = false;
+    if (CheckEmptySwitch(stmt)) return;
+
+    bool has_default = false, has_other = false;
     auto switchCaseList = stmt->getSwitchCaseList();
     if (switchCaseList != nullptr) {
       do {
@@ -224,6 +233,8 @@ private:
             clang::Stmt::StmtClass::DefaultStmtClass) {
           has_default = true;
           break;
+        } else {
+          has_other = true;
         }
       } while ((switchCaseList = switchCaseList->getNextSwitchCase()) != nullptr);
     }
@@ -236,13 +247,24 @@ private:
              " used in the \"switch\" statement: %s\n",
              location.printToString(*src_mgr).c_str());
     }
+
+    if (!has_other &&
+        ((switchCaseList == nullptr) ||
+         (switchCaseList->getNextSwitchCase() == nullptr))) {
+      auto src_mgr = XcalCheckerManager::GetSourceManager();
+      auto location = stmt->getBeginLoc();
+
+      REPORT("GJB5396:4.3.1.6: \"switch\" only containing"
+             " \"default\" is forbidden: %s\n",
+             location.printToString(*src_mgr).c_str());
+    }
   }
 
   /*
    * GJB5369: 4.3.1.5
    * "switch" without statement is forbidden
    */
-  void CheckEmptySwitch(const clang::SwitchStmt *stmt) {
+  bool CheckEmptySwitch(const clang::SwitchStmt *stmt) {
     bool need_report = false;
 
     auto switch_body = stmt->getBody();
@@ -262,7 +284,9 @@ private:
 
       REPORT("GJB5396:4.3.1.5: \"switch\" without statement is forbidden: %s\n",
              location.printToString(*src_mgr).c_str());
+      return true;
     }
+    return false;
   }
 
 public:
@@ -303,7 +327,6 @@ public:
 
   void VisitSwitchStmt(const clang::SwitchStmt *stmt) {
     CheckSwitchWithoutDefaultStmt(stmt);
-    CheckEmptySwitch(stmt);
   }
 }; // GJB5369StmtRule
 
