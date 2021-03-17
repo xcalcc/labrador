@@ -56,7 +56,7 @@ Rule		Kind		Implementation
 4.3.1.4     Stmt        CheckSwitchWithoutDefaultStmt
 4.3.1.5     Stmt        CheckEmptySwitch
 4.3.1.6     Stmt        CheckSwitchWithoutDefaultStmt
-4.3.1.7
+4.3.1.7     Stmt        CheckCaseEndWithBreak
 4.3.1.8
 4.4.1.1
 4.4.1.2

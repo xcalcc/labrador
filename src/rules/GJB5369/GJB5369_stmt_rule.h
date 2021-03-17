@@ -226,17 +226,17 @@ private:
     if (CheckEmptySwitch(stmt)) return;
 
     bool has_default = false, has_other = false;
-    auto switchCaseList = stmt->getSwitchCaseList();
-    if (switchCaseList != nullptr) {
+    auto caseList = stmt->getSwitchCaseList();
+    if (caseList != nullptr) {
       do {
-        if (switchCaseList->getStmtClass() ==
+        if (caseList->getStmtClass() ==
             clang::Stmt::StmtClass::DefaultStmtClass) {
           has_default = true;
           break;
         } else {
           has_other = true;
         }
-      } while ((switchCaseList = switchCaseList->getNextSwitchCase()) != nullptr);
+      } while ((caseList = caseList->getNextSwitchCase()) != nullptr);
     }
 
     if (!has_default) {
@@ -249,8 +249,8 @@ private:
     }
 
     if (!has_other &&
-        ((switchCaseList == nullptr) ||
-         (switchCaseList->getNextSwitchCase() == nullptr))) {
+        ((caseList == nullptr) ||
+         (caseList->getNextSwitchCase() == nullptr))) {
       auto src_mgr = XcalCheckerManager::GetSourceManager();
       auto location = stmt->getBeginLoc();
 
@@ -287,6 +287,49 @@ private:
       return true;
     }
     return false;
+  }
+
+  /*
+   * GJB5369: 4.3.1.7
+   * "case" statement without "break" is forbidden
+   */
+  void CheckCaseEndWithBreak(const clang::SwitchStmt *stmt) {
+    using StmtClass = clang::Stmt::StmtClass;
+
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+
+    auto switch_body = stmt->getBody();
+    if (switch_body != nullptr) {
+      auto it = switch_body->child_begin();
+      auto case_end = switch_body->child_end();
+      clang::SourceLocation location;
+
+      for (; it != case_end; it++) {
+        auto stmtClass = it->getStmtClass();
+        if ((stmtClass == StmtClass::CaseStmtClass) ||
+            (stmtClass == StmtClass::DefaultStmtClass)) {
+          location = it->getBeginLoc();
+
+          auto next = it;
+          next++;
+          if (next != case_end) {
+            if (next->getStmtClass() == StmtClass::BreakStmtClass) {
+              continue;
+            } else {
+              REPORT("GJB5396:4.3.1.7: \"case\" statement without "
+                     "\"break\" is forbidden: %s\n",
+                     location.printToString(*src_mgr).c_str());
+            }
+          } else {
+            REPORT("GJB5396:4.3.1.7: \"case\" statement without "
+                   "\"break\" is forbidden: %s\n",
+                   location.printToString(*src_mgr).c_str());
+            break;
+          }
+
+        }
+      }
+    }
   }
 
 public:
@@ -327,6 +370,7 @@ public:
 
   void VisitSwitchStmt(const clang::SwitchStmt *stmt) {
     CheckSwitchWithoutDefaultStmt(stmt);
+    CheckCaseEndWithBreak(stmt);
   }
 }; // GJB5369StmtRule
 
