@@ -27,6 +27,16 @@ private:
     return false;
   }
 
+  bool IsCaseStmt(const clang::Stmt *stmt) {
+    using StmtClass = clang::Stmt::StmtClass;
+    auto stmtClass = stmt->getStmtClass();
+    if ((stmtClass == StmtClass::CaseStmtClass) ||
+        (stmtClass == StmtClass::DefaultStmtClass)) {
+      return true;
+    }
+    return false;
+  }
+
   /*
    * GJB5369 4.1.1.4
    * Check multiple consecutive labels.
@@ -295,7 +305,6 @@ private:
    */
   void CheckCaseEndWithBreak(const clang::SwitchStmt *stmt) {
     using StmtClass = clang::Stmt::StmtClass;
-
     auto src_mgr = XcalCheckerManager::GetSourceManager();
 
     auto switch_body = stmt->getBody();
@@ -305,9 +314,8 @@ private:
       clang::SourceLocation location;
 
       for (; it != case_end; it++) {
-        auto stmtClass = it->getStmtClass();
-        if ((stmtClass == StmtClass::CaseStmtClass) ||
-            (stmtClass == StmtClass::DefaultStmtClass)) {
+        if (IsCaseStmt(*it)) {
+          CheckEmptyCaseStmt(clang::dyn_cast<clang::SwitchCase>(*it));
           location = it->getBeginLoc();
 
           auto next = it;
@@ -329,6 +337,21 @@ private:
 
         }
       }
+    }
+  }
+
+  /*
+   * GJB5369: 4.3.1.8
+   * the empty "case" statement is forbidden
+   */
+  void CheckEmptyCaseStmt(const clang::SwitchCase *stmt) {
+    auto sub_stmt = stmt->getSubStmt();
+    if (IsCaseStmt(sub_stmt) || clang::dyn_cast<clang::NullStmt>(sub_stmt)) {
+      auto src_mgr = XcalCheckerManager::GetSourceManager();
+      auto location = stmt->getBeginLoc();
+
+      REPORT("GJB5396:4.3.1.8: The empty \"case\" statement is forbidden: %s\n",
+             location.printToString(*src_mgr).c_str());
     }
   }
 
