@@ -211,6 +211,34 @@ private:
     }
   }
 
+  /*
+   * GJB5369: 4.3.1.4
+   * "default" statement should be used in the "switch" statement
+   */
+  void CheckSwitchWithoutDefaultStmt(const clang::SwitchStmt *stmt) {
+    bool has_default = false;
+    auto switchCaseList = stmt->getSwitchCaseList();
+    if (switchCaseList != nullptr) {
+      do {
+        if (switchCaseList->getStmtClass() ==
+            clang::Stmt::StmtClass::DefaultStmtClass) {
+          has_default = true;
+          break;
+        }
+      } while ((switchCaseList = switchCaseList->getNextSwitchCase()) != nullptr);
+    }
+
+    if (!has_default) {
+      auto src_mgr = XcalCheckerManager::GetSourceManager();
+      auto location = stmt->getBeginLoc();
+
+      REPORT("GJB5396:4.3.1.4: \"default\" statement should be"
+             " used in the \"switch\" statement: %s\n",
+             location.printToString(*src_mgr).c_str());
+    }
+
+  }
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -245,6 +273,10 @@ public:
   void VisitStringLiteral(const clang::StringLiteral *stmt) {
     TRACE0();
 //    CheckStringLiteralEnd(stmt);
+  }
+
+  void VisitSwitchStmt(const clang::SwitchStmt *stmt) {
+    CheckSwitchWithoutDefaultStmt(stmt);
   }
 }; // GJB5369StmtRule
 
