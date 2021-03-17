@@ -169,5 +169,10 @@ public:
   void VisitGCCAsmStmt(const clang::GCCAsmStmt *stmt) {
     CheckAsmInProcedure(stmt);
   }
+
+  void VisitStringLiteral(const clang::StringLiteral *stmt) {
+    TRACE0();
+    CheckStringLiteralEnd(stmt);
+  }
 }; // GJB5369StmtRule
 

@@ -526,6 +526,25 @@ private:
     }
   }
 
+  /*
+   * GJB5369: 4.2.2.2
+   * the function length shouldn't exceed 200 lines
+   */
+  void CheckFunctionLength(const clang::FunctionDecl *decl) {
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    auto start_loc = decl->getBeginLoc();
+    auto end_loc = decl->getEndLoc();
+
+    int start_line = src_mgr->getSpellingLineNumber(start_loc);
+    int end_line = src_mgr->getSpellingLineNumber(end_loc);
+    int len = end_line - start_line;
+    if (len > 200) {
+      REPORT("GJB5396:4.2.2.1: the function length shouldn't exceed 200 lines: "
+             "function: %s -> length: %d\n",
+             decl->getNameAsString().c_str(), len);
+    }
+  }
+
 public:
   void Finalize() {
     CheckFunctionNameReuse();
@@ -544,6 +563,7 @@ public:
     CheckExplicitCharType(decl);
     CheckMainFunctionDefine(decl);
     CheckProcedureWithBraces(decl);
+    CheckFunctionLength(decl);
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {

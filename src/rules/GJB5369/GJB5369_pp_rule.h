@@ -334,4 +334,11 @@ public:
     CheckProgram(Loc, Introducer);
   }
 
+  void FileChanged(clang::SourceLocation Loc,
+                   clang::PPCallbacks::FileChangeReason Reason,
+                   clang::SrcMgr::CharacteristicKind FileType,
+                   clang::FileID PrevFID)  {
+
+  }
+
 }; // GJB5369PPRule

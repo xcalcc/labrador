@@ -1,5 +1,5 @@
 /*
- * GJB5369: 4.2.2.1
+ * GJB5369: 4.2.2.2
  * the function length shouldn't exceed 200 lines
  */
 
