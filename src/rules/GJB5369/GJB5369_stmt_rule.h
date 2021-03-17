@@ -236,7 +236,33 @@ private:
              " used in the \"switch\" statement: %s\n",
              location.printToString(*src_mgr).c_str());
     }
+  }
 
+  /*
+   * GJB5369: 4.3.1.5
+   * "switch" without statement is forbidden
+   */
+  void CheckEmptySwitch(const clang::SwitchStmt *stmt) {
+    bool need_report = false;
+
+    auto switch_body = stmt->getBody();
+    if (clang::dyn_cast<clang::NullStmt>(switch_body)) {
+      need_report = true;
+    } else if (clang::dyn_cast<clang::CompoundStmt>(switch_body)) {
+      if (switch_body->child_begin() == switch_body->child_end()) {
+        need_report = true;
+      }
+    } else {
+      DBG_ASSERT(0, "unknown switch body");
+    }
+
+    if (need_report) {
+      auto src_mgr = XcalCheckerManager::GetSourceManager();
+      auto location = stmt->getBeginLoc();
+
+      REPORT("GJB5396:4.3.1.5: \"switch\" without statement is forbidden: %s\n",
+             location.printToString(*src_mgr).c_str());
+    }
   }
 
 public:
@@ -277,6 +303,7 @@ public:
 
   void VisitSwitchStmt(const clang::SwitchStmt *stmt) {
     CheckSwitchWithoutDefaultStmt(stmt);
+    CheckEmptySwitch(stmt);
   }
 }; // GJB5369StmtRule
 
