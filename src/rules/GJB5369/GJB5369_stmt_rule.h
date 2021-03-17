@@ -148,18 +148,24 @@ private:
    * 1. if (...) else
    * 2. if (...) {} else
    * 3. if (...) {;} else
+   *
+   * GJB5369: 4.3.1.3
+   * else block should not be empty
+   * 1. else;
+   * 2. else {}
+   * 3. else {;}
    */
   void CheckEmptyIfElseStmt(const clang::IfStmt *stmt) {
-    bool need_report = false;
+    bool need_report_if = false, need_report_else = false;
     auto src_mgr = XcalCheckerManager::GetSourceManager();
 
     // check if-blcok
     auto _then = stmt->getThen();
     if (clang::dyn_cast<clang::NullStmt>(_then)) {
-      need_report = true;
+      need_report_if = true;
     } else if (clang::dyn_cast<clang::CompoundStmt>(_then)) {
       if (_then->child_begin() == _then->child_end()) {
-        need_report = true;
+        need_report_if = true;
       }
     }
 
@@ -167,18 +173,24 @@ private:
     auto _else = stmt->getElse();
     if (stmt->hasElseStorage()) {
       if (clang::dyn_cast<clang::NullStmt>(_else)) {
-        need_report = true;
+        need_report_else = true;
       } else if (clang::dyn_cast<clang::CompoundStmt>(_else)) {
         if (_else->child_begin() == _else->child_end()) {
-          need_report = true;
+          need_report_else = true;
         }
       }
     }
 
-    if (need_report) {
+    if (need_report_if) {
       auto location = stmt->getBeginLoc();
-      REPORT("GJB5396:4.3.1.1: non-statement is forbidden as the conditional"
-             " judgement is true:"
+      REPORT("GJB5396:4.3.1.1: if block should not be empty:"
+             " %s\n",
+             location.printToString(*src_mgr).c_str());
+    }
+
+    if (need_report_else) {
+      auto location = stmt->getBeginLoc();
+      REPORT("GJB5396:4.3.1.3: else block should not be empty:"
              " %s\n",
              location.printToString(*src_mgr).c_str());
     }
