@@ -128,6 +128,20 @@ private:
     }
   }
 
+  bool IsPointerNestedMoreThanTwoLevel(clang::QualType decl_type) {
+    if (decl_type->isPointerType()) {
+      int nested_level = 0;
+      auto pointee_type = decl_type->getPointeeType();
+      if (pointee_type->isPointerType()) {
+        auto nested_type = pointee_type->getPointeeType();
+        if (nested_type->isPointerType()) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   /** GJB5396
    * 4.1.1.3 struct with empty field is forbidden
    */
@@ -545,6 +559,55 @@ private:
     }
   }
 
+  /*
+   * GJB5369: 4.4.1.2
+   * pointer's pointer nested more than two levels is forbidden
+   */
+  void CheckPointerNestedLevel(const clang::VarDecl *decl) {
+    auto decl_type = decl->getType();
+    if (IsPointerNestedMoreThanTwoLevel(decl_type)) {
+      auto location = decl->getLocation();
+      auto src_mgr = XcalCheckerManager::GetSourceManager();
+      REPORT("GJB5396:4.4.1.2: Pointer's pointer nested more "
+             "than two levels is forbidden: %s\n",
+             location.printToString(*src_mgr).c_str());
+    }
+  }
+
+  void CheckPointerNestedLevel(const clang::FunctionDecl *decl) {
+    for (const auto &it : decl->parameters()) {
+      auto param_type = it->getType();
+      if (IsPointerNestedMoreThanTwoLevel(param_type)) {
+        auto location = it->getLocation();
+        auto src_mgr = XcalCheckerManager::GetSourceManager();
+        REPORT("GJB5396:4.4.1.2: Pointer's pointer nested more "
+               "than two levels is forbidden (param): %s\n",
+               location.printToString(*src_mgr).c_str());
+      }
+    }
+
+    if (IsPointerNestedMoreThanTwoLevel(decl->getReturnType())) {
+      auto location = decl->getLocation();
+      auto src_mgr = XcalCheckerManager::GetSourceManager();
+      REPORT("GJB5396:4.4.1.2: Pointer's pointer nested more "
+             "than two levels is forbidden (return): %s\n",
+             location.printToString(*src_mgr).c_str());
+    }
+  }
+
+  void CheckPointerNestedLevel(const clang::RecordDecl *decl) {
+    for (const auto &it : decl->fields()) {
+      auto field_type = it->getType();
+      if (IsPointerNestedMoreThanTwoLevel(field_type)) {
+        auto location = it->getLocation();
+        auto src_mgr = XcalCheckerManager::GetSourceManager();
+        REPORT("GJB5396:4.4.1.2: Pointer's pointer nested more "
+               "than two levels is forbidden (field): %s\n",
+               location.printToString(*src_mgr).c_str());
+      }
+    }
+  }
+
 public:
   void Finalize() {
     CheckFunctionNameReuse();
@@ -564,6 +627,7 @@ public:
     CheckMainFunctionDefine(decl);
     CheckProcedureWithBraces(decl);
     CheckFunctionLength(decl);
+    CheckPointerNestedLevel(decl);
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {
@@ -573,6 +637,7 @@ public:
     CheckUnionDecl(decl);
     CheckTypedefBasicType(decl);
     checkExplicitCharType(decl);
+    CheckPointerNestedLevel(decl);
   }
 
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
@@ -582,12 +647,14 @@ public:
     CheckUnionDecl(decl);
     CheckTypedefBasicType(decl);
     checkExplicitCharType(decl);
+    CheckPointerNestedLevel(decl);
   }
 
   void VisitVar(const clang::VarDecl *decl) {
     CheckExplicitCharType(decl);
     CheckArrayBoundary(decl);
     CheckTypedefBasicType(decl);
+    CheckPointerNestedLevel(decl);
   }
 
 }; // GJB5369DeclRule
