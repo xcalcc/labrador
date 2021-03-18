@@ -309,6 +309,7 @@ private:
 
     auto switch_body = stmt->getBody();
     if (switch_body != nullptr) {
+
       auto it = switch_body->child_begin();
       auto case_end = switch_body->child_end();
       clang::SourceLocation location;
@@ -316,17 +317,40 @@ private:
       for (; it != case_end; it++) {
         if (IsCaseStmt(*it)) {
           CheckEmptyCaseStmt(clang::dyn_cast<clang::SwitchCase>(*it));
+
           location = it->getBeginLoc();
 
           auto next = it;
           next++;
+
+          /*
+           * 1. case: ...; break;
+           * 2. case: { ...; break; }
+           */
           if (next != case_end) {
+            // case: ...; break;
             if (next->getStmtClass() == StmtClass::BreakStmtClass) {
               continue;
             } else {
-              REPORT("GJB5396:4.3.1.7: \"case\" statement without "
-                     "\"break\" is forbidden: %s\n",
-                     location.printToString(*src_mgr).c_str());
+
+              bool need_report = true;
+              auto sub_stmt = clang::dyn_cast<clang::SwitchCase>(*it)->getSubStmt();
+
+              // case: { ...; break; }
+              if (clang::dyn_cast<clang::CompoundStmt>(sub_stmt)) {
+                for (const auto &sub_it : sub_stmt->children()) {
+                  if (sub_it->getStmtClass() == StmtClass::BreakStmtClass) {
+                    need_report = false;
+                    break;
+                  }
+                }
+              }
+
+              if (need_report) {
+                REPORT("GJB5396:4.3.1.7: \"case\" statement without "
+                       "\"break\" is forbidden: %s\n",
+                       location.printToString(*src_mgr).c_str());
+              }
             }
           } else {
             REPORT("GJB5396:4.3.1.7: \"case\" statement without "
