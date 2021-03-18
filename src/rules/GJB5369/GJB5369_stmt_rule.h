@@ -379,6 +379,47 @@ private:
     }
   }
 
+  /*
+   * GJB5369: 4.4.2.1
+   * comparing two pointer should be careful
+   */
+  void CheckPointerCompareStmt(const clang::BinaryOperator *stmt) {
+    if (stmt->isComparisonOp()) {
+      auto lhs = stmt->getLHS();
+      auto rhs = stmt->getRHS();
+      if (lhs->getType()->isPointerType() || rhs->getType()->isPointerType()) {
+        auto src_mgr = XcalCheckerManager::GetSourceManager();
+        auto lhs_loc = lhs->getBeginLoc();
+        auto rhs_loc = rhs->getBeginLoc();
+        REPORT("GJB5396:4.4.2.1: comparing pointer should be careful: "
+               "lhs: %s -> rhs: %s\n",
+               lhs_loc.printToString(*src_mgr).c_str(),
+               rhs_loc.printToString(*src_mgr).c_str());
+      }
+    }
+  }
+
+  /*
+   * GJB5369: 4.4.2.2
+   * using pointer in the algebraic operation should be careful
+   */
+  void CheckPointerCalculateStmt(const clang::BinaryOperator *stmt) {
+    if (stmt->isAdditiveOp() || stmt->isLogicalOp() || stmt->isBitwiseOp()) {
+      auto lhs = stmt->getLHS();
+      auto rhs = stmt->getRHS();
+      if (lhs->getType()->isPointerType() || rhs->getType()->isPointerType()) {
+        auto src_mgr = XcalCheckerManager::GetSourceManager();
+        auto lhs_loc = lhs->getBeginLoc();
+        auto rhs_loc = rhs->getBeginLoc();
+        REPORT("GJB5396:4.4.2.2: using pointer in the algebraic "
+               "operation should be careful: "
+               "lhs: %s -> rhs: %s\n",
+               lhs_loc.printToString(*src_mgr).c_str(),
+               rhs_loc.printToString(*src_mgr).c_str());
+      }
+    }
+  }
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -400,6 +441,8 @@ public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
     CheckLogicExprParen(stmt);
+    CheckPointerCompareStmt(stmt);
+    CheckPointerCalculateStmt(stmt);
   }
 
   void VisitFunctionBody(const clang::Stmt *stmt) {
