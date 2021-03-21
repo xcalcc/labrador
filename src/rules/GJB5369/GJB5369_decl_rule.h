@@ -608,6 +608,20 @@ private:
     }
   }
 
+  /*
+   * GJB5369: 4.4.1.3
+   * function pointer is forbidden
+   */
+  void CheckFunctionPointer(const clang::VarDecl *decl) {
+    auto decl_type = decl->getType();
+    if (decl_type->isFunctionPointerType()) {
+      auto location = decl->getLocation();
+      auto src_mgr = XcalCheckerManager::GetSourceManager();
+      REPORT("GJB5396:4.4.1.3: Function pointer is forbidden: %s\n",
+             location.printToString(*src_mgr).c_str());
+    }
+  }
+
 public:
   void Finalize() {
     CheckFunctionNameReuse();
@@ -655,6 +669,7 @@ public:
     CheckArrayBoundary(decl);
     CheckTypedefBasicType(decl);
     CheckPointerNestedLevel(decl);
+    CheckFunctionPointer(decl);
   }
 
 }; // GJB5369DeclRule
