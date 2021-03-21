@@ -427,8 +427,23 @@ private:
   void CheckGotoStmt(const clang::GotoStmt *stmt) {
     auto src_mgr = XcalCheckerManager::GetSourceManager();
     auto location = stmt->getBeginLoc();
-    REPORT("GJB5396:4.5.2.2: \"goto\" statement is forbidden: %s\n",
+    REPORT("GJB5396:4.5.1.2: \"goto\" statement is forbidden: %s\n",
            location.printToString(*src_mgr).c_str());
+  }
+
+  /*
+   * GJB5369: 4.5.2.1
+   * setjmp/longjmp is forbidden
+   */
+  void CheckSetjumpAndLongjump(const clang::CallExpr *stmt) {
+    auto callee = stmt->getCalleeDecl();
+    auto func_name = callee->getAsFunction()->getNameAsString();
+    if (func_name == "setjmp" || func_name == "longjmp") {
+      auto src_mgr = XcalCheckerManager::GetSourceManager();
+      auto location = stmt->getBeginLoc();
+      REPORT("GJB5396:4.5.2.1: \"goto\" statement is forbidden: %s\n",
+             location.printToString(*src_mgr).c_str());
+    }
   }
 
 public:
@@ -476,6 +491,10 @@ public:
 
   void VisitGotoStmt(const clang::GotoStmt *stmt) {
     CheckGotoStmt(stmt);
+  }
+
+  void VisitCallExpr(const clang::CallExpr *stmt) {
+    CheckSetjumpAndLongjump(stmt);
   }
 }; // GJB5369StmtRule
 
