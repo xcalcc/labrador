@@ -1,5 +1,5 @@
 /*
- * GJB5369: 4.5.2.2
+ * GJB5369: 4.5.1.2
  * "goto" statement is forbidden
  */
 

@@ -420,6 +420,17 @@ private:
     }
   }
 
+  /*
+   * GJB5369: 4.5.1.2
+   * "goto" statement is forbidden
+   */
+  void CheckGotoStmt(const clang::GotoStmt *stmt) {
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    auto location = stmt->getBeginLoc();
+    REPORT("GJB5396:4.5.2.2: \"goto\" statement is forbidden: %s\n",
+           location.printToString(*src_mgr).c_str());
+  }
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -461,6 +472,10 @@ public:
   void VisitSwitchStmt(const clang::SwitchStmt *stmt) {
     CheckSwitchWithoutDefaultStmt(stmt);
     CheckCaseEndWithBreak(stmt);
+  }
+
+  void VisitGotoStmt(const clang::GotoStmt *stmt) {
+    CheckGotoStmt(stmt);
   }
 }; // GJB5369StmtRule
 
