@@ -446,6 +446,50 @@ private:
     }
   }
 
+  /*
+   * GJB5369: 4.6.1.3
+   * bit shift used on signed-number is forbidden
+   */
+  template<typename TYPE>
+  void CheckShiftOnSignedNumber(const TYPE *stmt) {
+    if (!stmt->isShiftOp() && !stmt->isShiftAssignOp()) return;
+    auto lhs = stmt->getLHS();
+    auto lhs_type = lhs->getType();
+    if (lhs_type->isSignedIntegerType()) {
+      auto src_mgr = XcalCheckerManager::GetSourceManager();
+      auto location = stmt->getBeginLoc();
+      REPORT("GJB5396:4.6.1.3: bit shift used on signed-number is forbidden: %s\n",
+             location.printToString(*src_mgr).c_str());
+    }
+  }
+
+  /*
+   * GJB5369: 4.6.1.4
+   * shifting variable should not overflow
+   */
+  template<typename TYPE>
+  void CheckShiftOverflow(const TYPE *stmt) {
+    if (!stmt->isShiftOp() && !stmt->isShiftAssignOp()) return;
+    auto lhs = stmt->getLHS();
+    auto rhs = stmt->getRHS();
+    auto lhs_type = lhs->getType();
+    auto rhs_type = rhs->getType();
+    if (lhs_type->isIntegerType()) {
+      if (rhs_type->isIntegerType()) {
+        if (clang::dyn_cast<clang::IntegerLiteral>(rhs)) {
+          auto oprand_addr = clang::dyn_cast<clang::IntegerLiteral>(rhs)->getValue().getRawData();
+          int oprand = *oprand_addr;
+          if (oprand > 32) {
+            auto src_mgr = XcalCheckerManager::GetSourceManager();
+            auto location = stmt->getBeginLoc();
+            REPORT("GJB5396:4.6.1.4: shifting variable should not overflow: %s\n",
+                   location.printToString(*src_mgr).c_str());
+          }
+        }
+      }
+    }
+  }
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -469,6 +513,8 @@ public:
     CheckLogicExprParen(stmt);
     CheckPointerCompareStmt(stmt);
     CheckPointerCalculateStmt(stmt);
+    CheckShiftOnSignedNumber<clang::BinaryOperator>(stmt);
+    CheckShiftOverflow<clang::BinaryOperator>(stmt);
   }
 
   void VisitFunctionBody(const clang::Stmt *stmt) {
@@ -495,6 +541,11 @@ public:
 
   void VisitCallExpr(const clang::CallExpr *stmt) {
     CheckSetjumpAndLongjump(stmt);
+  }
+
+  void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
+    CheckShiftOnSignedNumber<clang::CompoundAssignOperator>(stmt);
+    CheckShiftOverflow<clang::CompoundAssignOperator>(stmt);
   }
 }; // GJB5369StmtRule
 
