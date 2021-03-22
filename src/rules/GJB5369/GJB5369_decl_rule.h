@@ -210,7 +210,7 @@ public:
     CheckTypedefBasicType(decl);
     checkExplicitCharType(decl);
     CheckPointerNestedLevel(decl);
-//    CheckSingleBitSignedValue(decl);
+    CheckSingleBitSignedValue(decl);
   }
 
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
@@ -221,7 +221,7 @@ public:
     CheckTypedefBasicType(decl);
     checkExplicitCharType(decl);
     CheckPointerNestedLevel(decl);
-//    CheckSingleBitSignedValue(decl);
+    CheckSingleBitSignedValue(decl);
   }
 
   void VisitVar(const clang::VarDecl *decl) {

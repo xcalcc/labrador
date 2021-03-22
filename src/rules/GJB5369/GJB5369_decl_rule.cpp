@@ -11,6 +11,7 @@
 //
 
 #include "GJB5369_decl_rule.h"
+#include <clang/AST/ASTContext.h>
 
 namespace xsca {
 namespace rule {
@@ -617,8 +618,24 @@ void GJB5369DeclRule::CheckFunctionPointer(const clang::VarDecl *decl) {
   }
 }
 
+/*
+ * GJB5369: 4.6.1.6
+ * signed-value must be longer than two bits
+ */
 void GJB5369DeclRule::CheckSingleBitSignedValue(const clang::RecordDecl *decl) {
-
+  for (const auto &it : decl->fields()) {
+    if (it->getType()->isSignedIntegerType() && it->isBitField()) {
+      auto bit_width = it->getBitWidthValue(decl->getASTContext());
+      if (bit_width < 2) {
+        auto location = decl->getLocation();
+        auto src_mgr = XcalCheckerManager::GetSourceManager();
+        REPORT("GJB5396:4.6.1.6: signed-value must be longer than two bits: "
+               "field: %s -> %s\n",
+               it->getNameAsString().c_str(),
+               location.printToString(*src_mgr).c_str());
+      }
+    }
+  }
 }
 
 } // rule
