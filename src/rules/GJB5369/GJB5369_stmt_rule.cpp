@@ -460,5 +460,42 @@ void GJB5369StmtRule::CheckDifferentTypeAssign(const clang::BinaryOperator *stmt
   }
 }
 
+
+/*
+ * GJB5369: 4.6.1.11
+ * logic non on const value is forbidden
+ */
+void GJB5369StmtRule::CheckNonOperationOnConstant(const clang::UnaryOperator *stmt) {
+  if (stmt->getOpcode() == clang::UnaryOperator::Opcode::UO_LNot) {
+//    auto sub = clang::dyn_cast<clang::ImplicitCastExpr>(stmt->getSubExpr());
+
+//  TODO: How to get astcontext by stmt
+
+//    if (sub && (sub->getSubExpr()->getType()->isLiteralType( /*ctx*/ ))) {
+//      auto src_mgr = XcalCheckerManager::GetSourceManager();
+//      auto location = stmt->getBeginLoc();
+//      REPORT("GJB5396:4.6.1.11: logic non on const value is forbidden: %s\n",
+//             location.printToString(*src_mgr).c_str());
+//    }
+  }
+}
+
+/*
+ * GJB5369: 4.6.1.12
+ * bit-wise operation on signed-int is forbidden
+ */
+void GJB5369StmtRule::CheckBitwiseOperationOnSignedValue(const clang::BinaryOperator *stmt) {
+  if (!stmt->isBitwiseOp()) {
+    auto lhs = stmt->getLHS();
+    if (lhs->getType()->isSignedIntegerType()) {
+      auto src_mgr = XcalCheckerManager::GetSourceManager();
+      auto location = stmt->getBeginLoc();
+      REPORT("GJB5396:4.6.1.12: bit-wise operation on signed-int is forbidden: %s\n",
+             location.printToString(*src_mgr).c_str());
+    }
+  }
+}
+
+
 } // rule
 } // xsca

@@ -203,6 +203,18 @@ private:
    */
   void CheckDifferentTypeAssign(const clang::BinaryOperator *stmt);
 
+  /*
+   * GJB5369: 4.6.1.11
+   * logic non on const value is forbidden
+   */
+  void CheckNonOperationOnConstant(const clang::UnaryOperator *stmt);
+
+  /*
+   * GJB5369: 4.6.1.12
+   * bit-wise operation on signed-int is forbidden
+   */
+  void CheckBitwiseOperationOnSignedValue(const clang::BinaryOperator *stmt);
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -230,6 +242,7 @@ public:
     CheckShiftOverflow<clang::BinaryOperator>(stmt);
     CheckAssignNegativetoUnsigned(stmt);
     CheckDifferentTypeAssign(stmt);
+    CheckBitwiseOperationOnSignedValue(stmt);
   }
 
   void VisitFunctionBody(const clang::Stmt *stmt) {
@@ -261,6 +274,10 @@ public:
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
     CheckShiftOnSignedNumber<clang::CompoundAssignOperator>(stmt);
     CheckShiftOverflow<clang::CompoundAssignOperator>(stmt);
+  }
+
+  void VisitUnaryOperator(const clang::UnaryOperator *stmt) {
+    CheckNonOperationOnConstant(stmt);
   }
 }; // GJB5369StmtRule
 
