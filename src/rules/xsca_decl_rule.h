@@ -23,9 +23,6 @@
   R(SJT11682DeclRule,  "SJT11682DeclRule")
 
 
-namespace xsca {
-namespace rule {
-
 // include all rules from sub directories
 #include "common/identifier_builder.h"
 #include "GJB5369/GJB5369_decl_rule.h"
@@ -33,9 +30,11 @@ namespace rule {
 #include "MISRA/MISRA_decl_rule.h"
 #include "SJT11682/SJT11682_decl_rule.h"
 
+namespace xsca {
+using namespace xsca::rule;
+
 #define GetClass(CLASS, ...) CLASS
 using RuleDeclHandler = DeclListHandler<ALL_DECL_RULES(GetClass)>;
-
-}  // namespace rule
 }  // namespace xsca
+
 

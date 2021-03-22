@@ -14,6 +14,9 @@
 //#include <clang/AST/Decl.h>
 //#include <vector>
 
+namespace xsca {
+namespace rule {
+
 class MISRADeclRule : public DeclNullHandler {
 public:
   ~MISRADeclRule() {}
@@ -25,4 +28,6 @@ public:
   }
 
 }; // MISRADeclRule
+} // rule
+} // xsca
 

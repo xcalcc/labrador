@@ -10,6 +10,9 @@
 // implement all stmt related rules in MISRA-C-2012
 //
 
+namespace xsca {
+namespace rule {
+
 class MISRAStmtRule : public StmtNullHandler {
 public:
   ~MISRAStmtRule() {}
@@ -20,3 +23,5 @@ public:
 
 }; // MISRAStmtRule
 
+}
+}

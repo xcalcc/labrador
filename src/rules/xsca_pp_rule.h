@@ -22,8 +22,6 @@
   R(SJT11682PPRule,      "SJT11682PPRule")
 
 
-namespace xsca {
-namespace rule {
 
 // include all rules from sub directories
 #include "GJB5369/GJB5369_pp_rule.h"
@@ -31,9 +29,10 @@ namespace rule {
 #include "MISRA/MISRA_pp_rule.h"
 #include "SJT11682/SJT11682_pp_rule.h"
 
+namespace xsca {
+
 #define GetClass(CLASS, ...) CLASS
 using RulePPHandler = PPListHandler<ALL_PP_RULES(GetClass)>;
 
-}  // namespace rule
 }  // namespace xsca
 

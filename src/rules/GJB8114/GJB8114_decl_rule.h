@@ -14,6 +14,9 @@
 //#include <clang/AST/Decl.h>
 //#include <vector>
 
+namespace xsca {
+namespace rule {
+
 class GJB8114DeclRule : public DeclNullHandler {
 public:
   ~GJB8114DeclRule() {}
@@ -26,3 +29,5 @@ public:
 
 }; // GJB8114DeclRule
 
+} // rule
+} // xsca

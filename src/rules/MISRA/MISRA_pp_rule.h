@@ -13,6 +13,8 @@
 #include <clang/Lex/Preprocessor.h>
 #include <vector>
 
+namespace xsca {
+namespace rule {
 class MISRAPPRule : public PPNullHandler {
 public:
   ~MISRAPPRule() {}
@@ -23,3 +25,5 @@ public:
 
 }; // MISRAPPRule
 
+}
+}

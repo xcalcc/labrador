@@ -13,6 +13,9 @@
 //#include <clang/AST/Decl.h>
 //#include <vector>
 
+namespace xsca {
+namespace rule {
+
 class IdentifierBuilder : public DeclNullHandler {
 public:
   ~IdentifierBuilder() {}
@@ -72,3 +75,5 @@ public:
   }
 
 }; // IdentifierBuilder
+}
+}

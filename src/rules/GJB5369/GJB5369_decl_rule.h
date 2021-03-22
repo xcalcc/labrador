@@ -10,137 +10,38 @@
 // implement Decl related rules for GJB5369
 //
 
-#include "scope_manager.h"
-
-//#include <clang/AST/Decl.h>
 #include <set>
+#include "scope_manager.h"
+#include "decl_null_handler.h"
+#include "xsca_checker_manager.h"
+//#include <clang/AST/Decl.h>
+//#include <clang/AST/ASTContext.h>
+
+namespace xsca {
+namespace rule {
 
 class GJB5369DeclRule : public DeclNullHandler {
 public:
   ~GJB5369DeclRule() {}
 
 private:
-  std::string GetTypeString(clang::QualType type) {
-    std::string type_name;
-    if (type->getTypeClass() == clang::Type::Typedef) {
-      auto underlying_tp =
-          clang::dyn_cast<clang::TypedefType>(type)->getDecl()->getUnderlyingType();
-      type_name = underlying_tp.getAsString();
-    } else {
-      type_name = type.getAsString();
-    }
-    return type_name;
-  }
+  std::string GetTypeString(clang::QualType type);
 
-  bool IsExplicitSign(std::string type_name) {
-    if (type_name.find("unsigned") != std::string::npos) {
-      return false;
-    } else {
-      if (type_name.find("signed") != std::string::npos) {
-        return false;
-      }
-    }
-    return true;
-  };
+  bool IsExplicitSign(std::string type_name);
 
-  bool IsTypedefBasicType(clang::QualType &decl_type) {
-    if (decl_type->isBuiltinType()) {
-      if (decl_type->getTypeClass() != clang::Type::Typedef) {
-        return true;
-      }
-    }
-    return false;
-  };
+  bool IsTypedefBasicType(clang::QualType &decl_type);
 
   void GetFunctionTokens(const clang::FunctionDecl *decl,
-                         std::vector<std::string> &tokens) {
-    auto src_mgr = XcalCheckerManager::GetSourceManager();
-
-    auto func_loc = decl->getLocation();
-    auto func_raw_chars = src_mgr->getCharacterData(func_loc);
-
-    std::string token = "";
-
-    // eat function name
-    while (*func_raw_chars != '(')
-      func_raw_chars++;
-
-    /* Maybe there are some APIs for getting tokens of parameter decl.
-     * Such as clang::SourceRange and clang::Lexer.
-     * TODO: Refine the tokenize methods with clang APIs
-     */
-    do {
-      *func_raw_chars++; // eat '(' or  ',' or ' '
-      while ((*func_raw_chars != ',') && (!std::isspace(*func_raw_chars)) &&
-             (*func_raw_chars != ')')) {
-        token += *func_raw_chars;
-        func_raw_chars++;
-      }
-
-      if (token != "") {
-        tokens.push_back(token);
-        token = "";
-      }
-
-    } while (*func_raw_chars != ')');
-  }
+                         std::vector<std::string> &tokens);
 
   bool IsEmptyParamList(const clang::FunctionDecl *decl,
-                        std::vector<std::string> &tokens) {
-    if (decl->param_empty()) {
-      if ((tokens.size() == 1) && (tokens[0] == "void")) {
-        return false;
-      } else if (tokens.size() == 0) {
-        return true;
-      } else {
-        DBG_ASSERT(0, "Unknown fault.");
-      }
-    }
-    return false;
-  }
+                        std::vector<std::string> &tokens);
 
-  void CheckFunctionNameReuse() {
-    auto scope_mgr = XcalCheckerManager::GetScopeManager();
-    auto top_scope = scope_mgr->GlobalScope();
-    top_scope->TraverseAll<IdentifierManager::IdentifierKind::NON_FUNC>(
-        [&top_scope](const std::string &x, IdentifierManager *id_mgr) -> void {
-          if (top_scope->HasFunctionName(x)) {
-            REPORT("GJB5396:4.1.1.1: Function name reused: %s\n", x.c_str());
-          }
-        });
-  }
+  void CheckFunctionNameReuse();
 
-  void CheckVariableNameReuse() {
-    using IdentifierKind = IdentifierManager::IdentifierKind;
-    auto scope_mgr = XcalCheckerManager::GetScopeManager();
-    auto top_scope = scope_mgr->GlobalScope();
-    constexpr uint32_t kind =
-        IdentifierKind::VALUE | IdentifierKind::LABEL | IdentifierKind::FIELD;
-    for (const auto &it : top_scope->Children()) {
-      if (it->GetScopeKind() == SK_FUNCTION) {
-        it->TraverseAll<kind>([&it](const std::string &x,
-                                    IdentifierManager *id_mgr) -> void {
-          if (it->HasVariableName<false>(x)) {
-            REPORT("GJB5396:4.1.1.2: Variable name reused: %s\n", x.c_str());
-          }
-        });
-      }
-    }
-  }
+  void CheckVariableNameReuse();
 
-  bool IsPointerNestedMoreThanTwoLevel(clang::QualType decl_type) {
-    if (decl_type->isPointerType()) {
-      int nested_level = 0;
-      auto pointee_type = decl_type->getPointeeType();
-      if (pointee_type->isPointerType()) {
-        auto nested_type = pointee_type->getPointeeType();
-        if (nested_type->isPointerType()) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
+  bool IsPointerNestedMoreThanTwoLevel(clang::QualType decl_type);
 
   /** GJB5396
    * 4.1.1.3 struct with empty field is forbidden
@@ -622,6 +523,20 @@ private:
     }
   }
 
+  /*
+   * GJB5369: 4.6.1.6
+   * signed-value must be longer than two bits
+   */
+//  void CheckSingleBitSignedValue(const clang::RecordDecl *decl) {
+//    for (const auto &it : decl->fields()) {
+//      if (it->getType()->isSignedIntegerType() && it->isBitField()) {
+//        auto ctx = decl->getASTContext();
+//        auto bitwidth = it->getBitWidthValue(ctx);
+//        printf("%d\n", bitwidth);
+//      }
+//    }
+//  }
+
 public:
   void Finalize() {
     CheckFunctionNameReuse();
@@ -652,6 +567,7 @@ public:
     CheckTypedefBasicType(decl);
     checkExplicitCharType(decl);
     CheckPointerNestedLevel(decl);
+//    CheckSingleBitSignedValue(decl);
   }
 
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
@@ -662,6 +578,7 @@ public:
     CheckTypedefBasicType(decl);
     checkExplicitCharType(decl);
     CheckPointerNestedLevel(decl);
+//    CheckSingleBitSignedValue(decl);
   }
 
   void VisitVar(const clang::VarDecl *decl) {
@@ -673,4 +590,5 @@ public:
   }
 
 }; // GJB5369DeclRule
-
+}  // rule
+}  // xsca

@@ -13,6 +13,8 @@
 #include <clang/Lex/Preprocessor.h>
 #include <vector>
 
+namespace xsca {
+namespace rule {
 class GJB8114PPRule : public PPNullHandler {
 public:
   ~GJB8114PPRule() {}
@@ -22,4 +24,5 @@ private:
 public:
 
 }; // GJB8114PPRule
-
+}
+}

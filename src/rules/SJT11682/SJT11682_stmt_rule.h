@@ -10,6 +10,10 @@
 // implement all stmt related rules in SJT11682
 //
 
+namespace xsca {
+namespace rule {
+
+
 class SJT11682StmtRule : public StmtNullHandler {
 public:
   ~SJT11682StmtRule() {}
@@ -20,3 +24,5 @@ public:
 
 }; // SJT11682StmtRule
 
+}
+}

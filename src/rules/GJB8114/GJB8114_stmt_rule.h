@@ -10,6 +10,9 @@
 // implement all stmt related rules in GJB8114
 //
 
+namespace xsca {
+namespace rule {
+
 class GJB8114StmtRule : public StmtNullHandler {
 public:
   ~GJB8114StmtRule() {}
@@ -19,4 +22,5 @@ private:
 public:
 
 }; // GJB8114StmtRule
-
+}
+}

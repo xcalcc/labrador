@@ -22,8 +22,6 @@
   R(SJT11682StmtRule,  "SJT11682StmtRule")
 
 
-namespace xsca {
-namespace rule {
 
 // include all rules from sub directories
 #include "GJB5369/GJB5369_stmt_rule.h"
@@ -31,9 +29,10 @@ namespace rule {
 #include "MISRA/MISRA_stmt_rule.h"
 #include "SJT11682/SJT11682_stmt_rule.h"
 
+namespace xsca {
+
 #define GetClass(CLASS, ...) CLASS
 using RuleStmtHandler = StmtListHandler<ALL_STMT_RULES(GetClass)>;
 
-}  // namespace rule
 }  // namespace xsca
 
