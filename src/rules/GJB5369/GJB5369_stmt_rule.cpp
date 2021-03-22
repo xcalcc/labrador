@@ -449,9 +449,10 @@ void GJB5369StmtRule::CheckSetjumpAndLongjump(const clang::CallExpr *stmt) {
  */
 void GJB5369StmtRule::CheckDifferentTypeAssign(const clang::BinaryOperator *stmt) {
   if (!stmt->isAssignmentOp()) return;
-  auto lhs = stmt->getLHS();
+  auto lhs_type = stmt->getLHS()->getType();
   auto rhs = stmt->getRHS();
-  if (clang::dyn_cast<clang::ImplicitCastExpr>(rhs)) {
+  if (clang::dyn_cast<clang::ImplicitCastExpr>(rhs) &&
+      (lhs_type->isIntegerType() || lhs_type->isCharType() || lhs_type->isFloatingType())) {
     auto src_mgr = XcalCheckerManager::GetSourceManager();
     auto location = stmt->getBeginLoc();
     REPORT("GJB5396:4.6.1.8: The value assigned to a variable should be the same type: %s\n",
