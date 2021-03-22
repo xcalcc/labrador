@@ -638,5 +638,22 @@ void GJB5369DeclRule::CheckSingleBitSignedValue(const clang::RecordDecl *decl) {
   }
 }
 
+/*
+ * GJB5369: 4.6.1.7
+ * bits can only be defined as signed/unsigned int type
+ */
+void GJB5369DeclRule::CheckBitsIfInteger(const clang::FieldDecl *decl) {
+  if (decl->isBitField()) {
+    if (!decl->getType()->isIntegerType()) {
+      auto location = decl->getLocation();
+      auto src_mgr = XcalCheckerManager::GetSourceManager();
+      REPORT("GJB5396:4.6.1.7: bits can only be defined as signed/unsigned int type: "
+             "field: %s -> %s\n",
+             decl->getNameAsString().c_str(),
+             location.printToString(*src_mgr).c_str());
+    }
+  }
+}
+
 } // rule
 } // xsca

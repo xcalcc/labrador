@@ -76,8 +76,8 @@ Rule		Kind		Implementation
 4.6.1.4     Stmt        CheckShiftOverflow
 4.6.1.5     Stmt        CheckAssignNegativetoUnsigned
 4.6.1.6     Decl        CheckSingleBitSignedValue
-4.6.1.7
-4.6.1.8
+4.6.1.7     Decl        CheckBitsIfInteger                      // can't hit this function
+4.6.1.8     Stmt        CheckDifferentTypeAssign
 4.6.1.9
 4.6.1.10
 4.6.1.11

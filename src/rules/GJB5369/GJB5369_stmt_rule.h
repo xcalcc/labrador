@@ -196,6 +196,13 @@ private:
     }
   }
 
+  /*
+   * GJB5369: 4.6.1.8
+   * The value assigned to a variable should be the same type
+   * as the variable
+   */
+  void CheckDifferentTypeAssign(const clang::BinaryOperator *stmt);
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -222,6 +229,7 @@ public:
     CheckShiftOnSignedNumber<clang::BinaryOperator>(stmt);
     CheckShiftOverflow<clang::BinaryOperator>(stmt);
     CheckAssignNegativetoUnsigned(stmt);
+    CheckDifferentTypeAssign(stmt);
   }
 
   void VisitFunctionBody(const clang::Stmt *stmt) {

@@ -180,6 +180,12 @@ private:
    */
   void CheckSingleBitSignedValue(const clang::RecordDecl *decl);
 
+  /*
+   * GJB5369: 4.6.1.7
+   * bits can only be defined as signed/unsigned int type
+   */
+  void CheckBitsIfInteger(const clang::FieldDecl *decl);
+
 public:
   void Finalize() {
     CheckFunctionNameReuse();
@@ -231,6 +237,13 @@ public:
     CheckPointerNestedLevel(decl);
     CheckFunctionPointer(decl);
   }
+
+  // TODO: can't visit here
+  void VisitField(const clang::FieldDecl *decl) {
+    TRACE0();
+    CheckBitsIfInteger(decl);
+  }
+
 
 }; // GJB5369DeclRule
 }  // rule

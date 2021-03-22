@@ -442,5 +442,22 @@ void GJB5369StmtRule::CheckSetjumpAndLongjump(const clang::CallExpr *stmt) {
   }
 }
 
+/*
+ * GJB5369: 4.6.1.8
+ * The value assigned to a variable should be the same type
+ * as the variable
+ */
+void GJB5369StmtRule::CheckDifferentTypeAssign(const clang::BinaryOperator *stmt) {
+  if (!stmt->isAssignmentOp()) return;
+  auto lhs = stmt->getLHS();
+  auto rhs = stmt->getRHS();
+  if (clang::dyn_cast<clang::ImplicitCastExpr>(rhs)) {
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    auto location = stmt->getBeginLoc();
+    REPORT("GJB5396:4.6.1.8: The value assigned to a variable should be the same type: %s\n",
+           location.printToString(*src_mgr).c_str());
+  }
+}
+
 } // rule
 } // xsca
