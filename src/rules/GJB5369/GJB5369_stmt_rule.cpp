@@ -15,6 +15,27 @@
 namespace xsca {
 namespace rule {
 
+/* Check if addiction is overflowed
+ */
+bool GJB5369StmtRule::AddOverflowed(int a, int b) {
+  if (a > 0 && b > INT_MAX - a) {
+    /* handle overflow */
+    return true;
+  } else if (a < 0 && b < INT_MIN - a) {
+    /* handle underflow */
+    return true;
+  }
+  return false;
+}
+
+bool GJB5369StmtRule::MulOverflowed(int a, int b) {
+  int x = a * b;
+  if (a != 0 && x / a != b) {
+    return true;
+  }
+  return false;
+}
+
 bool GJB5369StmtRule::CheckExprParentheses(const clang::Expr *expr) {
   auto src_mgr = XcalCheckerManager::GetSourceManager();
   auto expr_loc = expr->getBeginLoc();
@@ -483,7 +504,7 @@ void GJB5369StmtRule::CheckNonOperationOnConstant(const clang::UnaryOperator *st
  * bit-wise operation on signed-int is forbidden
  */
 void GJB5369StmtRule::CheckBitwiseOperationOnSignedValue(const clang::BinaryOperator *stmt) {
-  if (!stmt->isBitwiseOp()) {
+  if (stmt->isBitwiseOp()) {
     auto lhs = stmt->getLHS();
     if (lhs->getType()->isSignedIntegerType()) {
       auto src_mgr = XcalCheckerManager::GetSourceManager();
@@ -520,6 +541,43 @@ void GJB5369StmtRule::CheckEnumBeyondLimit(const clang::BinaryOperator *stmt) {
  * GJB5369: 4.6.1.14
  * overflow should be avoided
  */
+void GJB5369StmtRule::CheckArithmOverflow(const clang::BinaryOperator *stmt) {
+  using Opcode = clang::BinaryOperator::Opcode;
+  if (!stmt->isAdditiveOp() && !stmt->isMultiplicativeOp()) return;
+  auto lhs = clang::dyn_cast<clang::IntegerLiteral>(stmt->getLHS()->IgnoreImpCasts());
+  auto rhs = clang::dyn_cast<clang::IntegerLiteral>(stmt->getRHS()->IgnoreImpCasts());
+  if (lhs == nullptr || rhs == nullptr)
+    return;
+
+  int lhs_value = lhs->getValue().getZExtValue();
+  int rhs_value = rhs->getValue().getZExtValue();
+
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  auto location = stmt->getBeginLoc();
+
+  switch (stmt->getOpcode()) {
+    case Opcode::BO_Add: {
+      if (AddOverflowed(lhs_value, rhs_value)) {
+        REPORT("GJB5396:4.6.1.14: overflow should be avoided: %s\n",
+               location.printToString(*src_mgr).c_str());
+      }
+      break;
+    }
+    case Opcode::BO_Sub: {
+      // TODO: sub overflow -> Overflowed(a, -b);
+      // TODO: but the rhs is UnaryOperator which need further processing
+      break;
+    }
+    case Opcode::BO_Mul: {
+      if (MulOverflowed(lhs_value, rhs_value)) {
+        REPORT("GJB5396:4.6.1.14: overflow should be avoided: %s\n",
+               location.printToString(*src_mgr).c_str());
+      }
+    }
+    default:
+      return;
+  }
+}
 
 
 } // rule

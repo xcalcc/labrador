@@ -24,6 +24,10 @@ public:
 private:
   bool _is_single_asm_stmt;
 
+  bool AddOverflowed(int a, int b);
+
+  bool MulOverflowed(int a, int b);
+
   bool CheckExprParentheses(const clang::Expr *expr);
 
   bool IsCaseStmt(const clang::Stmt *stmt);
@@ -225,6 +229,7 @@ private:
    * GJB5369: 4.6.1.14
    * overflow should be avoided
    */
+  void CheckArithmOverflow(const clang::BinaryOperator *stmt);
 
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
@@ -255,6 +260,7 @@ public:
     CheckDifferentTypeAssign(stmt);
     CheckBitwiseOperationOnSignedValue(stmt);
     CheckEnumBeyondLimit(stmt);
+    CheckArithmOverflow(stmt);
   }
 
   void VisitFunctionBody(const clang::Stmt *stmt) {
