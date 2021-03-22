@@ -215,6 +215,17 @@ private:
    */
   void CheckBitwiseOperationOnSignedValue(const clang::BinaryOperator *stmt);
 
+  /*
+   * GJB5369: 4.6.1.13
+   *  using enumeration types beyond the limit if forbidden
+   */
+  void CheckEnumBeyondLimit(const clang::BinaryOperator *stmt);
+
+  /*
+   * GJB5369: 4.6.1.14
+   * overflow should be avoided
+   */
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -243,6 +254,7 @@ public:
     CheckAssignNegativetoUnsigned(stmt);
     CheckDifferentTypeAssign(stmt);
     CheckBitwiseOperationOnSignedValue(stmt);
+    CheckEnumBeyondLimit(stmt);
   }
 
   void VisitFunctionBody(const clang::Stmt *stmt) {

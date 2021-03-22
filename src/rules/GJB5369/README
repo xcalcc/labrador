@@ -80,9 +80,9 @@ Rule		Kind		Implementation
 4.6.1.8     Stmt        CheckDifferentTypeAssign
 4.6.1.9
 4.6.1.10                Need to collect the error-report of clang
-4.6.1.11
+4.6.1.11    Stmt        CheckNonOperationOnConstant
 4.6.1.12    Stmt        CheckBitwiseOperationOnSignedValue
-4.6.1.13
+4.6.1.13    Stmt        CheckEnumBeyondLimit
 4.6.1.14
 4.6.1.15
 4.6.1.16

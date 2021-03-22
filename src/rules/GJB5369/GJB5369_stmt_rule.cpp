@@ -467,16 +467,14 @@ void GJB5369StmtRule::CheckDifferentTypeAssign(const clang::BinaryOperator *stmt
  */
 void GJB5369StmtRule::CheckNonOperationOnConstant(const clang::UnaryOperator *stmt) {
   if (stmt->getOpcode() == clang::UnaryOperator::Opcode::UO_LNot) {
-//    auto sub = clang::dyn_cast<clang::ImplicitCastExpr>(stmt->getSubExpr());
+    auto sub = clang::dyn_cast<clang::ImplicitCastExpr>(stmt->getSubExpr());
 
-//  TODO: How to get astcontext by stmt
-
-//    if (sub && (sub->getSubExpr()->getType()->isLiteralType( /*ctx*/ ))) {
-//      auto src_mgr = XcalCheckerManager::GetSourceManager();
-//      auto location = stmt->getBeginLoc();
-//      REPORT("GJB5396:4.6.1.11: logic non on const value is forbidden: %s\n",
-//             location.printToString(*src_mgr).c_str());
-//    }
+    if (sub && (sub->getSubExpr()->getStmtClass() == clang::Stmt::StmtClass::IntegerLiteralClass)) {
+      auto src_mgr = XcalCheckerManager::GetSourceManager();
+      auto location = stmt->getBeginLoc();
+      REPORT("GJB5396:4.6.1.11: logic non on const value is forbidden: %s\n",
+             location.printToString(*src_mgr).c_str());
+    }
   }
 }
 
@@ -495,6 +493,33 @@ void GJB5369StmtRule::CheckBitwiseOperationOnSignedValue(const clang::BinaryOper
     }
   }
 }
+
+/*
+ * GJB5369: 4.6.1.13
+ * using enumeration types beyond the limit if forbidden
+ */
+void GJB5369StmtRule::CheckEnumBeyondLimit(const clang::BinaryOperator *stmt) {
+  auto lhs_type = stmt->getLHS()->getType();
+  auto rhs_type = stmt->getRHS()->getType();
+  if (!lhs_type->isEnumeralType() && !rhs_type->isEnumeralType()) {
+    auto cast_stmt = clang::dyn_cast<clang::ImplicitCastExpr>(stmt->getRHS());
+    if (!cast_stmt || !cast_stmt->getSubExpr()->getType()->isEnumeralType()) {
+      return;
+    }
+  }
+
+  if (!stmt->isComparisonOp()) {
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    auto location = stmt->getBeginLoc();
+    REPORT("GJB5396:4.6.1.13: using enumeration types beyond the limit if forbidden: %s\n",
+           location.printToString(*src_mgr).c_str());
+  }
+}
+
+/*
+ * GJB5369: 4.6.1.14
+ * overflow should be avoided
+ */
 
 
 } // rule
