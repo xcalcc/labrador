@@ -166,8 +166,7 @@ private:
     if (lhs_type->isIntegerType()) {
       if (rhs_type->isIntegerType()) {
         if (clang::dyn_cast<clang::IntegerLiteral>(rhs)) {
-          auto oprand_addr = clang::dyn_cast<clang::IntegerLiteral>(rhs)->getValue().getRawData();
-          int oprand = *oprand_addr;
+          int oprand = clang::dyn_cast<clang::IntegerLiteral>(rhs)->getValue().getZExtValue();
           if (oprand > 32) {
             auto src_mgr = XcalCheckerManager::GetSourceManager();
             auto location = stmt->getBeginLoc();
