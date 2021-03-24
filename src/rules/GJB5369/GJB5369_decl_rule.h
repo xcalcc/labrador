@@ -192,6 +192,12 @@ private:
    */
   void CheckVoidReturnType(const clang::FunctionDecl *decl);
 
+  /*
+   * GJB5369: 4.7.1.8
+   * void type variable used as parameter is forbidden
+   */
+  void CheckVoidTypeParameters(const clang::FunctionDecl *decl);
+
 public:
   void Finalize() {
     CheckFunctionNameReuse();
@@ -213,6 +219,7 @@ public:
     CheckFunctionLength(decl);
     CheckPointerNestedLevel(decl);
     CheckVoidReturnType(decl);
+    CheckVoidTypeParameters(decl);
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {

@@ -671,5 +671,22 @@ void GJB5369DeclRule::CheckVoidReturnType(const clang::FunctionDecl *decl) {
   }
 }
 
+/*
+ * GJB5369: 4.7.1.8
+ * void type variable used as parameter is forbidden
+ */
+void GJB5369DeclRule::CheckVoidTypeParameters(const clang::FunctionDecl *decl) {
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  for (const auto &it : decl->parameters()) {
+    if (it->getType()->isVoidPointerType()) {
+      auto location = it->getLocation();
+      REPORT("GJB5396:4.7.1.8: function return void used in statement is forbidden: "
+             ": %s -> %s\n",
+             decl->getNameAsString().c_str(),
+             location.printToString(*src_mgr).c_str());
+    }
+  }
+}
+
 } // rule
 } // xsca
