@@ -634,5 +634,22 @@ void GJB5369StmtRule::CheckLogicalOpFollowedByAssign(const clang::BinaryOperator
   }
 }
 
+/*
+ * GJB5369: 4.6.1.17
+ * bit-wise operation on bool is forbidden
+ */
+void GJB5369StmtRule::CheckBitwiseOpOnBool(const clang::BinaryOperator *stmt) {
+  if (!stmt->isBitwiseOp()) return;
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+  if (lhs->getType()->isBooleanType() || rhs->getType()->isBooleanType()) {
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    auto location = stmt->getBeginLoc();
+    REPORT("GJB5396:4.6.1.17: bit-wise operation on bool is forbidden: %s\n",
+           location.printToString(*src_mgr).c_str());
+  }
+
+}
+
 } // rule
 } // xsca

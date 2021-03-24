@@ -245,6 +245,12 @@ private:
    */
   void CheckLogicalOpFollowedByAssign(const clang::BinaryOperator *stmt);
 
+  /*
+   * GJB5369: 4.6.1.17
+   * bit-wise operation on bool is forbidden
+   */
+  void CheckBitwiseOpOnBool(const clang::BinaryOperator *stmt);
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -277,6 +283,7 @@ public:
     CheckEnumBeyondLimit(stmt);
     CheckArithmOverflow(stmt);
     CheckLogicalOpFollowedByAssign(stmt);
+    CheckBitwiseOpOnBool(stmt);
   }
 
   void VisitFunctionBody(const clang::Stmt *stmt) {

@@ -86,7 +86,7 @@ Rule		Kind		Implementation
 4.6.1.14    Stmt        CheckArithmOverflow
 4.6.1.15    Stmt        CheckAssignInLogicExpr
 4.6.1.16    Stmt        CheckLogicalOpFollowedByAssign
-4.6.1.17
+4.6.1.17    Stmt        CheckBitwiseOpOnBool
 4.6.1.18
 --------------+------------------------------------------------
 4.6.2
