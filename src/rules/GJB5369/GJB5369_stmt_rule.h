@@ -269,7 +269,7 @@ private:
    * GJB5369: 4.6.2.1
    * avoid using ',' operator
    */
-//  void
+  void CheckCommaStmt(const clang::BinaryOperator *stmt);
 
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
@@ -305,6 +305,7 @@ public:
     CheckLogicalOpFollowedByAssign(stmt);
     CheckBitwiseOpOnBool(stmt);
     CheckBitwiseOpInBooleanExpr(stmt);
+    CheckCommaStmt(stmt);
   }
 
   void VisitFunctionBody(const clang::Stmt *stmt) {

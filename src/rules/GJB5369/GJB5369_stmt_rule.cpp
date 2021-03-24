@@ -692,5 +692,18 @@ void GJB5369StmtRule::CheckBitwiseOpInBooleanExpr(const clang::BinaryOperator *s
   }
 }
 
+/*
+ * GJB5369: 4.6.2.1
+ * avoid using ',' operator
+ */
+void GJB5369StmtRule::CheckCommaStmt(const clang::BinaryOperator *stmt) {
+  if (stmt->isCommaOp()) {
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    auto location = stmt->getBeginLoc();
+    REPORT("GJB5396:4.6.2.1: avoid using ',' operator: %s\n",
+           location.printToString(*src_mgr).c_str());
+  }
+}
+
 } // rule
 } // xsca
