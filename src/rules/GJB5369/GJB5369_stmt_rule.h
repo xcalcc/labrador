@@ -32,6 +32,8 @@ private:
 
   bool IsCaseStmt(const clang::Stmt *stmt);
 
+  bool HasAssignmentSubStmt(const clang::Stmt *stmt);
+
   /*
    * GJB5369 4.1.1.4
    * Check multiple consecutive labels.
@@ -237,6 +239,12 @@ private:
    */
   void CheckAssignInLogicExpr(const clang::IfStmt *stmt);
 
+  /*
+   * GJB5369: 4.6.1.16
+   * "&&" or "||" used with "=" is forbidden
+   */
+  void CheckLogicalOpFollowedByAssign(const clang::BinaryOperator *stmt);
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -268,6 +276,7 @@ public:
     CheckBitwiseOperationOnSignedValue(stmt);
     CheckEnumBeyondLimit(stmt);
     CheckArithmOverflow(stmt);
+    CheckLogicalOpFollowedByAssign(stmt);
   }
 
   void VisitFunctionBody(const clang::Stmt *stmt) {

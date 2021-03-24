@@ -54,6 +54,21 @@ bool GJB5369StmtRule::IsCaseStmt(const clang::Stmt *stmt) {
   return false;
 }
 
+bool GJB5369StmtRule::HasAssignmentSubStmt(const clang::Stmt *stmt) {
+  bool has_assginment = false;
+  for (const auto &it : stmt->children()) {
+    if (auto binary_stmt = clang::dyn_cast<clang::BinaryOperator>(it)) {
+      if (binary_stmt->isAssignmentOp()) {
+        return true;
+      }
+    }
+    if (it->child_begin() != it->child_end()) {
+      has_assginment |= HasAssignmentSubStmt(it);
+    }
+  }
+  return has_assginment;
+}
+
 /*
  * GJB5369 4.1.1.4
  * Check multiple consecutive labels.
@@ -599,6 +614,23 @@ void GJB5369StmtRule::CheckAssignInLogicExpr(const clang::IfStmt *stmt) {
       REPORT("GJB5396:4.6.1.15: '=' used in logical expression is forbidden: %s\n",
              location.printToString(*src_mgr).c_str());
     }
+  }
+}
+
+/*
+ * GJB5369: 4.6.1.16
+ * "&&" or "||" used with "=" is forbidden
+ * TODO: the sub stmt will be reported twice, maybe I can change its param to IfStmt and check cond-stmt
+ */
+void GJB5369StmtRule::CheckLogicalOpFollowedByAssign(const clang::BinaryOperator *stmt) {
+  if (!stmt->isLogicalOp()) return;
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+  bool has_assignment = HasAssignmentSubStmt(rhs);
+  if (has_assignment) {
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    auto location = rhs->getBeginLoc();
+    REPORT("GJB5396:4.6.1.16: \"&&\" or \"||\" used with \"=\" is forbidden: %s\n",
+           location.printToString(*src_mgr).c_str());
   }
 }
 
