@@ -401,7 +401,7 @@ public:
 template<bool _RECURSIVE> inline bool
 IdentifierManager::HasVariableName(const std::string &var_name) const {
   bool res = _id_to_var.count(var_name) > 0;
-  if (_RECURSIVE && res == false) {
+  if (_RECURSIVE && !res) {
     for (const auto &it : _scope->Children()) {
       res = it->HasVariableName<_RECURSIVE>(var_name);
       if (res)

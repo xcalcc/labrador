@@ -55,7 +55,7 @@ void GJB5369DeclRule::GetFunctionTokens(const clang::FunctionDecl *decl,
   auto func_loc = decl->getLocation();
   auto func_raw_chars = src_mgr->getCharacterData(func_loc);
 
-  std::string token = "";
+  std::string token;
 
   // eat function name
   while (*func_raw_chars != '(')
@@ -73,7 +73,7 @@ void GJB5369DeclRule::GetFunctionTokens(const clang::FunctionDecl *decl,
       func_raw_chars++;
     }
 
-    if (token != "") {
+    if (!token.empty()) {
       tokens.push_back(token);
       token = "";
     }
@@ -86,7 +86,7 @@ bool GJB5369DeclRule::IsEmptyParamList(const clang::FunctionDecl *decl,
   if (decl->param_empty()) {
     if ((tokens.size() == 1) && (tokens[0] == "void")) {
       return false;
-    } else if (tokens.size() == 0) {
+    } else if (tokens.empty()) {
       return true;
     } else {
       DBG_ASSERT(0, "Unknown fault.");
@@ -652,6 +652,22 @@ void GJB5369DeclRule::CheckBitsIfInteger(const clang::FieldDecl *decl) {
              decl->getNameAsString().c_str(),
              location.printToString(*src_mgr).c_str());
     }
+  }
+}
+
+/*
+ * GJB5369: 4.7.1.7
+ * function return void used in statement is forbidden
+ */
+void GJB5369DeclRule::CheckVoidReturnType(const clang::FunctionDecl *decl) {
+  auto ret_type = decl->getReturnType();
+  if (ret_type->isVoidType()) {
+    auto location = decl->getLocation();
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    REPORT("GJB5396:4.7.1.7: function return void used in statement is forbidden: "
+           ": %s -> %s\n",
+           decl->getNameAsString().c_str(),
+           location.printToString(*src_mgr).c_str());
   }
 }
 

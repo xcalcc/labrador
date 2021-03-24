@@ -95,13 +95,13 @@ Rule		Kind		Implementation
 4.6.2.3     Stmt        CheckDifferentTypeArithm
 4.6.2.4     Stmt        CheckFalseIfContidion
 --------------+------------------------------------------------
-4.7.1.1
+4.7.1.1                 Need to collect the error report from clang
 4.7.1.2
 4.7.1.3
 4.7.1.4
 4.7.1.5
 4.7.1.6
-4.7.1.7
+4.7.1.7     Stmt        CheckVoidReturnType
 4.7.1.8
 4.7.1.9
 4.7.1.10
