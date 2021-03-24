@@ -84,7 +84,7 @@ Rule		Kind		Implementation
 4.6.1.12    Stmt        CheckBitwiseOperationOnSignedValue
 4.6.1.13    Stmt        CheckEnumBeyondLimit
 4.6.1.14    Stmt        CheckArithmOverflow
-4.6.1.15
+4.6.1.15    Stmt        CheckAssignInLogicExpr
 4.6.1.16
 4.6.1.17
 4.6.1.18

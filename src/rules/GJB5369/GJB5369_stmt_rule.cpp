@@ -579,6 +579,21 @@ void GJB5369StmtRule::CheckArithmOverflow(const clang::BinaryOperator *stmt) {
   }
 }
 
+/*
+ * GJB5369: 4.6.1.15
+ * '=' used in logical expression is forbidden
+ */
+void GJB5369StmtRule::CheckAssignInLogicExpr(const clang::IfStmt *stmt) {
+  auto cond = stmt->getCond()->IgnoreImpCasts();
+  if (auto binary_stmt = clang::dyn_cast<clang::BinaryOperator>(cond)) {
+    if (binary_stmt->isAssignmentOp()) {
+      auto src_mgr = XcalCheckerManager::GetSourceManager();
+      auto location = stmt->getBeginLoc();
+      REPORT("GJB5396:4.6.1.15: '=' used in logical expression is forbidden: %s\n",
+             location.printToString(*src_mgr).c_str());
+    }
+  }
+}
 
 } // rule
 } // xsca

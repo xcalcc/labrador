@@ -231,6 +231,12 @@ private:
    */
   void CheckArithmOverflow(const clang::BinaryOperator *stmt);
 
+  /*
+   * GJB5369: 4.6.1.15
+   * '=' used in logical expression is forbidden
+   */
+  void CheckAssignInLogicExpr(const clang::IfStmt *stmt);
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -248,6 +254,7 @@ public:
     CheckIfBrace(stmt);
     CheckEmptyIfElseStmt(stmt);
     CheckIfWithoutElseStmt(stmt);
+    CheckAssignInLogicExpr(stmt);
   }
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
