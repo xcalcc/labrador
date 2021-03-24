@@ -56,6 +56,10 @@ bool GJB5369StmtRule::IsCaseStmt(const clang::Stmt *stmt) {
 
 bool GJB5369StmtRule::HasAssignmentSubStmt(const clang::Stmt *stmt) {
   bool has_assginment = false;
+  if (auto binary = clang::dyn_cast<clang::BinaryOperator>(stmt)) {
+    if (binary->isAssignmentOp()) { return true; }
+  }
+
   for (const auto &it : stmt->children()) {
     if (auto binary_stmt = clang::dyn_cast<clang::BinaryOperator>(it)) {
       if (binary_stmt->isAssignmentOp()) {
@@ -71,6 +75,10 @@ bool GJB5369StmtRule::HasAssignmentSubStmt(const clang::Stmt *stmt) {
 
 bool GJB5369StmtRule::HasBitwiseSubStmt(const clang::Stmt *stmt) {
   bool has_bitwise = false;
+  if (auto binary = clang::dyn_cast<clang::BinaryOperator>(stmt)) {
+    if (binary->isBitwiseOp()) { return true; }
+  }
+
   for (const auto &it :stmt->children()) {
     if (auto binary_stmt = clang::dyn_cast<clang::BinaryOperator>(it)) {
       if (binary_stmt->isBitwiseOp()) {
@@ -682,7 +690,6 @@ void GJB5369StmtRule::CheckBitwiseOpInBooleanExpr(const clang::BinaryOperator *s
     REPORT("GJB5396:4.6.1.18: bit-wise operation is forbidden in the boolean expression: %s\n",
            location.printToString(*src_mgr).c_str());
   }
-
 }
 
 } // rule

@@ -265,6 +265,12 @@ private:
    */
   void CheckBitwiseOpInBooleanExpr(const clang::BinaryOperator *stmt);
 
+  /*
+   * GJB5369: 4.6.2.1
+   * avoid using ',' operator
+   */
+//  void
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -298,6 +304,7 @@ public:
     CheckArithmOverflow(stmt);
     CheckLogicalOpFollowedByAssign(stmt);
     CheckBitwiseOpOnBool(stmt);
+    CheckBitwiseOpInBooleanExpr(stmt);
   }
 
   void VisitFunctionBody(const clang::Stmt *stmt) {
