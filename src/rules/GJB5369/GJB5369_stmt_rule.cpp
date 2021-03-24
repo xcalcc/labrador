@@ -69,6 +69,21 @@ bool GJB5369StmtRule::HasAssignmentSubStmt(const clang::Stmt *stmt) {
   return has_assginment;
 }
 
+bool GJB5369StmtRule::HasBitwiseSubStmt(const clang::Stmt *stmt) {
+  bool has_bitwise = false;
+  for (const auto &it :stmt->children()) {
+    if (auto binary_stmt = clang::dyn_cast<clang::BinaryOperator>(it)) {
+      if (binary_stmt->isBitwiseOp()) {
+        return true;
+      }
+    }
+    if (it->child_begin() != it->child_end()) {
+      has_bitwise |= HasBitwiseSubStmt(it);
+    }
+  }
+  return has_bitwise;
+}
+
 /*
  * GJB5369 4.1.1.4
  * Check multiple consecutive labels.
@@ -646,6 +661,25 @@ void GJB5369StmtRule::CheckBitwiseOpOnBool(const clang::BinaryOperator *stmt) {
     auto src_mgr = XcalCheckerManager::GetSourceManager();
     auto location = stmt->getBeginLoc();
     REPORT("GJB5396:4.6.1.17: bit-wise operation on bool is forbidden: %s\n",
+           location.printToString(*src_mgr).c_str());
+  }
+}
+
+/*
+ * GJB5369: 4.6.1.18
+ * bit-wise operation is forbidden in the boolean expression
+ */
+void GJB5369StmtRule::CheckBitwiseOpInBooleanExpr(const clang::BinaryOperator *stmt) {
+  if (!stmt->isAssignmentOp()) return;
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+
+  // return if the lhs is boolean type
+  if (!lhs->getType()->isBooleanType()) return;
+  if (HasBitwiseSubStmt(rhs)) {
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    auto location = stmt->getBeginLoc();
+    REPORT("GJB5396:4.6.1.18: bit-wise operation is forbidden in the boolean expression: %s\n",
            location.printToString(*src_mgr).c_str());
   }
 

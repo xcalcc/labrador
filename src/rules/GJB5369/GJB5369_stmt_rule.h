@@ -24,15 +24,23 @@ public:
 private:
   bool _is_single_asm_stmt;
 
+  // check add overflow
   bool AddOverflowed(int a, int b);
 
+  // check mul overflow
   bool MulOverflowed(int a, int b);
 
+  // check if it start with parenthese
   bool CheckExprParentheses(const clang::Expr *expr);
 
+  // check if it is case stmt
   bool IsCaseStmt(const clang::Stmt *stmt);
 
+  // check if it contains assignment stmt
   bool HasAssignmentSubStmt(const clang::Stmt *stmt);
+
+  // check if it contains bitwise
+  bool HasBitwiseSubStmt(const clang::Stmt *stmt);
 
   /*
    * GJB5369 4.1.1.4
@@ -250,6 +258,12 @@ private:
    * bit-wise operation on bool is forbidden
    */
   void CheckBitwiseOpOnBool(const clang::BinaryOperator *stmt);
+
+  /*
+   * GJB5369: 4.6.1.18
+   * bit-wise operation is forbidden in the boolean expression
+   */
+  void CheckBitwiseOpInBooleanExpr(const clang::BinaryOperator *stmt);
 
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
