@@ -470,14 +470,21 @@ void GJB5369StmtRule::CheckSetjumpAndLongjump(const clang::CallExpr *stmt) {
  */
 void GJB5369StmtRule::CheckDifferentTypeAssign(const clang::BinaryOperator *stmt) {
   if (!stmt->isAssignmentOp()) return;
-  auto lhs_type = stmt->getLHS()->getType();
-  auto rhs = stmt->getRHS();
-  if (clang::dyn_cast<clang::ImplicitCastExpr>(rhs) &&
-      (lhs_type->isIntegerType() || lhs_type->isCharType() || lhs_type->isFloatingType())) {
-    auto src_mgr = XcalCheckerManager::GetSourceManager();
-    auto location = stmt->getBeginLoc();
-    REPORT("GJB5396:4.6.1.8: The value assigned to a variable should be the same type: %s\n",
-           location.printToString(*src_mgr).c_str());
+
+  auto lhs = stmt->getLHS();
+  auto rhs = stmt->getRHS()->IgnoreImpCasts();
+  auto lhs_type = lhs->getType();
+  auto rhs_type = rhs->getType();
+
+  if (lhs_type->isBuiltinType() && rhs_type->isBuiltinType()) {
+    auto lhs_kind = clang::dyn_cast<clang::BuiltinType>(lhs_type)->getKind();
+    auto rhs_kind = clang::dyn_cast<clang::BuiltinType>(rhs_type)->getKind();
+    if (lhs_kind != rhs_kind) {
+      auto src_mgr = XcalCheckerManager::GetSourceManager();
+      auto location = stmt->getBeginLoc();
+      REPORT("GJB5396:4.6.1.8: The value assigned to a variable should be the same type: %s\n",
+             location.printToString(*src_mgr).c_str());
+    }
   }
 }
 
