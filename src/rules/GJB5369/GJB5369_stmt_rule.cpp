@@ -696,12 +696,52 @@ void GJB5369StmtRule::CheckBitwiseOpInBooleanExpr(const clang::BinaryOperator *s
  * GJB5369: 4.6.2.1
  * avoid using ',' operator
  */
+
 void GJB5369StmtRule::CheckCommaStmt(const clang::BinaryOperator *stmt) {
   if (stmt->isCommaOp()) {
     auto src_mgr = XcalCheckerManager::GetSourceManager();
     auto location = stmt->getBeginLoc();
     REPORT("GJB5396:4.6.2.1: avoid using ',' operator: %s\n",
            location.printToString(*src_mgr).c_str());
+  }
+}
+
+/*
+ * GJB5369: 4.6.2.2
+ * "sizeof()" should be used carefully
+ */
+void GJB5369StmtRule::CheckSizeofOnExpr(const clang::UnaryExprOrTypeTraitExpr *stmt) {
+  if (stmt->getKind() != clang::UnaryExprOrTypeTrait::UETT_SizeOf) { return; }
+//  if (!stmt->getArgumentExpr()->isEvaluatable()) {
+//    auto src_mgr = XcalCheckerManager::GetSourceManager();
+//    auto location = stmt->getBeginLoc();
+//    REPORT("GJB5396:4.6.2.2: \"sizeof()\" should be used carefully: %s\n",
+//           location.printToString(*src_mgr).c_str());
+//  }
+}
+
+/*
+ * GJB5369: 4.6.2.3
+ * different types of variable mixed operation should be carefully
+ */
+void GJB5369StmtRule::CheckDifferentTypeArithm(const clang::BinaryOperator *stmt) {
+  if (!stmt->isAdditiveOp() && !stmt->isMultiplicativeOp()) return;
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+
+  auto lhs_type = lhs->getType();
+  auto rhs_type = rhs->getType();
+
+  if (lhs_type->isBuiltinType() || rhs_type->isBuiltinType()) {
+    auto lhs_kind = clang::dyn_cast<clang::BuiltinType>(lhs_type)->getKind();
+    auto rhs_kind = clang::dyn_cast<clang::BuiltinType>(rhs_type)->getKind();
+    if (lhs_kind != rhs_kind) {
+      auto src_mgr = XcalCheckerManager::GetSourceManager();
+      auto location = stmt->getBeginLoc();
+      REPORT("GJB5396:4.6.2.3: different types of variable mixed "
+             "operation should be carefully: %s\n",
+             location.printToString(*src_mgr).c_str());
+    }
   }
 }
 

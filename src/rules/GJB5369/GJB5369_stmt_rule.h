@@ -271,6 +271,18 @@ private:
    */
   void CheckCommaStmt(const clang::BinaryOperator *stmt);
 
+  /*
+   * GJB5369: 4.6.2.2
+   * "sizeof()" should be used carefully
+   */
+  void CheckSizeofOnExpr(const clang::UnaryExprOrTypeTraitExpr *stmt);
+
+  /*
+   * GJB5369: 4.6.2.3
+   * different types of variable mixed operation should be carefully
+   */
+  void CheckDifferentTypeArithm(const clang::BinaryOperator *stmt);
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -306,6 +318,7 @@ public:
     CheckBitwiseOpOnBool(stmt);
     CheckBitwiseOpInBooleanExpr(stmt);
     CheckCommaStmt(stmt);
+    CheckDifferentTypeArithm(stmt);
   }
 
   void VisitFunctionBody(const clang::Stmt *stmt) {
@@ -341,6 +354,9 @@ public:
 
   void VisitUnaryOperator(const clang::UnaryOperator *stmt) {
     CheckNonOperationOnConstant(stmt);
+  }
+  void VisitUnaryExprOrTypeTraitExpr(const clang::UnaryExprOrTypeTraitExpr *stmt) {
+    CheckSizeofOnExpr(stmt);
   }
 }; // GJB5369StmtRule
 

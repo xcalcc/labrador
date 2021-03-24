@@ -87,12 +87,12 @@ Rule		Kind		Implementation
 4.6.1.15    Stmt        CheckAssignInLogicExpr
 4.6.1.16    Stmt        CheckLogicalOpFollowedByAssign
 4.6.1.17    Stmt        CheckBitwiseOpOnBool
-4.6.1.18
+4.6.1.18    Stmt        CheckBitwiseOpInBooleanExpr
 --------------+------------------------------------------------
 4.6.2
-4.6.2.1
+4.6.2.1     Stmt        CheckCommaStmt
 4.6.2.2
-4.6.2.3
+4.6.2.3     Stmt        CheckDifferentTypeArithm
 4.6.2.4
 --------------+------------------------------------------------
 4.7.1.1
