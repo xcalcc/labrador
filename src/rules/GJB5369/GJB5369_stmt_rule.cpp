@@ -745,5 +745,22 @@ void GJB5369StmtRule::CheckDifferentTypeArithm(const clang::BinaryOperator *stmt
   }
 }
 
+/*
+ * GJB5369: 4.6.2.4
+ * dead code is forbidden
+ */
+void GJB5369StmtRule::CheckFalseIfContidion(const clang::IfStmt *stmt) {
+  auto cond = stmt->getCond()->IgnoreParenImpCasts();
+  if (auto literial = clang::dyn_cast<clang::IntegerLiteral>(cond)) {
+    auto value = literial->getValue().getZExtValue();
+    if (value == 0) {
+      auto src_mgr = XcalCheckerManager::GetSourceManager();
+      auto location = stmt->getBeginLoc();
+      REPORT("GJB5396:4.6.2.4: dead code is forbidden: %s\n",
+             location.printToString(*src_mgr).c_str());
+    }
+  }
+}
+
 } // rule
 } // xsca

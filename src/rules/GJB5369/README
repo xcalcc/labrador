@@ -93,7 +93,7 @@ Rule		Kind		Implementation
 4.6.2.1     Stmt        CheckCommaStmt
 4.6.2.2
 4.6.2.3     Stmt        CheckDifferentTypeArithm
-4.6.2.4
+4.6.2.4     Stmt        CheckFalseIfContidion
 --------------+------------------------------------------------
 4.7.1.1
 4.7.1.2

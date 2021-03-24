@@ -283,6 +283,12 @@ private:
    */
   void CheckDifferentTypeArithm(const clang::BinaryOperator *stmt);
 
+  /*
+   * GJB5369: 4.6.2.4
+   * dead code is forbidden
+   */
+  void CheckFalseIfContidion(const clang::IfStmt *stmt);
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -301,6 +307,7 @@ public:
     CheckEmptyIfElseStmt(stmt);
     CheckIfWithoutElseStmt(stmt);
     CheckAssignInLogicExpr(stmt);
+    CheckFalseIfContidion(stmt);
   }
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
