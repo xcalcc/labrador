@@ -55,7 +55,7 @@ bool GJB5369StmtRule::IsCaseStmt(const clang::Stmt *stmt) {
 }
 
 bool GJB5369StmtRule::HasAssignmentSubStmt(const clang::Stmt *stmt) {
-  bool has_assginment = false;
+  bool has_assignment = false;
   if (auto binary = clang::dyn_cast<clang::BinaryOperator>(stmt)) {
     if (binary->isAssignmentOp()) { return true; }
   }
@@ -67,10 +67,10 @@ bool GJB5369StmtRule::HasAssignmentSubStmt(const clang::Stmt *stmt) {
       }
     }
     if (it->child_begin() != it->child_end()) {
-      has_assginment |= HasAssignmentSubStmt(it);
+      has_assignment |= HasAssignmentSubStmt(it);
     }
   }
-  return has_assginment;
+  return has_assignment;
 }
 
 bool GJB5369StmtRule::HasBitwiseSubStmt(const clang::Stmt *stmt) {
@@ -709,15 +709,20 @@ void GJB5369StmtRule::CheckCommaStmt(const clang::BinaryOperator *stmt) {
 /*
  * GJB5369: 4.6.2.2
  * "sizeof()" should be used carefully
+ * TODO: fix bug -> checking method is not clear
  */
 void GJB5369StmtRule::CheckSizeofOnExpr(const clang::UnaryExprOrTypeTraitExpr *stmt) {
   if (stmt->getKind() != clang::UnaryExprOrTypeTrait::UETT_SizeOf) { return; }
-//  if (!stmt->getArgumentExpr()->isEvaluatable()) {
-//    auto src_mgr = XcalCheckerManager::GetSourceManager();
-//    auto location = stmt->getBeginLoc();
-//    REPORT("GJB5396:4.6.2.2: \"sizeof()\" should be used carefully: %s\n",
-//           location.printToString(*src_mgr).c_str());
-//  }
+  auto ctx = XcalCheckerManager::GetAstContext();
+  uint64_t result;
+#if 0
+  if (!stmt->getArgumentExpr()->(result, *ctx)) {
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    auto location = stmt->getBeginLoc();
+    REPORT("GJB5396:4.6.2.2: \"sizeof()\" should be used carefully: %s\n",
+           location.printToString(*src_mgr).c_str());
+  }
+#endif
 }
 
 /*
@@ -750,15 +755,53 @@ void GJB5369StmtRule::CheckDifferentTypeArithm(const clang::BinaryOperator *stmt
  * dead code is forbidden
  */
 void GJB5369StmtRule::CheckFalseIfContidion(const clang::IfStmt *stmt) {
+  auto ctx = XcalCheckerManager::GetAstContext();
   auto cond = stmt->getCond()->IgnoreParenImpCasts();
   if (auto literial = clang::dyn_cast<clang::IntegerLiteral>(cond)) {
-    auto value = literial->getValue().getZExtValue();
+    int value;
+    clang::Expr::EvalResult eval_result;
+
+    // try to fold the const expr
+    if (literial->EvaluateAsInt(eval_result, *ctx)) {
+      value = eval_result.Val.getInt().getZExtValue();
+    } else {
+      value = literial->getValue().getZExtValue();
+    }
+
     if (value == 0) {
       auto src_mgr = XcalCheckerManager::GetSourceManager();
       auto location = stmt->getBeginLoc();
       REPORT("GJB5396:4.6.2.4: dead code is forbidden: %s\n",
              location.printToString(*src_mgr).c_str());
     }
+  }
+}
+
+/*
+ * GJB5369: 4.7.1.9
+ * formal and real parameters' type should be the same
+ */
+void GJB5369StmtRule::CheckParamTypeMismatch(const clang::CallExpr *stmt) {
+  if (!stmt->getNumArgs()) return;
+
+  int param_index = 0;
+  auto func_decl = stmt->getCalleeDecl()->getAsFunction();
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+
+  for (const auto &it : func_decl->parameters()) {
+    auto formal_param_type = it->getType();
+    if (formal_param_type->isBuiltinType()) {
+      auto real_param_type = stmt->getArg(param_index)->IgnoreParenImpCasts()->getType();
+      auto real_param_kind = clang::dyn_cast<clang::BuiltinType>(real_param_type)->getKind();
+      auto formal_param_kind = clang::dyn_cast<clang::BuiltinType>(formal_param_type)->getKind();
+      if (real_param_kind != formal_param_kind) {
+        auto location = stmt->getBeginLoc();
+        REPORT("GJB5396:4.7.1.9: dead code is forbidden: %s\n",
+               location.printToString(*src_mgr).c_str());
+      }
+    }
+    param_index++;
+    if (param_index >= stmt->getNumArgs()) break;
   }
 }
 

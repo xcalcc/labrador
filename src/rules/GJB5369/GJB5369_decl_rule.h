@@ -29,19 +29,46 @@ private:
 
   bool IsExplicitSign(std::string type_name);
 
+  /* Check if this typedef declared a builtin type
+   * Used by 4.1.2.1 -> CheckTypedefBasicType
+   */
   bool IsTypedefBasicType(clang::QualType &decl_type);
 
+  /* Get function prototype tokens
+   * Used by 4.2.1.10 ->  CheckMainFunctionDefine
+   */
   void GetFunctionTokens(const clang::FunctionDecl *decl,
                          std::vector<std::string> &tokens);
 
+  /* Check if the parameter list is empty
+   * Used by 4.1.1.10 -> CheckParameterTypeDecl
+   */
   bool IsEmptyParamList(const clang::FunctionDecl *decl,
                         std::vector<std::string> &tokens);
 
+  /*
+   * Check the pointer nested levels
+   * Used by 4.4.1.2 -> CheckPointerNestedLevel
+   */
+  bool IsPointerNestedMoreThanTwoLevel(clang::QualType decl_type);
+
+  /* Check if the parameter declaration without type
+   * Used in 4.1.1.5 -> CheckParameterTypeDecl
+   */
+  bool DoesParamHasNotTypeDecl(const clang::FunctionDecl *decl);
+
+
+  /*
+   * GJB5369: 4.1.1.1
+   * procedure name reused as other purpose is forbidden
+   */
   void CheckFunctionNameReuse();
 
+  /*
+   * GJB5369: 4.1.1.2
+   * identifier name reused as other purpose is forbidden
+   */
   void CheckVariableNameReuse();
-
-  bool IsPointerNestedMoreThanTwoLevel(clang::QualType decl_type);
 
   /** GJB5396
    * 4.1.1.3 struct with empty field is forbidden
@@ -49,12 +76,11 @@ private:
   void CheckStructEmptyField(const clang::RecordDecl *decl);
 
   /* GJB5396
-   * TODO: 4.1.1.5 declaring the type of parameters is a must
-   * TODO: 4.1.1.6 without the parameter declarations
-   * in function declaration is forbidden
+   * 4.1.1.5 declaring the type of parameters is a must
+   * 4.1.1.6 without the parameter declarations in function declaration is forbidden
    * 4.1.1.8 ellipsis in the function parameter list is forbidden
    * 4.1.1.10 the empty function parameter list is forbidden
-   * */
+   */
   void CheckParameterTypeDecl(const clang::FunctionDecl *decl);
 
   /* GJB5369: 4.1.1.7

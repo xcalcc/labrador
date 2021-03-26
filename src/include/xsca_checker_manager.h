@@ -45,6 +45,8 @@ private:
 
   clang::SourceManager                              *_source_mgr;
 
+  clang::ASTContext                                 *_ast_context;
+
   XcalCheckerManager()
     : _scope_mgr(std::make_unique<ScopeManager>()) ,
       _conf_mgr(std::make_unique<ConfigureManager>(std::string("../conf/"))) {}
@@ -87,6 +89,12 @@ public:
   GetConfigureManager() {
     DBG_ASSERT(_instance._conf_mgr.get() != nullptr, "configure manager is null");
     return _instance._conf_mgr.get();
+  }
+
+  static clang::ASTContext *
+  GetAstContext() {
+    DBG_ASSERT(_instance._ast_context != nullptr, "astcontext is null");
+    return  _instance._ast_context;
   }
 
   static void SetSourceManager(clang::SourceManager * mgr) {

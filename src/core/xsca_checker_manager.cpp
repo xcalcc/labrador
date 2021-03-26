@@ -21,12 +21,12 @@ XcalCheckerManager XcalCheckerManager::_instance;
 
 std::unique_ptr<clang::ASTConsumer>
 XcalCheckerManager::InitCheckers(clang::CompilerInstance &CI,
-    llvm::StringRef InFile)
-{
+                                 llvm::StringRef InFile) {
   DBG_ASSERT(_checkers.size() == 0, "checkers initialized.\n");
 
-  std::vector< std::unique_ptr<clang::ASTConsumer> > consumers;
+  std::vector<std::unique_ptr<clang::ASTConsumer> > consumers;
   clang::Preprocessor *pp = &CI.getPreprocessor();
+  _ast_context = &CI.getASTContext();
 
   for (auto &factory : _factories) {
     std::unique_ptr<XcalChecker> checker = factory->CreateChecker(this);
@@ -46,18 +46,15 @@ XcalCheckerManager::InitCheckers(clang::CompilerInstance &CI,
 
   if (consumers.size() == 0) {
     return XcalNullChecker(this).GetAstConsumer();
-  }
-  else if (consumers.size() == 1) {
+  } else if (consumers.size() == 1) {
     return std::move(consumers.front());
-  }
-  else {
+  } else {
     return std::make_unique<clang::MultiplexConsumer>(std::move(consumers));
   }
 }
 
 void
-XcalCheckerManager::FiniCheckers()
-{
+XcalCheckerManager::FiniCheckers() {
   _checkers.clear();
 }
 

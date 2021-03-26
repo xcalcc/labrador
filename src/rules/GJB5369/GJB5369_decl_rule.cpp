@@ -39,6 +39,9 @@ bool GJB5369DeclRule::IsExplicitSign(std::string type_name) {
   return true;
 };
 
+/* Check if this typedef declared a builtin type
+ * Used by 4.1.2.1 -> CheckTypedefBasicType
+ */
 bool GJB5369DeclRule::IsTypedefBasicType(clang::QualType &decl_type) {
   if (decl_type->isBuiltinType()) {
     if (decl_type->getTypeClass() != clang::Type::Typedef) {
@@ -48,10 +51,12 @@ bool GJB5369DeclRule::IsTypedefBasicType(clang::QualType &decl_type) {
   return false;
 };
 
+/* Get function prototype tokens
+ * Used by 4.2.1.10 ->  CheckMainFunctionDefine
+ */
 void GJB5369DeclRule::GetFunctionTokens(const clang::FunctionDecl *decl,
                                         std::vector<std::string> &tokens) {
   auto src_mgr = XcalCheckerManager::GetSourceManager();
-
   auto func_loc = decl->getLocation();
   auto func_raw_chars = src_mgr->getCharacterData(func_loc);
 
@@ -81,6 +86,9 @@ void GJB5369DeclRule::GetFunctionTokens(const clang::FunctionDecl *decl,
   } while (*func_raw_chars != ')');
 }
 
+/* Check if the parameter list is empty
+ * Used by 4.1.1.10 -> CheckParameterTypeDecl
+ */
 bool GJB5369DeclRule::IsEmptyParamList(const clang::FunctionDecl *decl,
                                        std::vector<std::string> &tokens) {
   if (decl->param_empty()) {
@@ -95,6 +103,30 @@ bool GJB5369DeclRule::IsEmptyParamList(const clang::FunctionDecl *decl,
   return false;
 }
 
+/* Check if the parameter declaration without type
+ * Used in 4.1.1.5 -> CheckParameterTypeDecl
+ */
+bool GJB5369DeclRule::DoesParamHasNotTypeDecl(const clang::FunctionDecl *decl) {
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  for (const auto &it : decl->parameters()) {
+    auto param_decl = clang::dyn_cast<clang::ParmVarDecl>(it);
+//    param_decl->has
+    if (param_decl->getType()->isIntegerType()) {
+      auto start_loc = param_decl->getLocation();
+      auto param_data = src_mgr->getCharacterData(start_loc);
+      --param_data;
+      if (*param_data == ',' || *param_data == '(') {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/*
+ * GJB5369: 4.1.1.1
+ * procedure name reused as other purpose is forbidden
+ */
 void GJB5369DeclRule::CheckFunctionNameReuse() {
   auto scope_mgr = XcalCheckerManager::GetScopeManager();
   auto top_scope = scope_mgr->GlobalScope();
@@ -106,6 +138,10 @@ void GJB5369DeclRule::CheckFunctionNameReuse() {
       });
 }
 
+/*
+ * GJB5369: 4.1.1.2
+ * identifier name reused as other purpose is forbidden
+ */
 void GJB5369DeclRule::CheckVariableNameReuse() {
   using IdentifierKind = IdentifierManager::IdentifierKind;
   auto scope_mgr = XcalCheckerManager::GetScopeManager();
@@ -124,6 +160,10 @@ void GJB5369DeclRule::CheckVariableNameReuse() {
   }
 }
 
+/*
+ * Check the pointer nested levels
+ * Used by 4.4.1.2 -> CheckPointerNestedLevel
+ */
 bool GJB5369DeclRule::IsPointerNestedMoreThanTwoLevel(clang::QualType decl_type) {
   if (decl_type->isPointerType()) {
     int nested_level = 0;
@@ -138,9 +178,9 @@ bool GJB5369DeclRule::IsPointerNestedMoreThanTwoLevel(clang::QualType decl_type)
   return false;
 }
 
-/** GJB5396
-   * 4.1.1.3 struct with empty field is forbidden
-   */
+/* GJB5396
+ * 4.1.1.3 struct with empty field is forbidden
+ */
 void GJB5369DeclRule::CheckStructEmptyField(const clang::RecordDecl *decl) {
   for (const auto &it : decl->fields()) {
     if (it->isAnonymousStructOrUnion()) {
@@ -152,15 +192,23 @@ void GJB5369DeclRule::CheckStructEmptyField(const clang::RecordDecl *decl) {
 }
 
 /* GJB5396
- * TODO: 4.1.1.5 declaring the type of parameters is a must
- * TODO: 4.1.1.6 without the parameter declarations
- * in function declaration is forbidden
+ * 4.1.1.5 declaring the type of parameters is a must
+ * 4.1.1.6 without the parameter declarations in function declaration is forbidden
  * 4.1.1.8 ellipsis in the function parameter list is forbidden
  * 4.1.1.10 the empty function parameter list is forbidden
- * */
+ */
 void GJB5369DeclRule::CheckParameterTypeDecl(const clang::FunctionDecl *decl) {
   std::vector<std::string> tokens;
   GetFunctionTokens(decl, tokens);
+
+  if (!decl->doesThisDeclarationHaveABody()) {
+    if (decl->param_empty()) {
+      REPORT("GJB5396:4.1.1.6: Without the parameter declarations in"
+             " function declaration is forbidden: %s\n",
+             decl->getNameAsString().c_str());
+      return;
+    }
+  }
 
   /* 4.1.1.10
    * The empty function parameter list is forbidden
@@ -168,6 +216,15 @@ void GJB5369DeclRule::CheckParameterTypeDecl(const clang::FunctionDecl *decl) {
   if (IsEmptyParamList(decl, tokens)) {
     REPORT("GJB5396:4.1.1.10: The empty function parameter list is "
            "forbidden: %s\n",
+           decl->getNameAsString().c_str());
+    return;
+  }
+
+  /* 4.1.1.5
+   * declaring the type of parameters is a must
+   */
+  if (DoesParamHasNotTypeDecl(decl)) {
+    REPORT("GJB5396:4.1.1.5: Declaring the type of parameters is a must: %s\n",
            decl->getNameAsString().c_str());
   }
 

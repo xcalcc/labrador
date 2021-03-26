@@ -289,6 +289,13 @@ private:
    */
   void CheckFalseIfContidion(const clang::IfStmt *stmt);
 
+  /*
+   * GJB5369: 4.7.1.9
+   * formal and real parameters' type should be the same
+   */
+  void CheckParamTypeMismatch(const clang::CallExpr *stmt);
+
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -352,6 +359,7 @@ public:
 
   void VisitCallExpr(const clang::CallExpr *stmt) {
     CheckSetjumpAndLongjump(stmt);
+    CheckParamTypeMismatch(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {

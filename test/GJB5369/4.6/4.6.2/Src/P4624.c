@@ -12,4 +12,6 @@ void static_p(void) {
   if (defval) {
     /* ... */
   }
+
+  if (1 - 1) {}
 }
