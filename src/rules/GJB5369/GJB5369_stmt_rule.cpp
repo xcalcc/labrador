@@ -709,20 +709,17 @@ void GJB5369StmtRule::CheckCommaStmt(const clang::BinaryOperator *stmt) {
 /*
  * GJB5369: 4.6.2.2
  * "sizeof()" should be used carefully
- * TODO: fix bug -> checking method is not clear
+ * TODO: collect clang's warning
  */
 void GJB5369StmtRule::CheckSizeofOnExpr(const clang::UnaryExprOrTypeTraitExpr *stmt) {
   if (stmt->getKind() != clang::UnaryExprOrTypeTrait::UETT_SizeOf) { return; }
   auto ctx = XcalCheckerManager::GetAstContext();
-  uint64_t result;
-#if 0
-  if (!stmt->getArgumentExpr()->(result, *ctx)) {
+  if (stmt->getArgumentExpr()->HasSideEffects(*ctx, false)) {
     auto src_mgr = XcalCheckerManager::GetSourceManager();
     auto location = stmt->getBeginLoc();
     REPORT("GJB5396:4.6.2.2: \"sizeof()\" should be used carefully: %s\n",
            location.printToString(*src_mgr).c_str());
   }
-#endif
 }
 
 /*
