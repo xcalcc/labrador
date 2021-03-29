@@ -877,12 +877,15 @@ void GJB5369StmtRule::CheckUsingFunctionNotByCalling(const clang::IfStmt *stmt) 
  * use abort/exit carefully
  */
 void GJB5369StmtRule::CheckExitAndAbortFunction(const clang::CallExpr *stmt) {
-  std::vector<std::string> danger_functions = {"exit", "abort"};
+  const clang::Decl *calleeDecl;
+  const clang::FunctionDecl *decl;
+  if ((calleeDecl = stmt->getCalleeDecl()) == nullptr) return;
+  if ((decl = calleeDecl->getAsFunction()) == nullptr) return;
 
-  auto decl = stmt->getCalleeDecl()->getAsFunction();
+  auto conf_mgr = XcalCheckerManager::GetConfigureManager();
+
   auto func_name = decl->getNameAsString();
-  if (std::find(danger_functions.begin(), danger_functions.end(), func_name)
-      != danger_functions.end()) {
+  if (conf_mgr->IsDangerFunction(func_name)) {
     auto location = decl->getLocation();
     auto src_mgr = XcalCheckerManager::GetSourceManager();
     REPORT("GJB5396:4.7.2.3: use abort/exit carefully: : %s -> %s\n",

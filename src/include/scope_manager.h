@@ -68,9 +68,9 @@ private:
   LexicalScope *_scope;
 
   IdentifierManager(const IdentifierManager&)
-      = delete;
+  = delete;
   IdentifierManager& operator=(const IdentifierManager&)
-      = delete;
+  = delete;
 
 public:
   IdentifierManager(LexicalScope *scope) : _scope(scope) { }
@@ -140,6 +140,10 @@ public:
   /* Check if the identifier is in the variable map. */
   template<bool _RECURSIVE>
   bool HasVariableName(const std::string &var_name) const;
+
+  /* Get variable name and decl pair */
+  template<bool _RECURSIVE>
+  void GetVariables(const std::string &var_name, std::vector<clang::VarDecl *> &) const;
 
   /* Check if the identifier is the C/C++ keywords. */
   bool IsKeyword(const std::string &var_name) const;
@@ -228,27 +232,27 @@ private:
   IdentifierManagerPtr _identifiers;  // identifiers in this scope
 
   LexicalScope(const LexicalScope&)
-      = delete;
+  = delete;
   LexicalScope& operator=(const LexicalScope&)
-      = delete;
+  = delete;
 
 public:
   // Global scope
   LexicalScope(LexicalScope *parent, const clang::TranslationUnitDecl *decl)
-    : _scope(decl, SK_GLOBAL), _parent(parent),
-      _identifiers(std::make_unique<IdentifierManager>(this)) {
+      : _scope(decl, SK_GLOBAL), _parent(parent),
+        _identifiers(std::make_unique<IdentifierManager>(this)) {
     DBG_ASSERT(parent == nullptr, "global scope parent is not null");
   }
 
   // Function scope
   LexicalScope(LexicalScope *parent, const clang::FunctionDecl *decl)
-    : _scope(decl, SK_FUNCTION), _parent(parent),
-      _identifiers(std::make_unique<IdentifierManager>(this)) { }
+      : _scope(decl, SK_FUNCTION), _parent(parent),
+        _identifiers(std::make_unique<IdentifierManager>(this)) { }
 
   // Block scope
   LexicalScope(LexicalScope *parent, const clang::CompoundStmt *stmt)
-    : _scope(stmt, SK_BLOCK), _parent(parent),
-      _identifiers(std::make_unique<IdentifierManager>(this)) { }
+      : _scope(stmt, SK_BLOCK), _parent(parent),
+        _identifiers(std::make_unique<IdentifierManager>(this)) { }
 
   // Lambda scope
   LexicalScope(LexicalScope *parent, const clang::LambdaExpr *expr)
@@ -290,6 +294,11 @@ public:
     return _children.back().get();
   }
 
+  template<bool _RECURSIVE>
+  void GetVariables(const std::string &var_name, std::vector<clang::VarDecl *> &variables) const {
+    _identifiers->GetVariables<_RECURSIVE>(var_name, variables);
+  }
+
   // Get parent scope
   LexicalScope *Parent() const {
     DBG_ASSERT(_parent != nullptr, "parent scope is null");
@@ -317,7 +326,7 @@ public:
     if (recursive){
       depth++;
       for (const auto &it : _children) {
-          it->Dump(recursive, depth);
+        it->Dump(recursive, depth);
       }
     }
   }
@@ -340,9 +349,9 @@ private:
   LexicalScope                 *_current;    // current scope
 
   ScopeManager(const ScopeManager&)
-      = delete;
+  = delete;
   ScopeManager& operator=(const ScopeManager&)
-      = delete;
+  = delete;
 
 public:
   // Constructor, set both root and current to empty/null
@@ -411,6 +420,21 @@ IdentifierManager::HasVariableName(const std::string &var_name) const {
   return res;
 }  // IdentifierManager::HasVariableName
 
+template<bool _RECURSIVE>
+void IdentifierManager::GetVariables(const std::string &var_name, std::vector<clang::VarDecl *> &variables) const {
+  for (const auto &it : this->_id_to_var) {
+    if (var_name == it.first) {
+      variables.push_back(const_cast<clang::VarDecl *&&>(it.second));
+    }
+  }
+
+  if (_RECURSIVE) {
+    if (_scope->Children().empty()) return;
+    for (const auto &it : _scope->Children()) {
+      it->GetVariables<true>(var_name, variables);
+    }
+  }
+}
 
 // class ScopeHelper
 // helper class to push and pop scope
@@ -449,7 +473,7 @@ private:
 public:
   // Constructor, initialize the scope
   ScopeHelper(ScopeManager* mgr, clang::TranslationUnitDecl *node)
-  :_mgr(mgr), _node(node) {
+      :_mgr(mgr), _node(node) {
     _mgr->InitializeScope(_node);
   }
 

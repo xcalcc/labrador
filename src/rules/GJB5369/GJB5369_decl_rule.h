@@ -224,12 +224,19 @@ private:
    */
   void CheckUnusedParameters(const clang::FunctionDecl *decl);
 
+  /*
+   * GJB5369: 4.8.1.1
+   * avoid using "O" or "I" as variable names
+   */
+  void CheckIandOUsedAsVariable();
+
 public:
   void Finalize() {
     CheckFunctionNameReuse();
     CheckVariableNameReuse();
     CheckKeywordRedefine();
     CheckTypedefRedefine();
+    CheckIandOUsedAsVariable();
   }
 
   void VisitFunction(const clang::FunctionDecl *decl) {

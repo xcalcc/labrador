@@ -23,6 +23,10 @@ private:
   std::vector<std::string> _cxx_identifiers;
   std::vector<std::string> _c_cxx_identifiers;
 
+  // TODO: move this to file
+  std::vector<std::string> _danger_functions = {"exit", "abort"};
+
+
   ConfigureManager(const ConfigureManager &) = delete;
 
   ConfigureManager &operator=(const ConfigureManager &) = delete;
@@ -67,15 +71,20 @@ public:
     }
   }
 
-  bool FindCXXKeyword(const std::string &str) {
+  bool FindCXXKeyword(const std::string &str) const {
     auto res = std::find(_cxx_identifiers.begin(), _cxx_identifiers.end(), str);
     return (res != _cxx_identifiers.end());
   }
 
-  bool FindCAndCXXKeyword(const std::string &str) {
+  bool FindCAndCXXKeyword(const std::string &str) const {
     auto res =
         std::find(_c_cxx_identifiers.begin(), _c_cxx_identifiers.end(), str);
     return (res != _c_cxx_identifiers.end());
+  }
+
+  bool IsDangerFunction(const std::string &str) const {
+    auto res = std::find(_danger_functions.begin(), _danger_functions.end(), str);
+    return (res != _danger_functions.end());
   }
 
   template<unsigned conf>

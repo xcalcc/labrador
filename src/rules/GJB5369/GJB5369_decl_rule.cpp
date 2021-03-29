@@ -150,12 +150,12 @@ void GJB5369DeclRule::CheckVariableNameReuse() {
       IdentifierKind::VALUE | IdentifierKind::LABEL | IdentifierKind::FIELD;
   for (const auto &it : top_scope->Children()) {
     if (it->GetScopeKind() == SK_FUNCTION) {
-      it->TraverseAll<kind>([&it](const std::string &x,
-                                  IdentifierManager *id_mgr) -> void {
-        if (it->HasVariableName<false>(x)) {
-          REPORT("GJB5396:4.1.1.2: Variable name reused: %s\n", x.c_str());
-        }
-      });
+      it->TraverseAll<kind>(
+          [&it](const std::string &x, IdentifierManager *id_mgr) -> void {
+            if (it->HasVariableName<false>(x)) {
+              REPORT("GJB5396:4.1.1.2: Variable name reused: %s\n", x.c_str());
+            }
+          });
     }
   }
 }
@@ -744,6 +744,33 @@ void GJB5369DeclRule::CheckUnusedParameters(const clang::FunctionDecl *decl) {
              location.printToString(*src_mgr).c_str());
     }
   }
+}
+
+/*
+ * GJB5369: 4.8.1.1
+ * avoid using "O" or "I" as variable names
+ */
+void GJB5369DeclRule::CheckIandOUsedAsVariable() {
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+  for (const auto &it : top_scope->Children()) {
+    if (it->GetScopeKind() == SK_FUNCTION) {
+      std::vector<clang::VarDecl *> variables;
+      it->GetVariables<true>("I", variables);
+      it->GetVariables<true>("O", variables);
+      if (variables.empty()) {
+        return;
+      }
+
+      auto src_mgr = XcalCheckerManager::GetSourceManager();
+      for (const auto &var : variables) {
+        auto location = var->getLocation();
+        REPORT("GJB5396:4.8.1.1: avoid using \"O\" or \"I\" as variable names: %s\n",
+               location.printToString(*src_mgr).c_str());
+      }
+    }
+  }
+
 }
 
 } // rule
