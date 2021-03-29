@@ -310,6 +310,11 @@ private:
    */
   void CheckParamTypeMismatch(const clang::CallExpr *stmt);
 
+  /*
+   * GJB5369: 4.7.2.2
+   * using function not by calling is forbidden
+   */
+  void CheckUsingFunctionNotByCalling(const clang::DeclRefExpr *stmt);
 
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
@@ -389,6 +394,10 @@ public:
   }
   void VisitUnaryExprOrTypeTraitExpr(const clang::UnaryExprOrTypeTraitExpr *stmt) {
     CheckSizeofOnExpr(stmt);
+  }
+
+  void VisitDeclRefExpr(const clang::DeclRefExpr *stmt) {
+    CheckUsingFunctionNotByCalling(stmt);
   }
 
   void VisitCompoundStmt(const clang::CompoundStmt *stmt) {
