@@ -228,7 +228,9 @@ private:
    * GJB5369: 4.8.1.1
    * avoid using "O" or "I" as variable names
    */
-  void CheckIandOUsedAsVariable();
+  void CheckIandOUsedAsVariable(const clang::VarDecl *decl);
+
+  void CheckIandOUsedAsVariable(const clang::ParmVarDecl *decl);
 
 public:
   void Finalize() {
@@ -236,7 +238,6 @@ public:
     CheckVariableNameReuse();
     CheckKeywordRedefine();
     CheckTypedefRedefine();
-    CheckIandOUsedAsVariable();
   }
 
   void VisitFunction(const clang::FunctionDecl *decl) {
@@ -283,12 +284,15 @@ public:
     CheckTypedefBasicType(decl);
     CheckPointerNestedLevel(decl);
     CheckFunctionPointer(decl);
+    CheckIandOUsedAsVariable(decl);
   }
 
-  // TODO: can't visit here
   void VisitField(const clang::FieldDecl *decl) {
-    TRACE0();
     CheckBitsIfInteger(decl);
+  }
+
+  void VisitParmVar(const clang::ParmVarDecl *decl) {
+    CheckIandOUsedAsVariable(decl);
   }
 
 

@@ -700,8 +700,13 @@ void GJB5369DeclRule::CheckSingleBitSignedValue(const clang::RecordDecl *decl) {
  * bits can only be defined as signed/unsigned int type
  */
 void GJB5369DeclRule::CheckBitsIfInteger(const clang::FieldDecl *decl) {
+  using BuiltinType = clang::BuiltinType;
   if (decl->isBitField()) {
-    if (!decl->getType()->isIntegerType()) {
+    const auto *BT = clang::dyn_cast<clang::BuiltinType>(decl->getType().getCanonicalType());
+    if (BT == nullptr) return;
+    auto builtin_type = BT->getKind();
+    if (!((builtin_type >= BuiltinType::Int && builtin_type <= BuiltinType::Int128) ||
+          (builtin_type >= BuiltinType::UInt && builtin_type <= BuiltinType::UInt128))) {
       auto location = decl->getLocation();
       auto src_mgr = XcalCheckerManager::GetSourceManager();
       REPORT("GJB5396:4.6.1.7: bits can only be defined as signed/unsigned int type: "
@@ -750,28 +755,26 @@ void GJB5369DeclRule::CheckUnusedParameters(const clang::FunctionDecl *decl) {
  * GJB5369: 4.8.1.1
  * avoid using "O" or "I" as variable names
  */
-void GJB5369DeclRule::CheckIandOUsedAsVariable() {
-  auto scope_mgr = XcalCheckerManager::GetScopeManager();
-  auto top_scope = scope_mgr->GlobalScope();
-  for (const auto &it : top_scope->Children()) {
-    if (it->GetScopeKind() == SK_FUNCTION) {
-      std::vector<const clang::VarDecl *> variables;
-      it->GetVariables<true>("I", variables);
-      it->GetVariables<true>("O", variables);
-      if (variables.empty()) {
-        return;
-      }
-
-      auto src_mgr = XcalCheckerManager::GetSourceManager();
-      for (const auto &var : variables) {
-        auto location = var->getLocation();
-        REPORT("GJB5396:4.8.1.1: avoid using \"O\" or \"I\" as variable names: %s\n",
-               location.printToString(*src_mgr).c_str());
-      }
-    }
+void GJB5369DeclRule::CheckIandOUsedAsVariable(const clang::VarDecl *decl) {
+  auto var_name = decl->getNameAsString();
+  if (var_name == "I" || var_name == "O") {
+    auto location = decl->getLocation();
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    REPORT("GJB5396:4.8.1.1: avoid using \"O\" or \"I\" as variable names: %s\n",
+           location.printToString(*src_mgr).c_str());
   }
-
 }
+
+void GJB5369DeclRule::CheckIandOUsedAsVariable(const clang::ParmVarDecl *decl) {
+  auto var_name = decl->getNameAsString();
+  if (var_name == "I" || var_name == "O") {
+    auto location = decl->getLocation();
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    REPORT("GJB5396:4.8.1.1: avoid using \"O\" or \"I\" as variable names: %s\n",
+           location.printToString(*src_mgr).c_str());
+  }
+}
+
 
 } // rule
 } // xsca

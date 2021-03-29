@@ -80,6 +80,13 @@ public:
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
     _decl_handler.VisitCXXRecord(decl);
     _type_visitor.Visit(decl->getTypeForDecl());
+
+    // visit fields
+    if (!decl->field_empty()) {
+      for (const auto &it : decl->fields()) {
+        _decl_handler.VisitField(it);
+      }
+    }
   }
 
   void VisitEnum(const clang::EnumDecl *decl) {
@@ -96,9 +103,15 @@ public:
     _decl_handler.VisitFunction(decl);
     _type_visitor.Visit(decl->clang::ValueDecl::getType().getTypePtr());
 
-    if (decl->doesThisDeclarationHaveABody()) {
-//      _stmt_visitor.Visit(decl->getBody());
+    // visit parameters
+    if (!decl->param_empty()) {
+      for (const auto &it : decl->parameters()) {
+        _decl_handler.VisitParmVar(it);
+      }
+    }
 
+    // visit function body
+    if (decl->doesThisDeclarationHaveABody()) {
       _stmt_visitor.VisitFunctionBody(decl->getBody());
     }
   }
