@@ -322,6 +322,12 @@ private:
    */
   void CheckExitAndAbortFunction(const clang::CallExpr *stmt);
 
+  /*
+   * GJB5369: 4.8.2.1
+   * avoid using += or -=
+   */
+  void CheckCompoundAssignOperator(const clang::CompoundAssignOperator *stmt);
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -395,6 +401,7 @@ public:
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
     CheckShiftOnSignedNumber<clang::CompoundAssignOperator>(stmt);
     CheckShiftOverflow<clang::CompoundAssignOperator>(stmt);
+    CheckCompoundAssignOperator(stmt);
   }
 
   void VisitUnaryOperator(const clang::UnaryOperator *stmt) {

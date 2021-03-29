@@ -888,11 +888,24 @@ void GJB5369StmtRule::CheckExitAndAbortFunction(const clang::CallExpr *stmt) {
   if (conf_mgr->IsDangerFunction(func_name)) {
     auto location = decl->getLocation();
     auto src_mgr = XcalCheckerManager::GetSourceManager();
-    REPORT("GJB5396:4.7.2.3: use abort/exit carefully: : %s -> %s\n",
+    REPORT("GJB5396:4.7.2.3: use abort/exit carefully: %s -> %s\n",
            decl->getNameAsString().c_str(),
            location.printToString(*src_mgr).c_str());
   }
+}
 
+/*
+ * GJB5369: 4.8.2.1
+ * avoid using += or -=
+ */
+void GJB5369StmtRule::CheckCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
+  if (stmt->getOpcode() == clang::BinaryOperatorKind::BO_AddAssign ||
+      stmt->getOpcode() == clang::BinaryOperatorKind::BO_SubAssign) {
+    auto location = stmt->getBeginLoc();
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    REPORT("GJB5396:4.8.2.1: avoid using += or -=: %s\n",
+           location.printToString(*src_mgr).c_str());
+  }
 }
 
 } // rule
