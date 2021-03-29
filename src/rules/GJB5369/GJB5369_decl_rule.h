@@ -213,12 +213,6 @@ private:
   void CheckBitsIfInteger(const clang::FieldDecl *decl);
 
   /*
-   * GJB5369: 4.7.1.7
-   * function return void used in statement is forbidden
-   */
-  void CheckVoidReturnType(const clang::FunctionDecl *decl);
-
-  /*
    * GJB5369: 4.7.1.8
    * void type variable used as parameter is forbidden
    */
@@ -244,7 +238,6 @@ public:
     CheckProcedureWithBraces(decl);
     CheckFunctionLength(decl);
     CheckPointerNestedLevel(decl);
-    CheckVoidReturnType(decl);
     CheckVoidTypeParameters(decl);
   }
 

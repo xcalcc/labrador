@@ -290,6 +290,12 @@ private:
   void CheckFalseIfContidion(const clang::IfStmt *stmt);
 
   /*
+   * GJB5369: 4.7.1.7
+   * function return void used in statement is forbidden
+   */
+  void CheckVoidReturnType(const clang::CallExpr *stmt);
+
+  /*
    * GJB5369: 4.7.1.9
    * formal and real parameters' type should be the same
    */
@@ -360,6 +366,7 @@ public:
   void VisitCallExpr(const clang::CallExpr *stmt) {
     CheckSetjumpAndLongjump(stmt);
     CheckParamTypeMismatch(stmt);
+    CheckVoidReturnType(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {

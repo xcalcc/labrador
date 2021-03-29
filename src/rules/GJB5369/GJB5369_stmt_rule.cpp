@@ -734,6 +734,7 @@ void GJB5369StmtRule::CheckDifferentTypeArithm(const clang::BinaryOperator *stmt
   auto lhs_type = lhs->getType();
   auto rhs_type = rhs->getType();
 
+
   if (lhs_type->isBuiltinType() || rhs_type->isBuiltinType()) {
     auto lhs_kind = clang::dyn_cast<clang::BuiltinType>(lhs_type)->getKind();
     auto rhs_kind = clang::dyn_cast<clang::BuiltinType>(rhs_type)->getKind();
@@ -772,6 +773,26 @@ void GJB5369StmtRule::CheckFalseIfContidion(const clang::IfStmt *stmt) {
              location.printToString(*src_mgr).c_str());
     }
   }
+}
+
+/*
+ * GJB5369: 4.7.1.7
+ * function return void used in statement is forbidden
+ * TODO: Need to collect clang's error report
+ */
+void GJB5369StmtRule::CheckVoidReturnType(const clang::CallExpr *stmt)
+#if 0
+  auto func_decl = stmt->getCalleeDecl()->getAsFunction();
+  auto ret_type = func_decl->getReturnType();
+  if (ret_type->isVoidType()) {
+    auto location = stmt->getBeginLoc();
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    REPORT("GJB5396:4.7.1.7: function return void used in statement is forbidden: "
+           ": %s -> %s\n",
+           func_decl->getNameAsString().c_str(),
+           location.printToString(*src_mgr).c_str());
+  }
+#endif
 }
 
 /*

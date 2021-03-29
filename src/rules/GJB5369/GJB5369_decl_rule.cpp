@@ -713,22 +713,6 @@ void GJB5369DeclRule::CheckBitsIfInteger(const clang::FieldDecl *decl) {
 }
 
 /*
- * GJB5369: 4.7.1.7
- * function return void used in statement is forbidden
- */
-void GJB5369DeclRule::CheckVoidReturnType(const clang::FunctionDecl *decl) {
-  auto ret_type = decl->getReturnType();
-  if (ret_type->isVoidType()) {
-    auto location = decl->getLocation();
-    auto src_mgr = XcalCheckerManager::GetSourceManager();
-    REPORT("GJB5396:4.7.1.7: function return void used in statement is forbidden: "
-           ": %s -> %s\n",
-           decl->getNameAsString().c_str(),
-           location.printToString(*src_mgr).c_str());
-  }
-}
-
-/*
  * GJB5369: 4.7.1.8
  * void type variable used as parameter is forbidden
  */
