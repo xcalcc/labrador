@@ -755,7 +755,7 @@ void GJB5369DeclRule::CheckIandOUsedAsVariable() {
   auto top_scope = scope_mgr->GlobalScope();
   for (const auto &it : top_scope->Children()) {
     if (it->GetScopeKind() == SK_FUNCTION) {
-      std::vector<clang::VarDecl *> variables;
+      std::vector<const clang::VarDecl *> variables;
       it->GetVariables<true>("I", variables);
       it->GetVariables<true>("O", variables);
       if (variables.empty()) {

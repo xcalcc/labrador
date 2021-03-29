@@ -143,7 +143,7 @@ public:
 
   /* Get variable name and decl pair */
   template<bool _RECURSIVE>
-  void GetVariables(const std::string &var_name, std::vector<clang::VarDecl *> &) const;
+  void GetVariables(const std::string &var_name, std::vector<const clang::VarDecl *> &) const;
 
   /* Check if the identifier is the C/C++ keywords. */
   bool IsKeyword(const std::string &var_name) const;
@@ -295,7 +295,7 @@ public:
   }
 
   template<bool _RECURSIVE>
-  void GetVariables(const std::string &var_name, std::vector<clang::VarDecl *> &variables) const {
+  void GetVariables(const std::string &var_name, std::vector<const clang::VarDecl *> &variables) const {
     _identifiers->GetVariables<_RECURSIVE>(var_name, variables);
   }
 
@@ -421,10 +421,11 @@ IdentifierManager::HasVariableName(const std::string &var_name) const {
 }  // IdentifierManager::HasVariableName
 
 template<bool _RECURSIVE>
-void IdentifierManager::GetVariables(const std::string &var_name, std::vector<clang::VarDecl *> &variables) const {
+void IdentifierManager::GetVariables(const std::string &var_name,
+         std::vector<const clang::VarDecl *> &variables) const {
   for (const auto &it : this->_id_to_var) {
     if (var_name == it.first) {
-      variables.push_back(const_cast<clang::VarDecl *&&>(it.second));
+      variables.push_back(it.second);
     }
   }
 
