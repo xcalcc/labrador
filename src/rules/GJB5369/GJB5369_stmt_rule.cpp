@@ -858,15 +858,38 @@ void GJB5369StmtRule::CheckParamTypeMismatch(const clang::CallExpr *stmt) {
  * GJB5369: 4.7.2.2
  * using function not by calling is forbidden
  */
-void GJB5369StmtRule::CheckUsingFunctionNotByCalling(const clang::DeclRefExpr *stmt) {
-  auto decl = stmt->getDecl();
-  if (decl->isFunctionOrFunctionTemplate()) {
+void GJB5369StmtRule::CheckUsingFunctionNotByCalling(const clang::IfStmt *stmt) {
+  auto cond = stmt->getCond()->IgnoreParenImpCasts();
+  if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(cond)) {
+    auto decl = decl_ref->getDecl();
+    if (decl->isFunctionOrFunctionTemplate()) {
+      auto location = decl->getLocation();
+      auto src_mgr = XcalCheckerManager::GetSourceManager();
+      REPORT("GJB5396:4.7.2.2: using function not by calling is forbidden: : %s -> %s\n",
+             decl->getNameAsString().c_str(),
+             location.printToString(*src_mgr).c_str());
+    }
+  }
+}
+
+/*
+ * GJB5369: 4.7.2.3
+ * use abort/exit carefully
+ */
+void GJB5369StmtRule::CheckExitAndAbortFunction(const clang::CallExpr *stmt) {
+  std::vector<std::string> danger_functions = {"exit", "abort"};
+
+  auto decl = stmt->getCalleeDecl()->getAsFunction();
+  auto func_name = decl->getNameAsString();
+  if (std::find(danger_functions.begin(), danger_functions.end(), func_name)
+      != danger_functions.end()) {
     auto location = decl->getLocation();
     auto src_mgr = XcalCheckerManager::GetSourceManager();
-    REPORT("GJB5396:4.7.2.2: using function not by calling is forbidden: : %s -> %s\n",
+    REPORT("GJB5396:4.7.2.3: use abort/exit carefully: : %s -> %s\n",
            decl->getNameAsString().c_str(),
            location.printToString(*src_mgr).c_str());
   }
+
 }
 
 } // rule

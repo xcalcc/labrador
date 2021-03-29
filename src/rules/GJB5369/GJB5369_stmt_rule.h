@@ -314,7 +314,13 @@ private:
    * GJB5369: 4.7.2.2
    * using function not by calling is forbidden
    */
-  void CheckUsingFunctionNotByCalling(const clang::DeclRefExpr *stmt);
+  void CheckUsingFunctionNotByCalling(const clang::IfStmt *stmt);
+
+  /*
+   * GJB5369: 4.7.2.3
+   * use abort/exit carefully
+   */
+  void CheckExitAndAbortFunction(const clang::CallExpr *stmt);
 
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
@@ -335,6 +341,7 @@ public:
     CheckIfWithoutElseStmt(stmt);
     CheckAssignInLogicExpr(stmt);
     CheckFalseIfContidion(stmt);
+    CheckUsingFunctionNotByCalling(stmt);
   }
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -382,6 +389,7 @@ public:
     CheckSetjumpAndLongjump(stmt);
     CheckParamTypeMismatch(stmt);
     CheckVoidReturnType(stmt);
+    CheckExitAndAbortFunction(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
@@ -394,10 +402,6 @@ public:
   }
   void VisitUnaryExprOrTypeTraitExpr(const clang::UnaryExprOrTypeTraitExpr *stmt) {
     CheckSizeofOnExpr(stmt);
-  }
-
-  void VisitDeclRefExpr(const clang::DeclRefExpr *stmt) {
-    CheckUsingFunctionNotByCalling(stmt);
   }
 
   void VisitCompoundStmt(const clang::CompoundStmt *stmt) {

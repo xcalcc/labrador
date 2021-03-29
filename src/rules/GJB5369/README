@@ -107,8 +107,8 @@ Rule		Kind		Implementation
 4.7.1.10    Stmt        Need to collect the error report from clang
 4.7.2
 4.7.2.1     Stmt        CheckUnusedParameters
-4.7.2.2
-4.7.2.3
+4.7.2.2     Stmt        CheckUsingFunctionNotByCalling
+4.7.2.3     Stmt        CheckExitAndAbortFunction
 --------------+------------------------------------------------
 4.8.1.1
 4.8.1.2
