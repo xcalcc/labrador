@@ -42,6 +42,9 @@ private:
   // check if it contains bitwise
   bool HasBitwiseSubStmt(const clang::Stmt *stmt);
 
+  // check if it contains call expr
+  bool HasCallExpr(const clang::Stmt *stmt);
+
   /*
    * GJB5369 4.1.1.4
    * Check multiple consecutive labels.
@@ -290,6 +293,12 @@ private:
   void CheckFalseIfContidion(const clang::IfStmt *stmt);
 
   /*
+   * GJB5369: 4.7.1.6
+   * Only one function call could be contain within one single statement
+   */
+  void CheckMultiCallExprInSingleStmt(const clang::BinaryOperator *stmt);
+
+  /*
    * GJB5369: 4.7.1.7
    * function return void used in statement is forbidden
    */
@@ -339,6 +348,7 @@ public:
     CheckBitwiseOpInBooleanExpr(stmt);
     CheckCommaStmt(stmt);
     CheckDifferentTypeArithm(stmt);
+    CheckMultiCallExprInSingleStmt(stmt);
   }
 
   void VisitFunctionBody(const clang::Stmt *stmt) {
@@ -350,7 +360,7 @@ public:
   }
 
   void VisitStringLiteral(const clang::StringLiteral *stmt) {
-    TRACE0();
+//    TRACE0();
 //    CheckStringLiteralEnd(stmt);
   }
 
@@ -379,6 +389,9 @@ public:
   }
   void VisitUnaryExprOrTypeTraitExpr(const clang::UnaryExprOrTypeTraitExpr *stmt) {
     CheckSizeofOnExpr(stmt);
+  }
+
+  void VisitCompoundStmt(const clang::CompoundStmt *stmt) {
   }
 }; // GJB5369StmtRule
 

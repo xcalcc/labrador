@@ -79,7 +79,7 @@ bool GJB5369StmtRule::HasBitwiseSubStmt(const clang::Stmt *stmt) {
     if (binary->isBitwiseOp()) { return true; }
   }
 
-  for (const auto &it :stmt->children()) {
+  for (const auto &it : stmt->children()) {
     if (auto binary_stmt = clang::dyn_cast<clang::BinaryOperator>(it)) {
       if (binary_stmt->isBitwiseOp()) {
         return true;
@@ -90,6 +90,20 @@ bool GJB5369StmtRule::HasBitwiseSubStmt(const clang::Stmt *stmt) {
     }
   }
   return has_bitwise;
+}
+
+// check if the statement has function call expr
+bool GJB5369StmtRule::HasCallExpr(const clang::Stmt *stmt) {
+  bool has_callexpr = false;
+  using StmtClass = clang::Stmt::StmtClass;
+  if (stmt->getStmtClass() == StmtClass::CallExprClass) return true;
+  for (const auto &it : stmt->children()) {
+    if (it->getStmtClass() == StmtClass::CallExprClass) return true;
+    if (it->child_begin() != it->child_end()) {
+      has_callexpr |= HasCallExpr(it);
+    }
+  }
+  return has_callexpr;
 }
 
 /*
@@ -776,11 +790,27 @@ void GJB5369StmtRule::CheckFalseIfContidion(const clang::IfStmt *stmt) {
 }
 
 /*
+ * GJB5369: 4.7.1.6
+ * Only one function call could be contain within one single statement
+ */
+void GJB5369StmtRule::CheckMultiCallExprInSingleStmt(const clang::BinaryOperator *stmt) {
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+  if (HasCallExpr(rhs) && HasCallExpr(lhs)) {
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    auto location = stmt->getBeginLoc();
+    REPORT("GJB5396:4.7.1.6: Only one function call could be"
+           " contain within one single statement: %s\n",
+           location.printToString(*src_mgr).c_str());
+  }
+}
+
+/*
  * GJB5369: 4.7.1.7
  * function return void used in statement is forbidden
  * TODO: Need to collect clang's error report
  */
-void GJB5369StmtRule::CheckVoidReturnType(const clang::CallExpr *stmt)
+void GJB5369StmtRule::CheckVoidReturnType(const clang::CallExpr *stmt) {
 #if 0
   auto func_decl = stmt->getCalleeDecl()->getAsFunction();
   auto ret_type = func_decl->getReturnType();
@@ -814,7 +844,7 @@ void GJB5369StmtRule::CheckParamTypeMismatch(const clang::CallExpr *stmt) {
       auto formal_param_kind = clang::dyn_cast<clang::BuiltinType>(formal_param_type)->getKind();
       if (real_param_kind != formal_param_kind) {
         auto location = stmt->getBeginLoc();
-        REPORT("GJB5396:4.7.1.9: dead code is forbidden: %s\n",
+        REPORT("GJB5396:4.7.1.9: formal and real parameters' type should be the same: %s\n",
                location.printToString(*src_mgr).c_str());
       }
     }

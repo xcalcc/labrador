@@ -100,7 +100,7 @@ Rule		Kind		Implementation
 4.7.1.3
 4.7.1.4
 4.7.1.5
-4.7.1.6
+4.7.1.6     Stmt        CheckMultiCallExprInSingleStmt
 4.7.1.7     Stmt        Need to collect the error report from clang
 4.7.1.8     Stmt        CheckVoidTypeParameters
 4.7.1.9     Stmt        CheckParamTypeMismatch
