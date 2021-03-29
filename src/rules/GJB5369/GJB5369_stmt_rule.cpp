@@ -921,5 +921,16 @@ void GJB5369StmtRule::CheckPreIncrementAndPostIncrement(const clang::UnaryOperat
   }
 }
 
+/*
+ * GJB5369: 4.8.2.3
+ * avoid using continue statement
+ */
+void GJB5369StmtRule::CheckContinueStmt(const clang::ContinueStmt *stmt) {
+  auto location = stmt->getBeginLoc();
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  REPORT("GJB5396:4.8.2.3: avoid using continue statement: %s\n",
+         location.printToString(*src_mgr).c_str());
+}
+
 } // rule
 } // xsca

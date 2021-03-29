@@ -334,6 +334,13 @@ private:
    */
   void CheckPreIncrementAndPostIncrement(const clang::UnaryOperator *stmt);
 
+  /*
+   * GJB5369: 4.8.2.3
+   * avoid using continue statement
+   */
+  void CheckContinueStmt(const clang::ContinueStmt *stmt);
+
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -416,6 +423,10 @@ public:
   }
   void VisitUnaryExprOrTypeTraitExpr(const clang::UnaryExprOrTypeTraitExpr *stmt) {
     CheckSizeofOnExpr(stmt);
+  }
+
+  void VisitContinueStmt(const clang::ContinueStmt *stmt) {
+    CheckContinueStmt(stmt);
   }
 
   void VisitCompoundStmt(const clang::CompoundStmt *stmt) {
