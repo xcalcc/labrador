@@ -104,9 +104,9 @@ Rule		Kind		Implementation
 4.7.1.7     Stmt        Need to collect the error report from clang
 4.7.1.8     Stmt        CheckVoidTypeParameters
 4.7.1.9     Stmt        CheckParamTypeMismatch
-4.7.1.10
+4.7.1.10    Stmt        Need to collect the error report from clang
 4.7.2
-4.7.2.1
+4.7.2.1     Stmt        CheckUnusedParameters
 4.7.2.2
 4.7.2.3
 --------------+------------------------------------------------

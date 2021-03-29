@@ -218,6 +218,12 @@ private:
    */
   void CheckVoidTypeParameters(const clang::FunctionDecl *decl);
 
+  /*
+   * GJB5369: 4.7.2.1
+   * parameters should be used in the function
+   */
+  void CheckUnusedParameters(const clang::FunctionDecl *decl);
+
 public:
   void Finalize() {
     CheckFunctionNameReuse();
@@ -239,6 +245,7 @@ public:
     CheckFunctionLength(decl);
     CheckPointerNestedLevel(decl);
     CheckVoidTypeParameters(decl);
+    CheckUnusedParameters(decl);
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {

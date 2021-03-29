@@ -3,6 +3,6 @@
  * parameters should be used in the function
  */
 
-void test(int p_1, int p_2){
-    return p_1 + 1;
+int test(int p_1, int p_2) {
+  return p_1 + 1;
 }

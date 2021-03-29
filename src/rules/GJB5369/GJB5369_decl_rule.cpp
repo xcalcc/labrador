@@ -729,5 +729,22 @@ void GJB5369DeclRule::CheckVoidTypeParameters(const clang::FunctionDecl *decl) {
   }
 }
 
+/*
+ * GJB5369: 4.7.2.1
+ * parameters should be used in the function
+ */
+void GJB5369DeclRule::CheckUnusedParameters(const clang::FunctionDecl *decl) {
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  for (const auto &it : decl->parameters()) {
+    if (!it->isUsed()) {
+      auto location = it->getLocation();
+      REPORT("GJB5396:4.7.2.1: parameters should be used in the function: "
+             ": Function: %s : Param: %s -> Loc: %s\n",
+             decl->getNameAsString().c_str(), it->getNameAsString().c_str(),
+             location.printToString(*src_mgr).c_str());
+    }
+  }
+}
+
 } // rule
 } // xsca
