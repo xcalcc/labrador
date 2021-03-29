@@ -328,6 +328,12 @@ private:
    */
   void CheckCompoundAssignOperator(const clang::CompoundAssignOperator *stmt);
 
+  /*
+   * GJB5369: 4.8.2.2
+   * using ++ or -- should be carefully
+   */
+  void CheckPreIncrementAndPostIncrement(const clang::UnaryOperator *stmt);
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -406,6 +412,7 @@ public:
 
   void VisitUnaryOperator(const clang::UnaryOperator *stmt) {
     CheckNonOperationOnConstant(stmt);
+    CheckPreIncrementAndPostIncrement(stmt);
   }
   void VisitUnaryExprOrTypeTraitExpr(const clang::UnaryExprOrTypeTraitExpr *stmt) {
     CheckSizeofOnExpr(stmt);

@@ -908,5 +908,18 @@ void GJB5369StmtRule::CheckCompoundAssignOperator(const clang::CompoundAssignOpe
   }
 }
 
+/*
+ * GJB5369: 4.8.2.2
+ * using ++ or -- should be carefully
+ */
+void GJB5369StmtRule::CheckPreIncrementAndPostIncrement(const clang::UnaryOperator *stmt) {
+  if (stmt->isPostfix() || stmt->isPrefix()) {
+    auto location = stmt->getBeginLoc();
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    REPORT("GJB5396:4.8.2.2: using ++ or -- should be carefully: %s\n",
+           location.printToString(*src_mgr).c_str());
+  }
+}
+
 } // rule
 } // xsca
