@@ -101,6 +101,7 @@ bool GJB5369StmtRule::HasCallExpr(const clang::Stmt *stmt) {
     if (it->getStmtClass() == StmtClass::CallExprClass) return true;
     if (it->child_begin() != it->child_end()) {
       has_callexpr |= HasCallExpr(it);
+      if (has_callexpr) return has_callexpr;
     }
   }
   return has_callexpr;
