@@ -182,11 +182,19 @@ bool GJB5369DeclRule::IsPointerNestedMoreThanTwoLevel(clang::QualType decl_type)
  * 4.1.1.3 struct with empty field is forbidden
  */
 void GJB5369DeclRule::CheckStructEmptyField(const clang::RecordDecl *decl) {
+  XcalReport *report = XcalCheckerManager::GetReport();
+  XcalIssue *issue = nullptr;
   for (const auto &it : decl->fields()) {
     if (it->isAnonymousStructOrUnion()) {
-      REPORT("GJB5396:4.1.1.3: Struct with empty field is forbidden: struct: "
-             "%s\n",
-             decl->getNameAsString().c_str());
+      if (issue == nullptr) {
+        // create issue for decl
+        issue = report->ReportIssue("GJB5369", "4.1.1.3", decl);
+        std::string refmsg = "Struct with anonymous field is forbidden: struct: ";
+        refmsg += decl->getNameAsString().c_str();
+        issue->SetRefMsg(refmsg);
+      }
+      // append field for path info
+      issue->AddDecl(&(*it));
     }
   }
 }

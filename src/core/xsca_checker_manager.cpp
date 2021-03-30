@@ -14,6 +14,7 @@
 #include "xsca_checker_manager.h"
 #include "xsca_null_checker.h"
 #include "clang/Frontend/MultiplexConsumer.h"
+#include <libgen.h>
 
 namespace xsca {
 
@@ -24,9 +25,23 @@ XcalCheckerManager::InitCheckers(clang::CompilerInstance &CI,
                                  llvm::StringRef InFile) {
   DBG_ASSERT(_checkers.size() == 0, "checkers initialized.\n");
 
+  // get ast context and source manager from CI
+  _ast_context = &CI.getASTContext();
+  _source_mgr = &CI.getASTContext().getSourceManager();
+
+  // initialize report
+  _report = std::make_unique<XcalReport>();
+  auto filebuf = std::make_unique<char []>(InFile.size() + 8);
+  char *fileptr = filebuf.get();
+  strncpy(fileptr, InFile.data(), InFile.size());
+  fileptr[InFile.size()] = '\0';
+  char *filename = basename(fileptr);
+  strcat(filename, ".vtxt");
+  _report->Initialize(_source_mgr, filename);
+
+  // initializer consumers and ppcallbacks
   std::vector<std::unique_ptr<clang::ASTConsumer> > consumers;
   clang::Preprocessor *pp = &CI.getPreprocessor();
-  _ast_context = &CI.getASTContext();
 
   for (auto &factory : _factories) {
     std::unique_ptr<XcalChecker> checker = factory->CreateChecker(this);

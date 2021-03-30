@@ -74,6 +74,12 @@ private:
   void FiniCheckers();
 
 public:
+  static XcalReport *
+  GetReport() {
+    DBG_ASSERT(_instance._report.get() != nullptr, "report is null");
+    return _instance._report.get();
+  }
+
   static ScopeManager *
   GetScopeManager() {
     DBG_ASSERT(_instance._scope_mgr.get() != nullptr, "scope manager is null");
@@ -97,10 +103,6 @@ public:
     return  _instance._ast_context;
   }
 
-  static void SetSourceManager(clang::SourceManager * mgr) {
-    _instance._source_mgr = mgr;
-  }
-
   static std::unique_ptr<clang::ASTConsumer>
   Initialize(clang::CompilerInstance &CI, llvm::StringRef InFile) {
     return _instance.InitCheckers(CI, InFile);
@@ -108,6 +110,7 @@ public:
 
   static void Finalize() {
     _instance.FiniCheckers();
+    _instance._report->Finalize();
   }
 
   static void RegisterFactory(std::unique_ptr<XcalCheckerFactory> factory) {
@@ -119,7 +122,6 @@ template<typename _CheckerFactory>
 class XcalCheckerFactoryRegister {
 public:
   XcalCheckerFactoryRegister() {
-    TRACE0();
     auto factory = std::make_unique<_CheckerFactory>();
     XcalCheckerManager::RegisterFactory(std::move(factory));
   }
