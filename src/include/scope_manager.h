@@ -137,6 +137,12 @@ public:
     return _id_to_func.count(func_name) > 0;
   }
 
+  /* Get function declaration by function name */
+  auto GetFunctionDecls(const std::string &name) {
+    auto function_decl_range = _id_to_func.equal_range(name);
+    return function_decl_range;
+  }
+
   /* Check if the identifier is in the variable map. */
   template<bool _RECURSIVE>
   bool HasVariableName(const std::string &var_name) const;
@@ -158,9 +164,16 @@ private:
   }
 
   template<typename _MAP, typename _RULE>
-  void TraverseMap(const _MAP &map, const _RULE &rule) {
+  void TraverseMapWithString(const _MAP &map, const _RULE &rule) {
     for (const auto &it : map) {
       rule(it.first, this);
+    }
+  }
+
+  template<typename _MAP, typename _RULE>
+  void TraverseMapWithStringAndDecl(const _MAP &map, const _RULE &rule) {
+    for (const auto &it : map) {
+      rule(it.first, it.second, this);
     }
   }
 
@@ -189,22 +202,44 @@ public:
     Dump(depth, _id_to_typedef, "Typedef");
   }
 
+  // traverse map
+  // with only string or both string and decl
   template<uint32_t _IDKIND, typename _RULE>
-  void TraverseAll(const _RULE& rule) {
+  void TraverseAllWithString(const _RULE &rule) {
     if ((_IDKIND & IdentifierKind::FUNCTION) != 0)
-      TraverseMap(_id_to_func,  rule);
+      TraverseMapWithString(_id_to_func, rule);
     if ((_IDKIND & IdentifierKind::VAR) != 0)
-      TraverseMap(_id_to_var,   rule);
+      TraverseMapWithString(_id_to_var, rule);
     if ((_IDKIND & IdentifierKind::VALUE) != 0)
-      TraverseMap(_id_to_value, rule);
+      TraverseMapWithString(_id_to_value, rule);
     if ((_IDKIND & IdentifierKind::TYPE) != 0)
-      TraverseMap(_id_to_type,  rule);
+      TraverseMapWithString(_id_to_type, rule);
     if ((_IDKIND & IdentifierKind::LABEL) != 0)
-      TraverseMap(_id_to_label, rule);
+      TraverseMapWithString(_id_to_label, rule);
     if ((_IDKIND & IdentifierKind::FIELD) != 0)
-      TraverseMap(_id_to_field, rule);
+      TraverseMapWithString(_id_to_field, rule);
     if ((_IDKIND & IdentifierKind::TYPEDEF) != 0)
-      TraverseMap(_id_to_typedef, rule);
+      TraverseMapWithString(_id_to_typedef, rule);
+  }
+
+  // traverse map
+  // with only string or both string and decl
+  template<uint32_t _IDKIND, typename _RULE>
+  void TraverseAllWithStringAndDecl(const _RULE &rule) {
+    if ((_IDKIND & IdentifierKind::FUNCTION) != 0)
+      TraverseMapWithStringAndDecl(_id_to_func, rule);
+    if ((_IDKIND & IdentifierKind::VAR) != 0)
+      TraverseMapWithStringAndDecl(_id_to_var, rule);
+    if ((_IDKIND & IdentifierKind::VALUE) != 0)
+      TraverseMapWithStringAndDecl(_id_to_value, rule);
+    if ((_IDKIND & IdentifierKind::TYPE) != 0)
+      TraverseMapWithStringAndDecl(_id_to_type, rule);
+    if ((_IDKIND & IdentifierKind::LABEL) != 0)
+      TraverseMapWithStringAndDecl(_id_to_label, rule);
+    if ((_IDKIND & IdentifierKind::FIELD) != 0)
+      TraverseMapWithStringAndDecl(_id_to_field, rule);
+    if ((_IDKIND & IdentifierKind::TYPEDEF) != 0)
+      TraverseMapWithStringAndDecl(_id_to_typedef, rule);
   }
 
   /* Check if source location in the function define range. */
@@ -276,6 +311,12 @@ public:
     return _identifiers->HasFunctionName(func_name);
   }
 
+  /* Get function declaration by function name */
+  typedef std::unordered_map<std::string, clang::FunctionDecl> FunctionDeclMap;
+  auto GetFunctionDecls(const std::string &name) {
+    return _identifiers->GetFunctionDecls(name);
+  }
+
   template<bool _RECURSIVE>
   bool HasVariableName(const std::string &var_name) const {
     return _identifiers->HasVariableName<_RECURSIVE>(var_name);
@@ -331,11 +372,21 @@ public:
     }
   }
 
-  template<uint32_t _IDKIND>
-  void TraverseAll(const std::function<void(const std::string&, IdentifierManager *)>& rule) {
-    _identifiers->TraverseAll<_IDKIND>(rule);
+  // traverse map with decl as _WITH_DECL == true
+  template<uint32_t _IDKIND, typename _RULE>
+  void TraverseAll(const _RULE &rule) {
+    _identifiers->TraverseAllWithString<_IDKIND, _RULE>(rule);
     for (const auto &it : _children) {
-      it->TraverseAll<_IDKIND>(rule);
+      it->TraverseAll<_IDKIND, _RULE>(rule);
+    }
+  }
+  template<uint32_t _IDKIND, typename _RULE>
+  void TraverseAll(const _RULE &rule, bool _with_decl) {
+    if (_with_decl){
+      _identifiers->TraverseAllWithStringAndDecl<_IDKIND, _RULE>(rule);
+      for (const auto &it : _children) {
+        it->TraverseAll<_IDKIND, _RULE>(rule, _with_decl);
+      }
     }
   }
 

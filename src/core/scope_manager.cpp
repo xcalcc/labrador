@@ -19,7 +19,6 @@ namespace xsca {
 bool IdentifierManager::IsKeyword(const std::string &var_name) const {
   auto conf_mgr = XcalCheckerManager::GetConfigureManager();
   return conf_mgr->FindCXXKeyword(var_name);
-
 }
 
 bool IdentifierManager::InFunctionRange(clang::SourceLocation Loc) const {

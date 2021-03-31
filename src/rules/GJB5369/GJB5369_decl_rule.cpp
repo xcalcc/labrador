@@ -103,6 +103,24 @@ bool GJB5369DeclRule::IsEmptyParamList(const clang::FunctionDecl *decl,
   return false;
 }
 
+/*
+ * Check the pointer nested levels
+ * Used by 4.4.1.2 -> CheckPointerNestedLevel
+ */
+bool GJB5369DeclRule::IsPointerNestedMoreThanTwoLevel(clang::QualType decl_type) {
+  if (decl_type->isPointerType()) {
+    int nested_level = 0;
+    auto pointee_type = decl_type->getPointeeType();
+    if (pointee_type->isPointerType()) {
+      auto nested_type = pointee_type->getPointeeType();
+      if (nested_type->isPointerType()) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 /* Check if the parameter declaration without type
  * Used in 4.1.1.5 -> CheckParameterTypeDecl
  */
@@ -128,12 +146,32 @@ bool GJB5369DeclRule::DoesParamHasNotTypeDecl(const clang::FunctionDecl *decl) {
  * procedure name reused as other purpose is forbidden
  */
 void GJB5369DeclRule::CheckFunctionNameReuse() {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
   auto scope_mgr = XcalCheckerManager::GetScopeManager();
   auto top_scope = scope_mgr->GlobalScope();
-  top_scope->TraverseAll<IdentifierManager::IdentifierKind::NON_FUNC>(
-      [&top_scope](const std::string &x, IdentifierManager *id_mgr) -> void {
-        if (top_scope->HasFunctionName(x)) {
-          REPORT("GJB5396:4.1.1.1: Function name reused: %s\n", x.c_str());
+
+
+  top_scope->TraverseAll<IdentifierManager::IdentifierKind::NON_FUNC,
+      const std::function<void(const std::string &, IdentifierManager *)>>(
+      [&top_scope, &issue, &report](
+          const std::string &func_name, IdentifierManager *id_mgr) -> void {
+        if (top_scope->HasFunctionName(func_name)) {
+
+          /* Find all functions which named func_name */
+          auto function_decl_range = top_scope->GetFunctionDecls(func_name);
+          auto begin = function_decl_range.first;
+          auto end = function_decl_range.second;
+          for (; begin != end; begin++) {
+            if (issue == nullptr) {
+              issue = report->ReportIssue("GJB5369", "4.1.1.1", begin->second);
+              std::string ref_msg = "Procedure name reused as other purpose is forbidden: ";
+              ref_msg += begin->second->getNameAsString();
+              issue->SetRefMsg(ref_msg);
+            }
+            issue->AddDecl(begin->second);
+          }
         }
       });
 }
@@ -143,39 +181,39 @@ void GJB5369DeclRule::CheckFunctionNameReuse() {
  * identifier name reused as other purpose is forbidden
  */
 void GJB5369DeclRule::CheckVariableNameReuse() {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
   using IdentifierKind = IdentifierManager::IdentifierKind;
   auto scope_mgr = XcalCheckerManager::GetScopeManager();
   auto top_scope = scope_mgr->GlobalScope();
   constexpr uint32_t kind =
       IdentifierKind::VALUE | IdentifierKind::LABEL | IdentifierKind::FIELD;
+
+
   for (const auto &it : top_scope->Children()) {
     if (it->GetScopeKind() == SK_FUNCTION) {
-      it->TraverseAll<kind>(
-          [&it](const std::string &x, IdentifierManager *id_mgr) -> void {
+      it->TraverseAll<kind,
+          const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+          [&it, &issue, &report](const std::string &x, const clang::Decl *decl, IdentifierManager *id_mgr) -> void {
             if (it->HasVariableName<false>(x)) {
-              REPORT("GJB5396:4.1.1.2: Variable name reused: %s\n", x.c_str());
+              if (issue == nullptr) {
+                issue = report->ReportIssue("GJB5369", "4.1.1.2", decl);
+                std::string ref_msg = "Variable name reused: ";
+                if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
+                  ref_msg += var_decl->getNameAsString();
+                } else if (auto label_decl = clang::dyn_cast<clang::LabelDecl>(decl)) {
+                  ref_msg += label_decl->getNameAsString();
+                } else if (auto field_decl = clang::dyn_cast<clang::FieldDecl>(decl)) {
+                  ref_msg += field_decl->getNameAsString();
+                }
+                issue->SetRefMsg(ref_msg);
+              }
+              issue->AddDecl(decl);
             }
-          });
+          }, true);
     }
   }
-}
-
-/*
- * Check the pointer nested levels
- * Used by 4.4.1.2 -> CheckPointerNestedLevel
- */
-bool GJB5369DeclRule::IsPointerNestedMoreThanTwoLevel(clang::QualType decl_type) {
-  if (decl_type->isPointerType()) {
-    int nested_level = 0;
-    auto pointee_type = decl_type->getPointeeType();
-    if (pointee_type->isPointerType()) {
-      auto nested_type = pointee_type->getPointeeType();
-      if (nested_type->isPointerType()) {
-        return true;
-      }
-    }
-  }
-  return false;
 }
 
 /* GJB5396
@@ -189,9 +227,9 @@ void GJB5369DeclRule::CheckStructEmptyField(const clang::RecordDecl *decl) {
       if (issue == nullptr) {
         // create issue for decl
         issue = report->ReportIssue("GJB5369", "4.1.1.3", decl);
-        std::string refmsg = "Struct with anonymous field is forbidden: struct: ";
-        refmsg += decl->getNameAsString().c_str();
-        issue->SetRefMsg(refmsg);
+        std::string ref_msg = "Struct with anonymous field is forbidden: struct: ";
+        ref_msg += decl->getNameAsString();
+        issue->SetRefMsg(ref_msg);
       }
       // append field for path info
       issue->AddDecl(&(*it));
@@ -206,14 +244,18 @@ void GJB5369DeclRule::CheckStructEmptyField(const clang::RecordDecl *decl) {
  * 4.1.1.10 the empty function parameter list is forbidden
  */
 void GJB5369DeclRule::CheckParameterTypeDecl(const clang::FunctionDecl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
   std::vector<std::string> tokens;
   GetFunctionTokens(decl, tokens);
 
   if (!decl->doesThisDeclarationHaveABody()) {
     if (decl->param_empty()) {
-      REPORT("GJB5396:4.1.1.6: Without the parameter declarations in"
-             " function declaration is forbidden: %s\n",
-             decl->getNameAsString().c_str());
+      issue = report->ReportIssue("GJB5369", "4.1.1.6", decl);
+      std::string ref_msg = "Without the parameter declarations in function declaration is forbidden: ";
+      ref_msg += decl->getNameAsString();
+      issue->SetRefMsg(ref_msg);
       return;
     }
   }
@@ -222,9 +264,10 @@ void GJB5369DeclRule::CheckParameterTypeDecl(const clang::FunctionDecl *decl) {
    * The empty function parameter list is forbidden
    */
   if (IsEmptyParamList(decl, tokens)) {
-    REPORT("GJB5396:4.1.1.10: The empty function parameter list is "
-           "forbidden: %s\n",
-           decl->getNameAsString().c_str());
+    issue = report->ReportIssue("GJB5369", "4.1.1.10", decl);
+    std::string ref_msg = " The empty function parameter list is forbidden: ";
+    ref_msg += decl->getNameAsString();
+    issue->SetRefMsg(ref_msg);
     return;
   }
 
@@ -232,8 +275,10 @@ void GJB5369DeclRule::CheckParameterTypeDecl(const clang::FunctionDecl *decl) {
    * declaring the type of parameters is a must
    */
   if (DoesParamHasNotTypeDecl(decl)) {
-    REPORT("GJB5396:4.1.1.5: Declaring the type of parameters is a must: %s\n",
-           decl->getNameAsString().c_str());
+    issue = report->ReportIssue("GJB5369", "4.1.1.5", decl);
+    std::string ref_msg = "Declaring the type of parameters is a must: ";
+    ref_msg += decl->getNameAsString();
+    issue->SetRefMsg(ref_msg);
   }
 
   /* 4.1.1.8
@@ -241,9 +286,10 @@ void GJB5369DeclRule::CheckParameterTypeDecl(const clang::FunctionDecl *decl) {
    */
   for (const auto &it : tokens) {
     if (it == "...") {
-      REPORT("GJB5396:4.1.1.8: \"...\" in the funtion's parameter list is "
-             "forbidden: %s\n",
-             decl->getNameAsString().c_str());
+      issue = report->ReportIssue("GJB5369", "4.1.1.8", decl);
+      std::string ref_msg = "\"...\" in the funtion's parameter list is forbidden: ";
+      ref_msg += decl->getNameAsString();
+      issue->SetRefMsg(ref_msg);
     }
   }
 
@@ -256,13 +302,15 @@ void GJB5369DeclRule::CheckParameterTypeDecl(const clang::FunctionDecl *decl) {
  * Only type but no identifiers in function prototype.
  */
 void GJB5369DeclRule::CheckParameterNoIdentifier(const clang::FunctionDecl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
   for (const auto &it : decl->parameters()) {
-    if (it->getNameAsString() == "") {
-      clang::SourceManager *src_mgr = XcalCheckerManager::GetSourceManager();
-      REPORT("GJB5396:4.1.1.7: Only type but no identifiers in function %s, "
-             "loc: %s\n",
-             decl->getNameAsString().c_str(),
-             it->getLocation().printToString(*src_mgr).c_str());
+    if (it->getNameAsString().empty()) {
+      issue = report->ReportIssue("GJB5369", "4.1.1.7", decl);
+      std::string ref_msg = "Only type but no identifiers in function: ";
+      ref_msg += decl->getNameAsString();
+      issue->SetRefMsg(ref_msg);
     }
   }
 }
@@ -271,17 +319,26 @@ void GJB5369DeclRule::CheckParameterNoIdentifier(const clang::FunctionDecl *decl
  * redefining the keywords of C/C++ is forbidden
  */
 void GJB5369DeclRule::CheckKeywordRedefine() {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
   using IdentifierKind = IdentifierManager::IdentifierKind;
   auto scope_mgr = XcalCheckerManager::GetScopeManager();
   auto top_scope = scope_mgr->GlobalScope();
-  top_scope->TraverseAll<IdentifierKind::VAR>(
-      [](const std::string &x, IdentifierManager *id_mgr) -> void {
-        if (id_mgr->IsKeyword(x)) {
-          REPORT("GJB5396:4.1.1.9: Redefining the keywords of C/C++ is "
-                 "forbidden: %s\n",
-                 x.c_str());
+  top_scope->TraverseAll<IdentifierKind::VAR,
+      std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+      [&issue, &report](const std::string &var_name, const clang::Decl *decl, IdentifierManager *id_mgr) -> void {
+        if (id_mgr->IsKeyword(var_name)) {
+
+          if (issue == nullptr) {
+            issue = report->ReportIssue("GJB5369", "4.1.1.9", decl);
+            std::string ref_msg = "Redefining the keywords of C/C++ is forbidden: ";
+            ref_msg += clang::dyn_cast<clang::VarDecl>(decl)->getNameAsString();
+            issue->SetRefMsg(ref_msg);
+          }
+          issue->AddDecl(decl);
         }
-      });
+      }, true);
 }
 
 /*
@@ -289,44 +346,61 @@ void GJB5369DeclRule::CheckKeywordRedefine() {
  * the sign of the char type should be explicit
  */
 void GJB5369DeclRule::CheckExplicitCharType(const clang::FunctionDecl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
   std::string type_name;
 
   // Check parameters and return type
   for (const auto &it : decl->parameters()) {
     if (!it->getType()->isCharType()) { continue; }
     if (IsExplicitSign(GetTypeString(it->getType()))) {
-      REPORT("GJB5396:4.1.1.15: The sign of the char type should be explicit: "
-             "Function :%s -> Param: %s\n",
-             decl->getNameAsString().c_str(),
-             it->getNameAsString().c_str());
+      if (issue == nullptr) {
+        issue = report->ReportIssue("GJB5369", "4.1.1.15", decl);
+        std::string ref_msg = "The sign of the char type should be explicit: ";
+        ref_msg += decl->getNameAsString();
+        issue->SetRefMsg(ref_msg);
+      }
+      issue->AddDecl(&(*it));
     }
 
     auto ret_type = decl->getReturnType();
     if ((ret_type->isVoidType()) || (!ret_type->isCharType())) return;
 
     if (IsExplicitSign(GetTypeString(ret_type))) {
-      REPORT("GJB5396:4.1.1.15: The sign of the char type should be explicit: "
-             "Function :%s -> Return: %s\n",
-             decl->getNameAsString().c_str(),
-             ret_type.getAsString().c_str());
+      if (issue == nullptr) {
+        issue = report->ReportIssue("GJB5369", "4.1.1.15", decl);
+        std::string ref_msg = "The sign of the char type should be explicit: ";
+        ref_msg += decl->getNameAsString();
+        issue->SetRefMsg(ref_msg);
+      }
+      issue->AddDecl(&(*it));
     }
   }
 }
 
 void GJB5369DeclRule::checkExplicitCharType(const clang::RecordDecl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
   for (const auto &it : clang::dyn_cast<clang::RecordDecl>(decl)->fields()) {
     if (!it->getType()->isCharType()) { continue; }
     if (IsExplicitSign(GetTypeString(it->getType()))) {
-      REPORT("GJB5396:4.1.1.15: The sign of the char type should be explicit: "
-             "Struct: %s -> Field: %s\n",
-             decl->getNameAsString().c_str(),
-             it->getNameAsString().c_str());
+      if (issue == nullptr) {
+        issue = report->ReportIssue("GJB5369", "4.1.1.15", decl);
+        std::string ref_msg = "The sign of the char type should be explicit: ";
+        ref_msg += decl->getNameAsString();
+        issue->SetRefMsg(ref_msg);
+      }
+      issue->AddDecl(&(*it));
     }
   }
-
 }
 
 void GJB5369DeclRule::CheckExplicitCharType(const clang::VarDecl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
   auto decl_type = decl->getType();
 
   // return if decl is not char type
@@ -335,8 +409,10 @@ void GJB5369DeclRule::CheckExplicitCharType(const clang::VarDecl *decl) {
   }
 
   if (IsExplicitSign(GetTypeString(decl_type))) {
-    REPORT("GJB5396:4.1.1.15: The sign of the char type should be explicit: %s\n",
-           decl->getNameAsString().c_str());
+    issue = report->ReportIssue("GJB5369", "4.1.1.15", decl);
+    std::string ref_msg = "The sign of the char type should be explicit: ";
+    ref_msg += decl->getNameAsString();
+    issue->SetRefMsg(ref_msg);
   }
 
 }
@@ -344,25 +420,34 @@ void GJB5369DeclRule::CheckExplicitCharType(const clang::VarDecl *decl) {
 /*
  * GJB5369: 4.1.1.17
  * self-defined types(typedef) redefined as other types is forbidden
+ * Algorithm: Check if name of typedef has been defined when the TypedefDecl is hit
  */
 void GJB5369DeclRule::CheckTypedefRedefine() {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
   using IdentifierKind = IdentifierManager::IdentifierKind;
   auto scope_mgr = XcalCheckerManager::GetScopeManager();
   auto top_scope = scope_mgr->GlobalScope();
 
   std::set<std::string> user_types;
-  top_scope->TraverseAll<IdentifierKind::TYPEDEF>(
-      [&user_types](const std::string &x, IdentifierManager *id_mgr) -> void {
-        auto res = user_types.find(x);
+  top_scope->TraverseAll<IdentifierKind::TYPEDEF,
+      std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+      [&user_types, &issue, &report](const std::string &typedef_name, const clang::Decl *decl,
+                                     IdentifierManager *id_mgr) -> void {
+        auto res = user_types.find(typedef_name);
         if (res == user_types.end()) {
-          user_types.insert(x);
+          user_types.insert(typedef_name);
         } else {
-          REPORT("GJB5396:4.1.1.17: Self-defined types(typedef) redefined as "
-                 "other types is forbidden: %s\n",
-                 x.c_str());
+          if (issue == nullptr) {
+            issue = report->ReportIssue("GJB5369", "4.1.1.17", decl);
+            std::string ref_msg = "Self-defined types(typedef) redefined as other types is forbidden: ";
+            ref_msg += clang::dyn_cast<clang::TypedefDecl>(decl)->getNameAsString();
+            issue->SetRefMsg(ref_msg);
+          }
+          issue->AddDecl(decl);
         }
-      }
-  );
+      }, true);
 }
 
 /*
@@ -774,12 +859,15 @@ void GJB5369DeclRule::CheckIandOUsedAsVariable(const clang::VarDecl *decl) {
 }
 
 void GJB5369DeclRule::CheckIandOUsedAsVariable(const clang::ParmVarDecl *decl) {
+  XcalReport *report = XcalCheckerManager::GetReport();
+  XcalIssue *issue = nullptr;
   auto var_name = decl->getNameAsString();
   if (var_name == "I" || var_name == "O") {
-    auto location = decl->getLocation();
-    auto src_mgr = XcalCheckerManager::GetSourceManager();
-    REPORT("GJB5396:4.8.1.1: avoid using \"O\" or \"I\" as variable names: %s\n",
-           location.printToString(*src_mgr).c_str());
+    issue = report->ReportIssue("GJB5369", "4.8.1.1", decl);
+    std::string refmsg = "avoid using \"O\" or \"I\" as variable names: ";
+    refmsg += decl->getNameAsString();
+    issue->SetRefMsg(refmsg);
+    issue->AddDecl(decl);
   }
 }
 
