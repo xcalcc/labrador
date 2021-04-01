@@ -380,6 +380,7 @@ public:
       it->TraverseAll<_IDKIND, _RULE>(rule);
     }
   }
+
   template<uint32_t _IDKIND, typename _RULE>
   void TraverseAll(const _RULE &rule, bool _with_decl) {
     if (_with_decl){

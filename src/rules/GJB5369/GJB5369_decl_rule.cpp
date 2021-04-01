@@ -220,8 +220,9 @@ void GJB5369DeclRule::CheckVariableNameReuse() {
  * 4.1.1.3 struct with empty field is forbidden
  */
 void GJB5369DeclRule::CheckStructEmptyField(const clang::RecordDecl *decl) {
-  XcalReport *report = XcalCheckerManager::GetReport();
   XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
   for (const auto &it : decl->fields()) {
     if (it->isAnonymousStructOrUnion()) {
       if (issue == nullptr) {
@@ -328,8 +329,7 @@ void GJB5369DeclRule::CheckKeywordRedefine() {
   top_scope->TraverseAll<IdentifierKind::VAR,
       std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
       [&issue, &report](const std::string &var_name, const clang::Decl *decl, IdentifierManager *id_mgr) -> void {
-        if (id_mgr->IsKeyword(var_name)) {
-
+        if (!var_name.empty() && id_mgr->IsKeyword(var_name)) {
           if (issue == nullptr) {
             issue = report->ReportIssue("GJB5369", "4.1.1.9", decl);
             std::string ref_msg = "Redefining the keywords of C/C++ is forbidden: ";
@@ -455,6 +455,9 @@ void GJB5369DeclRule::CheckTypedefRedefine() {
  * arrays without boundary limitation is forbidden
  */
 void GJB5369DeclRule::CheckArrayBoundary(const clang::VarDecl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
   auto decl_type = decl->getType().getAsString();
 
   // return if not array type
@@ -478,9 +481,10 @@ void GJB5369DeclRule::CheckArrayBoundary(const clang::VarDecl *decl) {
       }
 
       if (*start == ']') {
-        REPORT("GJB5396:4.1.1.19: Arrays without boundary limitation "
-               "is forbidden %s\n",
-               decl->getNameAsString().c_str());
+        issue = report->ReportIssue("GJB5369", "4.1.1.17", decl);
+        std::string ref_msg = "Arrays without boundary limitation is forbidden: ";
+        ref_msg += decl->getNameAsString();
+        issue->SetRefMsg(ref_msg);
       }
     }
     ++start;
@@ -492,11 +496,14 @@ void GJB5369DeclRule::CheckArrayBoundary(const clang::VarDecl *decl) {
  * the incomplete declaration of struct is forbidden
  */
 void GJB5369DeclRule::CheckIncompleteStruct(const clang::RecordDecl *decl) {
-  if (decl->getDefinition() == nullptr) {
-    REPORT("GJB5396:4.1.1.21: The incomplete declaration of struct "
-           "is forbidden: %s\n",
-           decl->getNameAsString().c_str());
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
 
+  if (decl->getDefinition() == nullptr) {
+    issue = report->ReportIssue("GJB5369", "4.1.1.21", decl);
+    std::string ref_msg = "The incomplete declaration of struct is forbidden: ";
+    ref_msg += decl->getNameAsString();
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -506,16 +513,22 @@ void GJB5369DeclRule::CheckIncompleteStruct(const clang::RecordDecl *decl) {
  * should keep in line
  */
 void GJB5369DeclRule::CheckDifferentParamForms(const clang::FunctionDecl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
   if (decl->param_empty()) return;
-  bool with_name = (decl->getParamDecl(0)->getNameAsString() == "") ? false : true;
+  bool with_name = !(decl->getParamDecl(0)->getNameAsString().empty());
   bool tmp;
 
   for (const auto &it : decl->parameters()) {
-    tmp = (it->getNameAsString() == "") ? false : true;
+    tmp = !(it->getNameAsString().empty());
     if (tmp ^ with_name) {
-      REPORT("GJB5396:4.1.1.22: The forms of the parameter declarations"
-             " in the parameter list is forbidden: %s\n",
-             decl->getNameAsString().c_str());
+      issue = report->ReportIssue("GJB5369", "4.1.1.22", decl);
+      std::string ref_msg = "The forms of the parameter declarations"
+                            " in the parameter list should keep in line: ";
+      ref_msg += decl->getNameAsString();
+      issue->SetRefMsg(ref_msg);
+      break;
     }
   }
 }
@@ -640,8 +653,8 @@ void GJB5369DeclRule::CheckProcedureWithBraces(const clang::FunctionDecl *decl) 
   while ((start != end) && (*start != ')')) start++;  // eat prototype
   do { start++; } while ((start != end) && std::isspace(*start));  // eat space
 
-  if (*start != '{') {
-    REPORT("GJB5396:4.1.2.8: Procedure must be enclosed in braces:"
+  if (*start != '{' && *start != ';') {
+    REPORT("GJB5396:4.2.1.1: Procedure must be enclosed in braces:"
            " %s -> %s\n",
            decl->getNameAsString().c_str(),
            func_loc.printToString(*src_mgr).c_str());
@@ -832,6 +845,7 @@ void GJB5369DeclRule::CheckVoidTypeParameters(const clang::FunctionDecl *decl) {
  * parameters should be used in the function
  */
 void GJB5369DeclRule::CheckUnusedParameters(const clang::FunctionDecl *decl) {
+  if (!decl->isDefined()) return;
   auto src_mgr = XcalCheckerManager::GetSourceManager();
   for (const auto &it : decl->parameters()) {
     if (!it->isUsed()) {
