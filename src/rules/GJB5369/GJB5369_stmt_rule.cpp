@@ -507,7 +507,11 @@ void GJB5369StmtRule::CheckGotoStmt(const clang::GotoStmt *stmt) {
  */
 void GJB5369StmtRule::CheckSetjumpAndLongjump(const clang::CallExpr *stmt) {
   auto callee = stmt->getCalleeDecl();
-  auto func_name = callee->getAsFunction()->getNameAsString();
+  auto func_decl = callee->getAsFunction();
+
+  if (func_decl == nullptr) return;
+  auto func_name = func_decl->getNameAsString();
+
   if (func_name == "setjmp" || func_name == "longjmp") {
     auto src_mgr = XcalCheckerManager::GetSourceManager();
     auto location = stmt->getBeginLoc();
@@ -835,6 +839,8 @@ void GJB5369StmtRule::CheckParamTypeMismatch(const clang::CallExpr *stmt) {
 
   int param_index = 0;
   auto func_decl = stmt->getCalleeDecl()->getAsFunction();
+  if (func_decl == nullptr) return;
+
   auto src_mgr = XcalCheckerManager::GetSourceManager();
 
   for (const auto &it : func_decl->parameters()) {

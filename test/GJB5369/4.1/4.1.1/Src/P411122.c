@@ -1,8 +1,12 @@
 /*
- * GJB5369: 4.1.1.22
- * the forms of the parameter declarations in the parameter list
- * should keep in line
+ * GJB5369: 4.1.2.2
+ * avoid using the function as parameter
  */
 
-/* Two forms of the parameter declarations is different. */
-float static_p(unsigned int, unsigned short p_2);
+void test_p(int p_1) {}
+
+/* Using function as parameter is forbidden */
+void static_p(void(*p_proc_pointer)(int parameter_1)) {
+  p_proc_pointer = test_p;
+}
+

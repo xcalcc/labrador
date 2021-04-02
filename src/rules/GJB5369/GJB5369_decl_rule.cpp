@@ -538,14 +538,23 @@ void GJB5369DeclRule::CheckDifferentParamForms(const clang::FunctionDecl *decl) 
  * Use typedef redefine the basic type
  */
 void GJB5369DeclRule::CheckTypedefBasicType(const clang::FunctionDecl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
   // check parameters
   for (const auto &it : decl->parameters()) {
+
     auto param_type = it->getType();
     if (IsTypedefBasicType(param_type)) {
-      REPORT("GJB5396:4.1.2.1: Use typedef redefine the basic type :"
-             " Function: %s -> Param: %s\n",
-             decl->getNameAsString().c_str(),
-             it->getNameAsString().c_str());
+      if (issue == nullptr) {
+        issue = report->ReportIssue("GJB5369", "4.1.2.1", decl);
+        std::string ref_msg = "Use typedef redefine the basic type Function: ";
+        ref_msg += decl->getNameAsString();
+        ref_msg += " -> Param: " + it->getNameAsString();
+        issue->SetRefMsg(ref_msg);
+      } else {
+        issue->AddDecl(&(*it));
+      }
     }
   }
 
@@ -553,31 +562,49 @@ void GJB5369DeclRule::CheckTypedefBasicType(const clang::FunctionDecl *decl) {
   auto ret_type = decl->getReturnType();
   if (ret_type->isVoidType()) return;
   if (IsTypedefBasicType(ret_type)) {
-    REPORT("GJB5396:4.1.2.1: Use typedef redefine the basic type :"
-           " Function: %s -> return : %s\n",
-           decl->getNameAsString().c_str(),
-           ret_type.getAsString().c_str());
+    if (issue == nullptr) {
+      issue = report->ReportIssue("GJB5369", "4.1.2.1", decl);
+      std::string ref_msg = "Use typedef redefine the basic type Function: ";
+      ref_msg += decl->getNameAsString();
+      ref_msg += " -> return: " + ret_type.getAsString();
+      issue->SetRefMsg(ref_msg);
+    } else {
+      issue->AddDecl(decl);
+    }
+
   }
 }
 
 void GJB5369DeclRule::CheckTypedefBasicType(const clang::RecordDecl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
   for (const auto &it : decl->fields()) {
     auto field_type = it->getType();
     if (IsTypedefBasicType(field_type)) {
-      REPORT("GJB5396:4.1.2.1: Use typedef redefine the basic type :"
-             " Struct: %s -> Field: %s\n",
-             decl->getNameAsString().c_str(),
-             it->getNameAsString().c_str());
+      if (issue == nullptr) {
+        issue = report->ReportIssue("GJB5369", "4.1.2.1", decl);
+        std::string ref_msg = "Use typedef redefine the basic type Struct: ";
+        ref_msg += decl->getNameAsString();
+        ref_msg += " -> Field: " + it->getNameAsString();
+        issue->SetRefMsg(ref_msg);
+      }
+      issue->AddDecl(&(*it));
     }
   }
 }
 
 void GJB5369DeclRule::CheckTypedefBasicType(const clang::VarDecl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
   auto decl_type = decl->getType();
   if (IsTypedefBasicType(decl_type)) {
-    REPORT("GJB5396:4.1.2.1: Use typedef redefine the basic type :"
-           " variable: %s\n",
-           decl->getNameAsString().c_str());
+    issue = report->ReportIssue("GJB5369", "4.1.2.1", decl);
+    std::string ref_msg = "Use typedef redefine the basic type variable: ";
+    ref_msg += decl->getNameAsString();
+    issue->SetRefMsg(ref_msg);
+    issue->AddDecl(decl);
   }
 }
 
@@ -586,10 +613,20 @@ void GJB5369DeclRule::CheckTypedefBasicType(const clang::VarDecl *decl) {
  * avoid using the function as parameter
  */
 void GJB5369DeclRule::CheckFunctionAsParameter(const clang::FunctionDecl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
   for (const auto &it : decl->parameters()) {
     if (it->getType()->isFunctionPointerType()) {
-      REPORT("GJB5396:4.1.2.2: Avoid using the function as parameter: %s\n",
-             it->getNameAsString().c_str());
+
+      if (issue == nullptr) {
+        issue = report->ReportIssue("GJB5369", "4.1.2.2", decl);
+        std::string ref_msg = "Avoid using the function as parameter: ";
+        ref_msg += decl->getNameAsString();
+        issue->SetRefMsg(ref_msg);
+      } else {
+        issue->AddDecl(&(*it));
+      }
     }
   }
 }
@@ -599,10 +636,14 @@ void GJB5369DeclRule::CheckFunctionAsParameter(const clang::FunctionDecl *decl) 
  * using too much parameters(more than 20) is forbidden
  */
 void GJB5369DeclRule::CheckPlethoraParameters(const clang::FunctionDecl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
   if (decl->param_size() > 20) {
-    REPORT("GJB5396:4.1.2.3: Using too much parameters(more than 20)"
-           " is forbidden: %s\n",
-           decl->getNameAsString().c_str());
+    issue = report->ReportIssue("GJB5369", "4.1.2.3", decl);
+    std::string ref_msg = "Using too much parameters(more than 20) is forbidden: ";
+    ref_msg += decl->getNameAsString();
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -613,17 +654,33 @@ void GJB5369DeclRule::CheckPlethoraParameters(const clang::FunctionDecl *decl) {
  * using non-named bit fields carefully
  */
 void GJB5369DeclRule::CheckBitfieldInStruct(const clang::RecordDecl *decl) {
+  XcalIssue *issue1 = nullptr, *issue2 = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
   std::string field_name;
   for (const auto &it : decl->fields()) {
     field_name = it->getNameAsString();
     if (it->isBitField()) {
-      REPORT("GJB5396:4.1.2.4: Using bit-field in struct "
-             "should be carefully: struct %s -> field %s\n",
-             decl->getNameAsString().c_str(),
-             (field_name == "") ? "NAMELESS" : field_name.c_str());
-      if (field_name == "") {
-        REPORT("GJB5396:4.1.2.9: Using non-named bit fields carefully : %s\n",
-               decl->getNameAsString().c_str());
+      if (issue1 == nullptr) {
+        issue1 = report->ReportIssue("GJB5369", "4.1.2.4", decl);
+        std::string ref_msg = "single bit-field in struct should be carefully: "
+                              "struct: ";
+        ref_msg += decl->getNameAsString();
+        ref_msg += " -> field: " + it->getNameAsString();
+        issue1->SetRefMsg(ref_msg);
+        issue1->AddDecl(&(*it));
+
+      } else {
+        issue1->AddDecl(&(*it));
+      }
+
+      if (field_name.empty()) {
+        if (issue2 == nullptr) {
+          issue2 = report->ReportIssue("GJB5369", "4.1.2.9", decl);
+          std::string ref_msg = "Using non-named bit fields carefully: ";
+          ref_msg += decl->getNameAsString();
+          issue2->SetRefMsg(ref_msg);
+        }
       }
     }
   }
@@ -635,8 +692,13 @@ void GJB5369DeclRule::CheckBitfieldInStruct(const clang::RecordDecl *decl) {
  */
 void GJB5369DeclRule::CheckUnionDecl(const clang::RecordDecl *decl) {
   if (!decl->isUnion()) return;
-  REPORT("GJB5396:4.1.2.8: Using \"union\" carefully: %s\n",
-         decl->getNameAsString().c_str());
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  issue = report->ReportIssue("GJB5369", "4.1.2.8", decl);
+  std::string ref_msg = "Using \"union\" carefully: ";
+  ref_msg += decl->getNameAsString();
+  issue->SetRefMsg(ref_msg);
 }
 
 /*
@@ -650,14 +712,17 @@ void GJB5369DeclRule::CheckProcedureWithBraces(const clang::FunctionDecl *decl) 
   const char *start = src_mgr->getCharacterData(func_loc);
   const char *end = src_mgr->getCharacterData(end_loc);
 
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
   while ((start != end) && (*start != ')')) start++;  // eat prototype
   do { start++; } while ((start != end) && std::isspace(*start));  // eat space
 
   if (*start != '{' && *start != ';') {
-    REPORT("GJB5396:4.2.1.1: Procedure must be enclosed in braces:"
-           " %s -> %s\n",
-           decl->getNameAsString().c_str(),
-           func_loc.printToString(*src_mgr).c_str());
+    issue = report->ReportIssue("GJB5369", "4.2.1.1", decl);
+    std::string ref_msg = "Procedure must be enclosed in braces: ";
+    ref_msg += decl->getNameAsString();
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -675,7 +740,7 @@ void GJB5369DeclRule::CheckMainFunctionDefine(const clang::FunctionDecl *decl) {
   // check parameter
   bool need_report = false;
   if (decl->param_empty()) {
-    need_report = (tokens.size() == 0) ? true : false;
+    need_report = (tokens.empty());
   } else {
     if (tokens.size() != 2) {
       need_report = true;
@@ -694,8 +759,13 @@ void GJB5369DeclRule::CheckMainFunctionDefine(const clang::FunctionDecl *decl) {
   }
 
   if (need_report) {
-    REPORT("GJB5396:4.1.2.8: main function should be defined as: "
-           "int main(void) or int main(int, char*[])\n");
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue("GJB5369", "4.1.2.8", decl);
+    std::string ref_msg = "main function should be defined as: int main(void) or int main(int, char*[]): ";
+    ref_msg += decl->getNameAsString();
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -712,9 +782,13 @@ void GJB5369DeclRule::CheckFunctionLength(const clang::FunctionDecl *decl) {
   int end_line = src_mgr->getSpellingLineNumber(end_loc);
   int len = end_line - start_line;
   if (len > 200) {
-    REPORT("GJB5396:4.2.2.1: the function length shouldn't exceed 200 lines: "
-           "function: %s -> length: %d\n",
-           decl->getNameAsString().c_str(), len);
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue("GJB5369", "4.2.2.2", decl);
+    std::string ref_msg = "the function length shouldn't exceed 200 lines: ";
+    ref_msg += decl->getNameAsString();
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -725,44 +799,57 @@ void GJB5369DeclRule::CheckFunctionLength(const clang::FunctionDecl *decl) {
 void GJB5369DeclRule::CheckPointerNestedLevel(const clang::VarDecl *decl) {
   auto decl_type = decl->getType();
   if (IsPointerNestedMoreThanTwoLevel(decl_type)) {
-    auto location = decl->getLocation();
-    auto src_mgr = XcalCheckerManager::GetSourceManager();
-    REPORT("GJB5396:4.4.1.2: Pointer's pointer nested more "
-           "than two levels is forbidden: %s\n",
-           location.printToString(*src_mgr).c_str());
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue("GJB5369", "4.4.1.2", decl);
+    std::string ref_msg = "Pointer's pointer nested more than two levels is forbidden: ";
+    ref_msg += decl->getNameAsString();
+    issue->SetRefMsg(ref_msg);
   }
 }
 
 void GJB5369DeclRule::CheckPointerNestedLevel(const clang::FunctionDecl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
   for (const auto &it : decl->parameters()) {
     auto param_type = it->getType();
     if (IsPointerNestedMoreThanTwoLevel(param_type)) {
-      auto location = it->getLocation();
-      auto src_mgr = XcalCheckerManager::GetSourceManager();
-      REPORT("GJB5396:4.4.1.2: Pointer's pointer nested more "
-             "than two levels is forbidden (param): %s\n",
-             location.printToString(*src_mgr).c_str());
+      if (issue == nullptr) {
+        issue = report->ReportIssue("GJB5369", "4.4.1.2", decl);
+        std::string ref_msg = "Pointer's pointer nested more than two levels is forbidden: ";
+        ref_msg += decl->getNameAsString();
+        issue->SetRefMsg(ref_msg);
+      }
+      issue->AddDecl(&(*it));
     }
   }
 
   if (IsPointerNestedMoreThanTwoLevel(decl->getReturnType())) {
-    auto location = decl->getLocation();
-    auto src_mgr = XcalCheckerManager::GetSourceManager();
-    REPORT("GJB5396:4.4.1.2: Pointer's pointer nested more "
-           "than two levels is forbidden (return): %s\n",
-           location.printToString(*src_mgr).c_str());
+    if (issue == nullptr) {
+      issue = report->ReportIssue("GJB5369", "4.4.1.2", decl);
+      std::string ref_msg = "Pointer's pointer(function return type) nested more than two levels is forbidden: ";
+      ref_msg += decl->getNameAsString();
+      issue->SetRefMsg(ref_msg);
+    } else {
+      issue->AddDecl(decl);
+    }
   }
 }
 
 void GJB5369DeclRule::CheckPointerNestedLevel(const clang::RecordDecl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
   for (const auto &it : decl->fields()) {
     auto field_type = it->getType();
     if (IsPointerNestedMoreThanTwoLevel(field_type)) {
-      auto location = it->getLocation();
-      auto src_mgr = XcalCheckerManager::GetSourceManager();
-      REPORT("GJB5396:4.4.1.2: Pointer's pointer nested more "
-             "than two levels is forbidden (field): %s\n",
-             location.printToString(*src_mgr).c_str());
+      if (issue == nullptr) {
+        issue = report->ReportIssue("GJB5369", "4.4.1.2", decl);
+        std::string ref_msg = "Pointer's pointer nested more than two levels is forbidden: ";
+        ref_msg += decl->getNameAsString();
+        issue->SetRefMsg(ref_msg);
+      }
+      issue->AddDecl(&(*it));
     }
   }
 }
@@ -774,10 +861,13 @@ void GJB5369DeclRule::CheckPointerNestedLevel(const clang::RecordDecl *decl) {
 void GJB5369DeclRule::CheckFunctionPointer(const clang::VarDecl *decl) {
   auto decl_type = decl->getType();
   if (decl_type->isFunctionPointerType()) {
-    auto location = decl->getLocation();
-    auto src_mgr = XcalCheckerManager::GetSourceManager();
-    REPORT("GJB5396:4.4.1.3: Function pointer is forbidden: %s\n",
-           location.printToString(*src_mgr).c_str());
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue("GJB5369", "4.4.1.3", decl);
+    std::string ref_msg = "Function pointer is forbidden: ";
+    ref_msg += decl->getNameAsString();
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -786,16 +876,20 @@ void GJB5369DeclRule::CheckFunctionPointer(const clang::VarDecl *decl) {
  * signed-value must be longer than two bits
  */
 void GJB5369DeclRule::CheckSingleBitSignedValue(const clang::RecordDecl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
   for (const auto &it : decl->fields()) {
     if (it->getType()->isSignedIntegerType() && it->isBitField()) {
       auto bit_width = it->getBitWidthValue(decl->getASTContext());
       if (bit_width < 2) {
-        auto location = decl->getLocation();
-        auto src_mgr = XcalCheckerManager::GetSourceManager();
-        REPORT("GJB5396:4.6.1.6: signed-value must be longer than two bits: "
-               "field: %s -> %s\n",
-               it->getNameAsString().c_str(),
-               location.printToString(*src_mgr).c_str());
+        if (issue == nullptr) {
+          issue = report->ReportIssue("GJB5369", "4.4.1.6", decl);
+          std::string ref_msg = "Signed-value must be longer than two bits: ";
+          ref_msg += decl->getNameAsString();
+          issue->SetRefMsg(ref_msg);
+        }
+        issue->AddDecl(&(*it));
       }
     }
   }
@@ -813,12 +907,14 @@ void GJB5369DeclRule::CheckBitsIfInteger(const clang::FieldDecl *decl) {
     auto builtin_type = BT->getKind();
     if (!((builtin_type >= BuiltinType::Int && builtin_type <= BuiltinType::Int128) ||
           (builtin_type >= BuiltinType::UInt && builtin_type <= BuiltinType::UInt128))) {
-      auto location = decl->getLocation();
-      auto src_mgr = XcalCheckerManager::GetSourceManager();
-      REPORT("GJB5396:4.6.1.7: bits can only be defined as signed/unsigned int type: "
-             "field: %s -> %s\n",
-             decl->getNameAsString().c_str(),
-             location.printToString(*src_mgr).c_str());
+
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+
+      issue = report->ReportIssue("GJB5369", "4.6.1.7", decl);
+      std::string ref_msg = "Bits can only be defined as signed/unsigned int type: ";
+      ref_msg += decl->getNameAsString();
+      issue->SetRefMsg(ref_msg);
     }
   }
 }
@@ -828,14 +924,19 @@ void GJB5369DeclRule::CheckBitsIfInteger(const clang::FieldDecl *decl) {
  * void type variable used as parameter is forbidden
  */
 void GJB5369DeclRule::CheckVoidTypeParameters(const clang::FunctionDecl *decl) {
-  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
   for (const auto &it : decl->parameters()) {
     if (it->getType()->isVoidPointerType()) {
-      auto location = it->getLocation();
-      REPORT("GJB5396:4.7.1.8: function return void used in statement is forbidden: "
-             ": %s -> %s\n",
-             decl->getNameAsString().c_str(),
-             location.printToString(*src_mgr).c_str());
+
+      if (issue == nullptr) {
+        issue = report->ReportIssue("GJB5369", "4.7.1.8", decl);
+        std::string ref_msg = "Function return void used in statement is forbidden: ";
+        ref_msg += decl->getNameAsString();
+        issue->SetRefMsg(ref_msg);
+      }
+      issue->AddDecl(&(*it));
     }
   }
 }
@@ -846,14 +947,19 @@ void GJB5369DeclRule::CheckVoidTypeParameters(const clang::FunctionDecl *decl) {
  */
 void GJB5369DeclRule::CheckUnusedParameters(const clang::FunctionDecl *decl) {
   if (!decl->isDefined()) return;
-  auto src_mgr = XcalCheckerManager::GetSourceManager();
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
   for (const auto &it : decl->parameters()) {
     if (!it->isUsed()) {
-      auto location = it->getLocation();
-      REPORT("GJB5396:4.7.2.1: parameters should be used in the function: "
-             ": Function: %s : Param: %s -> Loc: %s\n",
-             decl->getNameAsString().c_str(), it->getNameAsString().c_str(),
-             location.printToString(*src_mgr).c_str());
+      if (issue == nullptr) {
+        issue = report->ReportIssue("GJB5369", "4.7.2.1", decl);
+        std::string ref_msg = "Parameters should be used in the function: ";
+        ref_msg += decl->getNameAsString();
+        issue->SetRefMsg(ref_msg);
+      }
+      issue->AddDecl(&(*it));
     }
   }
 }
@@ -865,23 +971,26 @@ void GJB5369DeclRule::CheckUnusedParameters(const clang::FunctionDecl *decl) {
 void GJB5369DeclRule::CheckIandOUsedAsVariable(const clang::VarDecl *decl) {
   auto var_name = decl->getNameAsString();
   if (var_name == "I" || var_name == "O") {
-    auto location = decl->getLocation();
-    auto src_mgr = XcalCheckerManager::GetSourceManager();
-    REPORT("GJB5396:4.8.1.1: avoid using \"O\" or \"I\" as variable names: %s\n",
-           location.printToString(*src_mgr).c_str());
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue("GJB5369", "4.8.1.1", decl);
+    std::string ref_msg = R"(Avoid using "O" or "I" as variable names: )";
+    ref_msg += decl->getNameAsString();
+    issue->SetRefMsg(ref_msg);
   }
 }
 
 void GJB5369DeclRule::CheckIandOUsedAsVariable(const clang::ParmVarDecl *decl) {
-  XcalReport *report = XcalCheckerManager::GetReport();
-  XcalIssue *issue = nullptr;
   auto var_name = decl->getNameAsString();
   if (var_name == "I" || var_name == "O") {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
     issue = report->ReportIssue("GJB5369", "4.8.1.1", decl);
-    std::string refmsg = "avoid using \"O\" or \"I\" as variable names: ";
-    refmsg += decl->getNameAsString();
-    issue->SetRefMsg(refmsg);
-    issue->AddDecl(decl);
+    std::string ref_msg = R"(Avoid using "O" or "I" as variable names: )";
+    ref_msg += decl->getNameAsString();
+    issue->SetRefMsg(ref_msg);
   }
 }
 
