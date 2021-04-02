@@ -13,9 +13,12 @@
 // vtxt format:
 // {"V"}
 // [
-//   { "fid": 1, "path": "filename.c" }
+//   {
+//     "fid": 1,
+//     "path": "filename.c"
+//   }
 // ]
-// ["A10"],[key],[filename][fid:line],[SML],[D],[CSC],[0,0,0],[GJB5369],[4.1.1.3],[var/typename],[funcname],[fid:line:path,fid:line:path,...]
+// ["A10"],[key],[filename][fid:line],[SML],[D],[G5_4_2_1_7],[1,0,0],[var/typename],[funcname],[fid:line:path,fid:line:path,...]
 //
 // stdout format:
 // filename.c:line:column: GJB5369:4.1.1.1 msg
@@ -49,7 +52,7 @@ XcalReport::PrintVtxtFileList()
       append_comma = true;
     }
     // output file entry
-    fprintf(_vtxt_file, " { \"fid\":%d, \"path\":\"%s\" }",
+    fprintf(_vtxt_file, "  {\n    \"fid\" : %d,\n    \"path\" : \"%s\"\n  }",
                         it->first->getUID() + 1,
                         it->first->getName().str().c_str());
   }
@@ -70,16 +73,14 @@ XcalReport::PrintVtxtIssue(const XcalIssue *issue)
   const clang::FileEntry *fe = _source_mgr->getFileEntryForID(ploc.getFileID());
 
   char key[1024];
-  snprintf(key, sizeof(key), "%s@%s@%s@%s:%d",
-                             issue->DeclName(),
-                             issue->RuleName(), issue->StdName(),
+  snprintf(key, sizeof(key), "%s@%s@%s:%d",
+                             issue->DeclName(), issue->RuleName(),
                              ploc.getFilename(), ploc.getLine());
 
-  fprintf(_vtxt_file, "[\"A10\"],[%s],[%s],[%d:%d],[SML],[D],[CSC],[0,0,0],",
+  fprintf(_vtxt_file, "[\"A10\"],[%s],[%s],[%d:%d],[SML],[D],[%s],[1,0,0],",
                       key, ploc.getFilename(),
-                      fe->getUID() + 1, ploc.getLine());
-  fprintf(_vtxt_file, "[%s],[%s],[%s],[],[",
-                      issue->StdName(), issue->RuleName(), issue->DeclName());
+                      fe->getUID() + 1, ploc.getLine(), issue->RuleName());
+  fprintf(_vtxt_file, "[%s],[],[", issue->DeclName());
 
   std::vector<XcalPathInfo>::const_iterator end = issue->PathInfo().end();
   bool append_comma = false;

@@ -10,6 +10,7 @@
 // implement all stmt related rules in GJB5369
 //
 
+#include "GJB5369_enum.inc"
 #include "GJB5369_stmt_rule.h"
 
 namespace xsca {
@@ -113,12 +114,13 @@ bool GJB5369StmtRule::HasCallExpr(const clang::Stmt *stmt) {
  */
 void GJB5369StmtRule::CheckConsecutiveLabels(const clang::LabelStmt *stmt) {
   if (clang::dyn_cast<clang::LabelStmt>(stmt->getSubStmt())) {
-    REPORT("GJB5396:4.1.1.4: Multiple consecutive labels: %s and %s\n",
-           stmt->getDecl()->getNameAsString().c_str(),
-           clang::dyn_cast<clang::LabelStmt>(stmt->getSubStmt())
-               ->getDecl()
-               ->getNameAsString()
-               .c_str());
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G5_4_1_1_4, stmt);
+    std::string ref_msg = "Multiple consecutive labels: ";
+    ref_msg += stmt->getDecl()->getNameAsString();
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -131,8 +133,12 @@ void GJB5369StmtRule::CheckLoopBrace(const clang::WhileStmt *stmt) {
   auto body_loc = stmt->getBody()->getBeginLoc();
   const char *start = src_mgr->getCharacterData(body_loc);
   if (*start != '{') {
-    REPORT("GJB5396:4.2.1.2: The while-loop must be enclosed in braces: %s\n",
-           body_loc.printToString(*src_mgr).c_str());
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G5_4_2_1_2, stmt);
+    std::string ref_msg = "The while-loop must be enclosed in braces";
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -141,8 +147,12 @@ void GJB5369StmtRule::CheckLoopBrace(const clang::ForStmt *stmt) {
   auto body_loc = stmt->getBody()->getBeginLoc();
   const char *start = src_mgr->getCharacterData(body_loc);
   if (*start != '{') {
-    REPORT("GJB5396:4.2.1.2: The for-loop must be enclosed in braces: %s\n",
-           body_loc.printToString(*src_mgr).c_str());
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G5_4_2_1_2, stmt);
+    std::string ref_msg = "The for-loop must be enclosed in braces";
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -151,10 +161,12 @@ void GJB5369StmtRule::CheckLoopBrace(const clang::ForStmt *stmt) {
  * if/else block must be enclosed in braces
  */
 void GJB5369StmtRule::CheckIfBrace(const clang::IfStmt *stmt) {
-  auto src_mgr = XcalCheckerManager::GetSourceManager();
-  const char *start;
-  for (const auto &it : stmt->children()) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
 
+  const char *start;
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  for (const auto &it : stmt->children()) {
     if (clang::dyn_cast<clang::IfStmt>(it) ||
         it == stmt->getCond()) {
       continue;
@@ -162,8 +174,12 @@ void GJB5369StmtRule::CheckIfBrace(const clang::IfStmt *stmt) {
     auto body_loc = it->getBeginLoc();
     start = src_mgr->getCharacterData(body_loc);
     if (*start != '{') {
-      REPORT("GJB5396:4.2.1.3: if/else block must be enclosed in braces: %s\n",
-             body_loc.printToString(*src_mgr).c_str());
+      if (issue == nullptr) {
+        issue = report->ReportIssue(GJB5369, G5_4_2_1_3, stmt);
+        std::string ref_msg = "if/else block must be enclosed in braces";
+        issue->SetRefMsg(ref_msg);
+      }
+      issue->AddStmt(&(*it));
     }
   }
 }
@@ -176,18 +192,24 @@ void GJB5369StmtRule::CheckLogicExprParen(const clang::BinaryOperator *stmt) {
   if (!stmt->isLogicalOp()) return;
   auto lhs = stmt->getLHS();
   auto rhs = stmt->getRHS();
-  auto src_mgr = XcalCheckerManager::GetSourceManager();
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
 
   if (CheckExprParentheses(lhs)) {
-    auto lhs_loc = lhs->getBeginLoc();
-    REPORT("GJB5396:4.2.1.4: logic expression should be enclosed in parentheses: %s\n",
-           lhs_loc.printToString(*src_mgr).c_str());
+    issue = report->ReportIssue(GJB5369, G5_4_2_1_4, stmt);
+    std::string ref_msg = "Logic expression should be enclosed in parentheses";
+    issue->SetRefMsg(ref_msg);
+    issue->AddStmt(lhs);
   }
 
   if (CheckExprParentheses(rhs)) {
-    auto rhs_loc = rhs->getBeginLoc();
-    REPORT("GJB5396:4.2.1.4: logic expression should be enclosed in parentheses: %s\n",
-           rhs_loc.printToString(*src_mgr).c_str());
+    if (issue == nullptr) {
+      issue = report->ReportIssue(GJB5369, G5_4_2_1_4, stmt);
+      std::string ref_msg = "Logic expression should be enclosed in parentheses";
+      issue->SetRefMsg(ref_msg);
+    }
+    issue->AddStmt(rhs);
   }
 }
 
@@ -212,12 +234,13 @@ void GJB5369StmtRule::CheckAsmInProcedure(const clang::Stmt *stmt) {
 }
 
 void GJB5369StmtRule::CheckAsmInProcedure(const clang::GCCAsmStmt *stmt) {
-  auto src_mgr = XcalCheckerManager::GetSourceManager();
-  auto location = stmt->getBeginLoc();
   if (!_is_single_asm_stmt) {
-    REPORT("GJB5396:4.2.1.7: The assemble procedure should be pure assemble:"
-           " %s\n",
-           location.printToString(*src_mgr).c_str());
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G5_4_2_1_7, stmt);
+    std::string ref_msg = "The assemble procedure should be pure assemble";
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -252,6 +275,11 @@ void GJB5369StmtRule::CheckEmptyIfElseStmt(const clang::IfStmt *stmt) {
   }
 
   // check else-block
+  /*
+   * 1. else is NullStmt
+   * 2. else is CompoundStmt which without child
+   * 3. else is CompoundStmt which with only NullStmt
+   */
   auto _else = stmt->getElse();
   if (stmt->hasElseStorage()) {
     if (clang::dyn_cast<clang::NullStmt>(_else)) {
@@ -259,24 +287,33 @@ void GJB5369StmtRule::CheckEmptyIfElseStmt(const clang::IfStmt *stmt) {
     } else if (clang::dyn_cast<clang::CompoundStmt>(_else)) {
       if (_else->child_begin() == _else->child_end()) {
         need_report_else = true;
+      } else {
+        for (const auto &it : _else->children()) {
+          if (!clang::dyn_cast<clang::NullStmt>(it)) {
+            need_report_else = true;
+            break;
+          }
+        }
+        need_report_else = true;
       }
     } else {
-      DBG_ASSERT(0, "unknown else body");
+      need_report_else = false;
     }
   }
 
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
   if (need_report_if) {
-    auto location = stmt->getBeginLoc();
-    REPORT("GJB5396:4.3.1.1: if block should not be empty:"
-           " %s\n",
-           location.printToString(*src_mgr).c_str());
+    issue = report->ReportIssue(GJB5369, G5_4_3_1_3, stmt);
+    std::string ref_msg = "If block should not be empty";
+    issue->SetRefMsg(ref_msg);
   }
 
   if (need_report_else) {
-    auto location = stmt->getBeginLoc();
-    REPORT("GJB5396:4.3.1.3: else block should not be empty:"
-           " %s\n",
-           location.printToString(*src_mgr).c_str());
+    issue = report->ReportIssue(GJB5369, G5_4_3_1_3, stmt);
+    std::string ref_msg = "Else block should not be empty";
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -285,13 +322,13 @@ void GJB5369StmtRule::CheckEmptyIfElseStmt(const clang::IfStmt *stmt) {
  * 'else' must be used in the "if...else if" statement
  */
 void GJB5369StmtRule::CheckIfWithoutElseStmt(const clang::IfStmt *stmt) {
-  auto src_mgr = XcalCheckerManager::GetSourceManager();
-
   if (!stmt->hasElseStorage()) {
-    auto location = stmt->getBeginLoc();
-    REPORT("GJB5396:4.3.1.2: 'else' must be used in "
-           "the \"if...else if\" statement: %s\n",
-           location.printToString(*src_mgr).c_str());
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G5_4_3_1_2, stmt);
+    std::string ref_msg = "'else' must be used in \n the \"if...else if\" statement";
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -319,24 +356,21 @@ void GJB5369StmtRule::CheckSwitchWithoutDefaultStmt(const clang::SwitchStmt *stm
     } while ((caseList = caseList->getNextSwitchCase()) != nullptr);
   }
 
-  if (!has_default) {
-    auto src_mgr = XcalCheckerManager::GetSourceManager();
-    auto location = stmt->getBeginLoc();
 
-    REPORT("GJB5396:4.3.1.4: \"default\" statement should be"
-           " used in the \"switch\" statement: %s\n",
-           location.printToString(*src_mgr).c_str());
+  XcalIssue *no_default_issue = nullptr, *no_case_issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  if (!has_default) {
+    no_default_issue = report->ReportIssue(GJB5369, G5_4_3_1_4, stmt);
+    std::string ref_msg = R"("default" statement should be used in the "switch" statement)";
+    no_default_issue->SetRefMsg(ref_msg);
   }
 
   if (!has_other &&
-      ((caseList == nullptr) ||
-       (caseList->getNextSwitchCase() == nullptr))) {
-    auto src_mgr = XcalCheckerManager::GetSourceManager();
-    auto location = stmt->getBeginLoc();
-
-    REPORT("GJB5396:4.3.1.6: \"switch\" only containing"
-           " \"default\" is forbidden: %s\n",
-           location.printToString(*src_mgr).c_str());
+      ((caseList == nullptr) || (caseList->getNextSwitchCase() == nullptr))) {
+    no_case_issue = report->ReportIssue(GJB5369, G5_4_3_1_6, stmt);
+    std::string ref_msg = R"("switch" only containing "default" is forbidden)";
+    no_case_issue->SetRefMsg(ref_msg);
   }
 }
 

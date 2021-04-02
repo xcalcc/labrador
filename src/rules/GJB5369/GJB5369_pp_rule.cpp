@@ -11,6 +11,7 @@
 //
 
 #include "GJB5369_pp_rule.h"
+#include "GJB5369_enum.inc"
 
 namespace xsca {
 namespace rule {
