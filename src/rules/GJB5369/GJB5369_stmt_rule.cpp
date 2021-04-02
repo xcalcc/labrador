@@ -327,7 +327,7 @@ void GJB5369StmtRule::CheckIfWithoutElseStmt(const clang::IfStmt *stmt) {
     XcalReport *report = XcalCheckerManager::GetReport();
 
     issue = report->ReportIssue(GJB5369, G5_4_3_1_2, stmt);
-    std::string ref_msg = "'else' must be used in \n the \"if...else if\" statement";
+    std::string ref_msg = "'else' must be used in the \"if...else if\" statement";
     issue->SetRefMsg(ref_msg);
   }
 }
@@ -393,11 +393,11 @@ bool GJB5369StmtRule::CheckEmptySwitch(const clang::SwitchStmt *stmt) {
   }
 
   if (need_report) {
-    auto src_mgr = XcalCheckerManager::GetSourceManager();
-    auto location = stmt->getBeginLoc();
-
-    REPORT("GJB5396:4.3.1.5: \"switch\" without statement is forbidden: %s\n",
-           location.printToString(*src_mgr).c_str());
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB5369, G5_4_3_1_5, stmt);
+    std::string ref_msg = "\"switch\" without statement is forbidden";
+    issue->SetRefMsg(ref_msg);
     return true;
   }
   return false;
@@ -410,6 +410,9 @@ bool GJB5369StmtRule::CheckEmptySwitch(const clang::SwitchStmt *stmt) {
 void GJB5369StmtRule::CheckCaseEndWithBreak(const clang::SwitchStmt *stmt) {
   using StmtClass = clang::Stmt::StmtClass;
   auto src_mgr = XcalCheckerManager::GetSourceManager();
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
 
   auto switch_body = stmt->getBody();
   if (switch_body != nullptr) {
@@ -451,15 +454,21 @@ void GJB5369StmtRule::CheckCaseEndWithBreak(const clang::SwitchStmt *stmt) {
             }
 
             if (need_report) {
-              REPORT("GJB5396:4.3.1.7: \"case\" statement without "
-                     "\"break\" is forbidden: %s\n",
-                     location.printToString(*src_mgr).c_str());
+              if (issue == nullptr) {
+                issue = report->ReportIssue(GJB5369, G5_4_3_1_7, stmt);
+                std::string ref_msg = R"("case" statement without "break" is forbidden)";
+                issue->SetRefMsg(ref_msg);
+              }
+              issue->AddStmt(*it);
             }
           }
         } else {
-          REPORT("GJB5396:4.3.1.7: \"case\" statement without "
-                 "\"break\" is forbidden: %s\n",
-                 location.printToString(*src_mgr).c_str());
+          if (issue == nullptr) {
+            issue = report->ReportIssue(GJB5369, G5_4_3_1_7, stmt);
+            std::string ref_msg = R"("case" statement without "break" is forbidden)";
+            issue->SetRefMsg(ref_msg);
+          }
+          issue->AddStmt(*it);
           break;
         }
 
@@ -475,11 +484,11 @@ void GJB5369StmtRule::CheckCaseEndWithBreak(const clang::SwitchStmt *stmt) {
 void GJB5369StmtRule::CheckEmptyCaseStmt(const clang::SwitchCase *stmt) {
   auto sub_stmt = stmt->getSubStmt();
   if (IsCaseStmt(sub_stmt) || clang::dyn_cast<clang::NullStmt>(sub_stmt)) {
-    auto src_mgr = XcalCheckerManager::GetSourceManager();
-    auto location = stmt->getBeginLoc();
-
-    REPORT("GJB5396:4.3.1.8: The empty \"case\" statement is forbidden: %s\n",
-           location.printToString(*src_mgr).c_str());
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB5369, G5_4_3_1_8, stmt);
+    std::string ref_msg = "The empty \"case\" statement is forbidden";
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -492,13 +501,13 @@ void GJB5369StmtRule::CheckPointerCompareStmt(const clang::BinaryOperator *stmt)
     auto lhs = stmt->getLHS();
     auto rhs = stmt->getRHS();
     if (lhs->getType()->isPointerType() || rhs->getType()->isPointerType()) {
-      auto src_mgr = XcalCheckerManager::GetSourceManager();
-      auto lhs_loc = lhs->getBeginLoc();
-      auto rhs_loc = rhs->getBeginLoc();
-      REPORT("GJB5396:4.4.2.1: comparing pointer should be careful: "
-             "lhs: %s -> rhs: %s\n",
-             lhs_loc.printToString(*src_mgr).c_str(),
-             rhs_loc.printToString(*src_mgr).c_str());
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+      issue = report->ReportIssue(GJB5369, G5_4_4_2_1, stmt);
+      std::string ref_msg = "Comparing pointer should be careful";
+      issue->SetRefMsg(ref_msg);
+      issue->AddStmt(lhs);
+      issue->AddStmt(rhs);
     }
   }
 }
@@ -512,14 +521,13 @@ void GJB5369StmtRule::CheckPointerCalculateStmt(const clang::BinaryOperator *stm
     auto lhs = stmt->getLHS();
     auto rhs = stmt->getRHS();
     if (lhs->getType()->isPointerType() || rhs->getType()->isPointerType()) {
-      auto src_mgr = XcalCheckerManager::GetSourceManager();
-      auto lhs_loc = lhs->getBeginLoc();
-      auto rhs_loc = rhs->getBeginLoc();
-      REPORT("GJB5396:4.4.2.2: using pointer in the algebraic "
-             "operation should be careful: "
-             "lhs: %s -> rhs: %s\n",
-             lhs_loc.printToString(*src_mgr).c_str(),
-             rhs_loc.printToString(*src_mgr).c_str());
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+      issue = report->ReportIssue(GJB5369, G5_4_4_2_1, stmt);
+      std::string ref_msg = "Using pointer in the algebraic operation should be careful";
+      issue->SetRefMsg(ref_msg);
+      issue->AddStmt(lhs);
+      issue->AddStmt(rhs);
     }
   }
 }
@@ -529,10 +537,11 @@ void GJB5369StmtRule::CheckPointerCalculateStmt(const clang::BinaryOperator *stm
  * "goto" statement is forbidden
  */
 void GJB5369StmtRule::CheckGotoStmt(const clang::GotoStmt *stmt) {
-  auto src_mgr = XcalCheckerManager::GetSourceManager();
-  auto location = stmt->getBeginLoc();
-  REPORT("GJB5396:4.5.1.2: \"goto\" statement is forbidden: %s\n",
-         location.printToString(*src_mgr).c_str());
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(GJB5369, G5_4_5_1_2, stmt);
+  std::string ref_msg = "\"goto\" statement is forbidden";
+  issue->SetRefMsg(ref_msg);
 }
 
 /*
@@ -547,10 +556,11 @@ void GJB5369StmtRule::CheckSetjumpAndLongjump(const clang::CallExpr *stmt) {
   auto func_name = func_decl->getNameAsString();
 
   if (func_name == "setjmp" || func_name == "longjmp") {
-    auto src_mgr = XcalCheckerManager::GetSourceManager();
-    auto location = stmt->getBeginLoc();
-    REPORT("GJB5396:4.5.2.1: \"goto\" statement is forbidden: %s\n",
-           location.printToString(*src_mgr).c_str());
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB5369, G5_4_5_2_1, stmt);
+    std::string ref_msg = "setjmp/longjmp is forbidden";
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -571,10 +581,12 @@ void GJB5369StmtRule::CheckDifferentTypeAssign(const clang::BinaryOperator *stmt
     auto lhs_kind = clang::dyn_cast<clang::BuiltinType>(lhs_type)->getKind();
     auto rhs_kind = clang::dyn_cast<clang::BuiltinType>(rhs_type)->getKind();
     if (lhs_kind != rhs_kind) {
-      auto src_mgr = XcalCheckerManager::GetSourceManager();
-      auto location = stmt->getBeginLoc();
-      REPORT("GJB5396:4.6.1.8: The value assigned to a variable should be the same type: %s\n",
-             location.printToString(*src_mgr).c_str());
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+
+      issue = report->ReportIssue(GJB5369, G5_4_6_1_8, stmt);
+      std::string ref_msg = "The value assigned to a variable should be the same type";
+      issue->SetRefMsg(ref_msg);
     }
   }
 }
@@ -589,10 +601,12 @@ void GJB5369StmtRule::CheckNonOperationOnConstant(const clang::UnaryOperator *st
     auto sub = clang::dyn_cast<clang::ImplicitCastExpr>(stmt->getSubExpr());
 
     if (sub && (sub->getSubExpr()->getStmtClass() == clang::Stmt::StmtClass::IntegerLiteralClass)) {
-      auto src_mgr = XcalCheckerManager::GetSourceManager();
-      auto location = stmt->getBeginLoc();
-      REPORT("GJB5396:4.6.1.11: logic non on const value is forbidden: %s\n",
-             location.printToString(*src_mgr).c_str());
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+
+      issue = report->ReportIssue(GJB5369, G5_4_6_1_8, stmt);
+      std::string ref_msg = "Logic non on const value is forbidden";
+      issue->SetRefMsg(ref_msg);
     }
   }
 }
@@ -605,10 +619,12 @@ void GJB5369StmtRule::CheckBitwiseOperationOnSignedValue(const clang::BinaryOper
   if (stmt->isBitwiseOp()) {
     auto lhs = stmt->getLHS();
     if (lhs->getType()->isSignedIntegerType()) {
-      auto src_mgr = XcalCheckerManager::GetSourceManager();
-      auto location = stmt->getBeginLoc();
-      REPORT("GJB5396:4.6.1.12: bit-wise operation on signed-int is forbidden: %s\n",
-             location.printToString(*src_mgr).c_str());
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+
+      issue = report->ReportIssue(GJB5369, G5_4_6_1_12, stmt);
+      std::string ref_msg = "Bit-wise operation on signed-int is forbidden";
+      issue->SetRefMsg(ref_msg);
     }
   }
 }
@@ -628,10 +644,12 @@ void GJB5369StmtRule::CheckEnumBeyondLimit(const clang::BinaryOperator *stmt) {
   }
 
   if (!stmt->isComparisonOp()) {
-    auto src_mgr = XcalCheckerManager::GetSourceManager();
-    auto location = stmt->getBeginLoc();
-    REPORT("GJB5396:4.6.1.13: using enumeration types beyond the limit if forbidden: %s\n",
-           location.printToString(*src_mgr).c_str());
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G5_4_6_1_13, stmt);
+    std::string ref_msg = "Using enumeration types beyond the limit if forbidden";
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -653,11 +671,15 @@ void GJB5369StmtRule::CheckArithmOverflow(const clang::BinaryOperator *stmt) {
   auto src_mgr = XcalCheckerManager::GetSourceManager();
   auto location = stmt->getBeginLoc();
 
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
   switch (stmt->getOpcode()) {
     case Opcode::BO_Add: {
       if (AddOverflowed(lhs_value, rhs_value)) {
-        REPORT("GJB5396:4.6.1.14: overflow should be avoided: %s\n",
-               location.printToString(*src_mgr).c_str());
+        issue = report->ReportIssue(GJB5369, G5_4_6_1_14, stmt);
+        std::string ref_msg = "Overflow should be avoided";
+        issue->SetRefMsg(ref_msg);
       }
       break;
     }
@@ -668,8 +690,9 @@ void GJB5369StmtRule::CheckArithmOverflow(const clang::BinaryOperator *stmt) {
     }
     case Opcode::BO_Mul: {
       if (MulOverflowed(lhs_value, rhs_value)) {
-        REPORT("GJB5396:4.6.1.14: overflow should be avoided: %s\n",
-               location.printToString(*src_mgr).c_str());
+        issue = report->ReportIssue(GJB5369, G5_4_6_1_14, stmt);
+        std::string ref_msg = "Overflow should be avoided";
+        issue->SetRefMsg(ref_msg);
       }
     }
     default:
@@ -685,10 +708,12 @@ void GJB5369StmtRule::CheckAssignInLogicExpr(const clang::IfStmt *stmt) {
   auto cond = stmt->getCond()->IgnoreImpCasts();
   if (auto binary_stmt = clang::dyn_cast<clang::BinaryOperator>(cond)) {
     if (binary_stmt->isAssignmentOp()) {
-      auto src_mgr = XcalCheckerManager::GetSourceManager();
-      auto location = stmt->getBeginLoc();
-      REPORT("GJB5396:4.6.1.15: '=' used in logical expression is forbidden: %s\n",
-             location.printToString(*src_mgr).c_str());
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+
+      issue = report->ReportIssue(GJB5369, G5_4_6_1_15, stmt);
+      std::string ref_msg = "'=' used in logical expression is forbidden";
+      issue->SetRefMsg(ref_msg);
     }
   }
 }
@@ -703,10 +728,12 @@ void GJB5369StmtRule::CheckLogicalOpFollowedByAssign(const clang::BinaryOperator
   auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
   bool has_assignment = HasAssignmentSubStmt(rhs);
   if (has_assignment) {
-    auto src_mgr = XcalCheckerManager::GetSourceManager();
-    auto location = rhs->getBeginLoc();
-    REPORT("GJB5396:4.6.1.16: \"&&\" or \"||\" used with \"=\" is forbidden: %s\n",
-           location.printToString(*src_mgr).c_str());
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G5_4_6_1_16, stmt);
+    std::string ref_msg = R"("&&" or "||" used with "=" is forbidden)";
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -719,10 +746,12 @@ void GJB5369StmtRule::CheckBitwiseOpOnBool(const clang::BinaryOperator *stmt) {
   auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
   auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
   if (lhs->getType()->isBooleanType() || rhs->getType()->isBooleanType()) {
-    auto src_mgr = XcalCheckerManager::GetSourceManager();
-    auto location = stmt->getBeginLoc();
-    REPORT("GJB5396:4.6.1.17: bit-wise operation on bool is forbidden: %s\n",
-           location.printToString(*src_mgr).c_str());
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G5_4_6_1_17, stmt);
+    std::string ref_msg = "Bit-wise operation on bool is forbidden";
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -738,10 +767,12 @@ void GJB5369StmtRule::CheckBitwiseOpInBooleanExpr(const clang::BinaryOperator *s
   // return if the lhs is boolean type
   if (!lhs->getType()->isBooleanType()) return;
   if (HasBitwiseSubStmt(rhs)) {
-    auto src_mgr = XcalCheckerManager::GetSourceManager();
-    auto location = stmt->getBeginLoc();
-    REPORT("GJB5396:4.6.1.18: bit-wise operation is forbidden in the boolean expression: %s\n",
-           location.printToString(*src_mgr).c_str());
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G5_4_6_1_18, stmt);
+    std::string ref_msg = "Bit-wise operation is forbidden in the boolean expression";
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -752,10 +783,12 @@ void GJB5369StmtRule::CheckBitwiseOpInBooleanExpr(const clang::BinaryOperator *s
 
 void GJB5369StmtRule::CheckCommaStmt(const clang::BinaryOperator *stmt) {
   if (stmt->isCommaOp()) {
-    auto src_mgr = XcalCheckerManager::GetSourceManager();
-    auto location = stmt->getBeginLoc();
-    REPORT("GJB5396:4.6.2.1: avoid using ',' operator: %s\n",
-           location.printToString(*src_mgr).c_str());
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G5_4_6_2_1, stmt);
+    std::string ref_msg = "Avoid using ',' operator";
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -768,16 +801,19 @@ void GJB5369StmtRule::CheckSizeofOnExpr(const clang::UnaryExprOrTypeTraitExpr *s
   if (stmt->getKind() != clang::UnaryExprOrTypeTrait::UETT_SizeOf) { return; }
   auto ctx = XcalCheckerManager::GetAstContext();
   if (stmt->getArgumentExpr()->HasSideEffects(*ctx, false)) {
-    auto src_mgr = XcalCheckerManager::GetSourceManager();
-    auto location = stmt->getBeginLoc();
-    REPORT("GJB5396:4.6.2.2: \"sizeof()\" should be used carefully: %s\n",
-           location.printToString(*src_mgr).c_str());
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G5_4_6_2_2, stmt);
+    std::string ref_msg = "\"sizeof()\" should be used carefully";
+    issue->SetRefMsg(ref_msg);
   }
 }
 
 /*
  * GJB5369: 4.6.2.3
  * different types of variable mixed operation should be carefully
+ * TODO: check user defined class type
  */
 void GJB5369StmtRule::CheckDifferentTypeArithm(const clang::BinaryOperator *stmt) {
   if (!stmt->isAdditiveOp() && !stmt->isMultiplicativeOp()) return;
@@ -788,15 +824,16 @@ void GJB5369StmtRule::CheckDifferentTypeArithm(const clang::BinaryOperator *stmt
   auto rhs_type = rhs->getType();
 
 
-  if (lhs_type->isBuiltinType() || rhs_type->isBuiltinType()) {
+  if (lhs_type->isBuiltinType() && rhs_type->isBuiltinType()) {
     auto lhs_kind = clang::dyn_cast<clang::BuiltinType>(lhs_type)->getKind();
     auto rhs_kind = clang::dyn_cast<clang::BuiltinType>(rhs_type)->getKind();
     if (lhs_kind != rhs_kind) {
-      auto src_mgr = XcalCheckerManager::GetSourceManager();
-      auto location = stmt->getBeginLoc();
-      REPORT("GJB5396:4.6.2.3: different types of variable mixed "
-             "operation should be carefully: %s\n",
-             location.printToString(*src_mgr).c_str());
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+
+      issue = report->ReportIssue(GJB5369, G5_4_6_2_3, stmt);
+      std::string ref_msg = "Different types of variable mixed operation should be carefully";
+      issue->SetRefMsg(ref_msg);
     }
   }
 }
@@ -820,10 +857,12 @@ void GJB5369StmtRule::CheckFalseIfContidion(const clang::IfStmt *stmt) {
     }
 
     if (value == 0) {
-      auto src_mgr = XcalCheckerManager::GetSourceManager();
-      auto location = stmt->getBeginLoc();
-      REPORT("GJB5396:4.6.2.4: dead code is forbidden: %s\n",
-             location.printToString(*src_mgr).c_str());
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+
+      issue = report->ReportIssue(GJB5369, G5_4_6_2_4, stmt);
+      std::string ref_msg = "Dead code is forbidden";
+      issue->SetRefMsg(ref_msg);
     }
   }
 }
@@ -836,11 +875,12 @@ void GJB5369StmtRule::CheckMultiCallExprInSingleStmt(const clang::BinaryOperator
   auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
   auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
   if (HasCallExpr(rhs) && HasCallExpr(lhs)) {
-    auto src_mgr = XcalCheckerManager::GetSourceManager();
-    auto location = stmt->getBeginLoc();
-    REPORT("GJB5396:4.7.1.6: Only one function call could be"
-           " contain within one single statement: %s\n",
-           location.printToString(*src_mgr).c_str());
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G5_4_7_1_6, stmt);
+    std::string ref_msg = "Only one function call could be contain within one single statement";
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -875,7 +915,8 @@ void GJB5369StmtRule::CheckParamTypeMismatch(const clang::CallExpr *stmt) {
   auto func_decl = stmt->getCalleeDecl()->getAsFunction();
   if (func_decl == nullptr) return;
 
-  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
 
   for (const auto &it : func_decl->parameters()) {
     auto formal_param_type = it->getType();
@@ -884,9 +925,12 @@ void GJB5369StmtRule::CheckParamTypeMismatch(const clang::CallExpr *stmt) {
       auto real_param_kind = clang::dyn_cast<clang::BuiltinType>(real_param_type)->getKind();
       auto formal_param_kind = clang::dyn_cast<clang::BuiltinType>(formal_param_type)->getKind();
       if (real_param_kind != formal_param_kind) {
-        auto location = stmt->getBeginLoc();
-        REPORT("GJB5396:4.7.1.9: formal and real parameters' type should be the same: %s\n",
-               location.printToString(*src_mgr).c_str());
+        if (issue == nullptr) {
+          issue = report->ReportIssue(GJB5369, G5_4_7_1_9, stmt);
+          std::string ref_msg = "Formal and real parameters' type should be the same";
+          issue->SetRefMsg(ref_msg);
+        }
+        issue->AddDecl(&(*(it)));
       }
     }
     param_index++;
@@ -903,11 +947,12 @@ void GJB5369StmtRule::CheckUsingFunctionNotByCalling(const clang::IfStmt *stmt) 
   if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(cond)) {
     auto decl = decl_ref->getDecl();
     if (decl->isFunctionOrFunctionTemplate()) {
-      auto location = decl->getLocation();
-      auto src_mgr = XcalCheckerManager::GetSourceManager();
-      REPORT("GJB5396:4.7.2.2: using function not by calling is forbidden: : %s -> %s\n",
-             decl->getNameAsString().c_str(),
-             location.printToString(*src_mgr).c_str());
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+
+      issue = report->ReportIssue(GJB5369, G5_4_7_2_2, stmt);
+      std::string ref_msg = "Using function not by calling is forbidden";
+      issue->SetRefMsg(ref_msg);
     }
   }
 }
@@ -926,11 +971,13 @@ void GJB5369StmtRule::CheckExitAndAbortFunction(const clang::CallExpr *stmt) {
 
   auto func_name = decl->getNameAsString();
   if (conf_mgr->IsDangerFunction(func_name)) {
-    auto location = decl->getLocation();
-    auto src_mgr = XcalCheckerManager::GetSourceManager();
-    REPORT("GJB5396:4.7.2.3: use abort/exit carefully: %s -> %s\n",
-           decl->getNameAsString().c_str(),
-           location.printToString(*src_mgr).c_str());
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G5_4_7_2_3, stmt);
+    std::string ref_msg = "use abort/exit carefully";
+    issue->SetRefMsg(ref_msg);
+    issue->AddDecl(decl);
   }
 }
 
@@ -941,10 +988,12 @@ void GJB5369StmtRule::CheckExitAndAbortFunction(const clang::CallExpr *stmt) {
 void GJB5369StmtRule::CheckCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
   if (stmt->getOpcode() == clang::BinaryOperatorKind::BO_AddAssign ||
       stmt->getOpcode() == clang::BinaryOperatorKind::BO_SubAssign) {
-    auto location = stmt->getBeginLoc();
-    auto src_mgr = XcalCheckerManager::GetSourceManager();
-    REPORT("GJB5396:4.8.2.1: avoid using += or -=: %s\n",
-           location.printToString(*src_mgr).c_str());
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G5_4_8_2_1, stmt);
+    std::string ref_msg = "avoid using += or -=";
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -954,10 +1003,12 @@ void GJB5369StmtRule::CheckCompoundAssignOperator(const clang::CompoundAssignOpe
  */
 void GJB5369StmtRule::CheckPreIncrementAndPostIncrement(const clang::UnaryOperator *stmt) {
   if (stmt->isPostfix() || stmt->isPrefix()) {
-    auto location = stmt->getBeginLoc();
-    auto src_mgr = XcalCheckerManager::GetSourceManager();
-    REPORT("GJB5396:4.8.2.2: using ++ or -- should be carefully: %s\n",
-           location.printToString(*src_mgr).c_str());
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G5_4_8_2_2, stmt);
+    std::string ref_msg = "Using ++ or -- should be carefully";
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -966,10 +1017,12 @@ void GJB5369StmtRule::CheckPreIncrementAndPostIncrement(const clang::UnaryOperat
  * avoid using continue statement
  */
 void GJB5369StmtRule::CheckContinueStmt(const clang::ContinueStmt *stmt) {
-  auto location = stmt->getBeginLoc();
-  auto src_mgr = XcalCheckerManager::GetSourceManager();
-  REPORT("GJB5396:4.8.2.3: avoid using continue statement: %s\n",
-         location.printToString(*src_mgr).c_str());
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  issue = report->ReportIssue(GJB5369, G5_4_8_2_3, stmt);
+  std::string ref_msg = "Avoid using continue statement";
+  issue->SetRefMsg(ref_msg);
 }
 
 } // rule
