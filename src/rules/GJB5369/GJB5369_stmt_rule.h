@@ -26,7 +26,7 @@ private:
 
   bool _func_has_return_stmt;
 
-  const clang::FunctionDecl* _current_function_decl;
+  const clang::FunctionDecl *_current_function_decl;
 
   // check add overflow
   bool AddOverflowed(int a, int b);
@@ -48,6 +48,9 @@ private:
 
   // check if it contains call expr
   bool HasCallExpr(const clang::Stmt *stmt);
+
+  // get builtin type
+  clang::BuiltinType::Kind GetBuiltinTypeKind(const clang::QualType type);
 
   /*
    * GJB5369 4.1.1.4
@@ -373,6 +376,14 @@ private:
    */
   void CheckReturnType(const clang::ReturnStmt *stmt);
 
+  /*
+   * GJB5369: 4.11.1.1
+   * Inappropriate loop value type is forbidden
+   * GJB5369: 4.11.1.2
+   * loop value should be local value
+   */
+  void CheckLoopVariable(const clang::ForStmt *stmt);
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -384,6 +395,7 @@ public:
 
   void VisitForStmt(const clang::ForStmt *stmt) {
     CheckLoopBrace(stmt);
+    CheckLoopVariable(stmt);
   }
 
   void VisitIfStmt(const clang::IfStmt *stmt) {
@@ -454,6 +466,7 @@ public:
     CheckNonOperationOnConstant(stmt);
     CheckPreIncrementAndPostIncrement(stmt);
   }
+
   void VisitUnaryExprOrTypeTraitExpr(const clang::UnaryExprOrTypeTraitExpr *stmt) {
     CheckSizeofOnExpr(stmt);
   }

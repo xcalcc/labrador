@@ -133,8 +133,8 @@ Rule		Kind		Implementation
 4.10.2.1                Have no idea😢
 4.10.2.2                Have no idea😢
 --------------+------------------------------------------------
-4.11.1.1
-4.11.1.2
+4.11.1.1    Stmt        CheckLoopVariable
+4.11.1.2    Stmt        CheckLoopVariable
 4.11.2.1
 4.11.2.2
 4.11.2.3

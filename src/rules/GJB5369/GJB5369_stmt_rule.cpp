@@ -108,6 +108,14 @@ bool GJB5369StmtRule::HasCallExpr(const clang::Stmt *stmt) {
   return has_callexpr;
 }
 
+// get builtin type
+clang::BuiltinType::Kind GJB5369StmtRule::GetBuiltinTypeKind(const clang::QualType type) {
+  DBG_ASSERT(type->isBuiltinType(), "Type is not BuiltinType");
+  auto BT = clang::dyn_cast<clang::BuiltinType>(type.getCanonicalType());
+  auto kind = BT->getKind();
+  return kind;
+}
+
 /*
  * GJB5369 4.1.1.4
  * Check multiple consecutive labels.
@@ -1087,10 +1095,10 @@ void GJB5369StmtRule::CheckReturnType(const clang::ReturnStmt *stmt) {
   auto ret_type = stmt->getRetValue()->IgnoreParenImpCasts()->getType();
 
   if (decl_return_type->getTypeClass() == ret_type->getTypeClass()) {
-    if (decl_return_type->isBuiltinType() == ret_type->isBuiltinType()) {
-      auto decl_return_bt_type = clang::dyn_cast<clang::BuiltinType>(decl_return_type.getCanonicalType());
-      auto ret_bt_type = clang::dyn_cast<clang::BuiltinType>(ret_type.getCanonicalType());
-      if (decl_return_bt_type->getKind() == ret_bt_type->getKind()) {
+    if (decl_return_type->isBuiltinType() && ret_type->isBuiltinType()) {
+      auto decl_return_kind = GetBuiltinTypeKind(decl_return_type);
+      auto ret_kind = GetBuiltinTypeKind(ret_type);
+      if (decl_return_kind == ret_kind) {
         return;
       }
     }
@@ -1103,6 +1111,63 @@ void GJB5369StmtRule::CheckReturnType(const clang::ReturnStmt *stmt) {
   std::string ref_msg = "Type of return value should stay the same";
   issue->SetRefMsg(ref_msg);
   issue->AddStmt(stmt);
+}
+
+/*
+ * GJB5369: 4.11.1.1
+ * Inappropriate loop value type is forbidden
+ * GJB5369: 4.11.1.2
+ * loop value should be local value
+ */
+void GJB5369StmtRule::CheckLoopVariable(const clang::ForStmt *stmt) {
+  bool need_report_1 = false, need_report_2 = false;
+  auto init_stmt = stmt->getInit();
+
+  if (init_stmt == nullptr) { return; }
+  if (auto bin_init_stmt = clang::dyn_cast<clang::BinaryOperator>(init_stmt)) {
+    auto lhs = bin_init_stmt->getLHS()->IgnoreParenImpCasts();
+
+    if (bin_init_stmt->isAssignmentOp() || bin_init_stmt->isCompoundAssignmentOp()) {
+      auto lhs_type = lhs->getType();
+
+      // 4.11.1.1
+      if (!lhs_type->isIntegerType()) {
+        need_report_1 = true;
+      }
+
+      // 4.11.1.2
+      if (auto lhs_ref = clang::dyn_cast<clang::DeclRefExpr>(lhs)) {
+        if (auto var_decl = clang::dyn_cast<clang::VarDecl>(lhs_ref->getDecl())) {
+          if (!var_decl->isLocalVarDeclOrParm()) {
+            need_report_2 = true;
+          }
+        } else {
+          DBG_WARN(1, "Unknown LHS Decl class");
+        }
+      }
+    }
+
+  }
+
+  if (need_report_1) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G5_4_11_1_1, stmt);
+    std::string ref_msg = "Inappropriate loop value type is forbidden";
+    issue->SetRefMsg(ref_msg);
+    issue->AddStmt(init_stmt);
+  }
+
+  if (need_report_2) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G5_4_11_1_2, stmt);
+    std::string ref_msg = "Loop value should be local value";
+    issue->SetRefMsg(ref_msg);
+    issue->AddStmt(init_stmt);
+  }
 }
 
 
