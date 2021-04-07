@@ -42,6 +42,9 @@ public:
 
   void VisitAtFunctionExit(const clang::Stmt *stmt) {}
 
+public:
+  void SetCurrentFunctionDecl(const clang::FunctionDecl *stmt) {}
+
 };  // StmtNullHandler
 
 }  // namespace xsca

@@ -47,6 +47,12 @@ public:
     _rest.VisitAtFunctionExit(stmt);
   }
 
+public:
+  void SetCurrentFunctionDecl(const clang::FunctionDecl *decl) {
+    _first.SetCurrentFunctionDecl(decl);
+    _rest.SetCurrentFunctionDecl(decl);
+  }
+
 };  // StmtListHandler
 
 // class StmtListHandler with single template parameters as handlers
@@ -72,6 +78,11 @@ public:
 
   void VisitAtFunctionExit(const clang::Stmt *stmt) {
     _first.VisitAtFunctionExit(stmt);
+  }
+
+public:
+  void SetCurrentFunctionDecl(const clang::FunctionDecl *decl) {
+    _first.SetCurrentFunctionDecl(decl);
   }
 
 };  // StmtListHandler

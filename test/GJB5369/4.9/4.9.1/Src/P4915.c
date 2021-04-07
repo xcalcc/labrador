@@ -3,7 +3,7 @@
  * return type of function should keep pace with the prototype
  */
 
-float static_102(unsigned int, unsigned short);
+float static_p(unsigned int, unsigned short);
 
 /* Two types are different. */
 int static_p(unsigned int p_1, unsigned short p_2) {

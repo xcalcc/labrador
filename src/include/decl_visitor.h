@@ -112,6 +112,7 @@ public:
 
     // visit function body
     if (decl->doesThisDeclarationHaveABody()) {
+      _stmt_visitor.SetCurrentFunctionDecl(decl);
       _stmt_visitor.VisitFunctionBody(decl->getBody());
     }
   }

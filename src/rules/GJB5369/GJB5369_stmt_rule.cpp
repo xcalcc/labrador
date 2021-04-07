@@ -1078,6 +1078,33 @@ void GJB5369StmtRule::CheckReturnStmt(const clang::ReturnStmt *stmt) {
   _func_has_return_stmt = true;
 }
 
+/*
+ * GJB5369: 4.9.1.4
+ * type of return value should stay the same
+ */
+void GJB5369StmtRule::CheckReturnType(const clang::ReturnStmt *stmt) {
+  auto decl_return_type = _current_function_decl->getReturnType();
+  auto ret_type = stmt->getRetValue()->IgnoreParenImpCasts()->getType();
+
+  if (decl_return_type->getTypeClass() == ret_type->getTypeClass()) {
+    if (decl_return_type->isBuiltinType() == ret_type->isBuiltinType()) {
+      auto decl_return_bt_type = clang::dyn_cast<clang::BuiltinType>(decl_return_type.getCanonicalType());
+      auto ret_bt_type = clang::dyn_cast<clang::BuiltinType>(ret_type.getCanonicalType());
+      if (decl_return_bt_type->getKind() == ret_bt_type->getKind()) {
+        return;
+      }
+    }
+  }
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  issue = report->ReportIssue(GJB5369, G5_4_9_1_4, _current_function_decl);
+  std::string ref_msg = "Type of return value should stay the same";
+  issue->SetRefMsg(ref_msg);
+  issue->AddStmt(stmt);
+}
+
 
 } // rule
 } // xsca

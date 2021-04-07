@@ -70,6 +70,10 @@ public:
     _stmt_handler.VisitAtFunctionExit(stmt);
   }
 
+  void SetCurrentFunctionDecl(const clang::FunctionDecl *decl) {
+    _stmt_handler.SetCurrentFunctionDecl(decl);
+  }
+
   // generate individual Visit##CLASS method
   #define STMT(CLASS, BASE) \
   void Visit##CLASS(const clang::CLASS *stmt) { \

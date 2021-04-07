@@ -26,6 +26,7 @@ private:
 
   bool _func_has_return_stmt;
 
+  const clang::FunctionDecl* _current_function_decl;
 
   // check add overflow
   bool AddOverflowed(int a, int b);
@@ -366,6 +367,12 @@ private:
 
   void CheckReturnStmt(const clang::ReturnStmt *stmt);
 
+  /*
+   * GJB5369: 4.9.1.4
+   * type of return value should stay the same
+   */
+  void CheckReturnType(const clang::ReturnStmt *stmt);
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -465,13 +472,20 @@ public:
 
   void VisitReturnStmt(const clang::ReturnStmt *stmt) {
     CheckReturnStmt(stmt);
+    CheckReturnType(stmt);
   }
 
   void VisitCompoundStmt(const clang::CompoundStmt *stmt) {
   }
 
   void VisitAtFunctionExit(const clang::Stmt *stmt) {
+    _current_function_decl = nullptr;
     CheckReturnStmt(stmt, false);
+  }
+
+public:
+  void SetCurrentFunctionDecl(const clang::FunctionDecl *decl) {
+    _current_function_decl = decl;
   }
 }; // GJB5369StmtRule
 
