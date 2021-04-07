@@ -388,6 +388,8 @@ private:
   /*
   * GJB5369: 4.11.2.1
   * avoid using infinite loop
+  * GJB5369: 4.11.2.3
+  * avoid using uncontrollable loop value
   */
   template<typename _STMT_CLASS>
   void CheckInfiniteLoop(_STMT_CLASS *stmt) {
@@ -407,6 +409,15 @@ private:
 
     if (cond == nullptr) need_report = true;
     else if (auto literal = clang::dyn_cast<clang::IntegerLiteral>(cond->IgnoreParenImpCasts())) {
+      {
+        XcalIssue *issue = nullptr;
+        XcalReport *report = XcalCheckerManager::GetReport();
+
+        issue = report->ReportIssue(GJB5369, G5_4_11_2_3, stmt);
+        std::string ref_msg = "Avoid using uncontrollable loop value";
+        issue->SetRefMsg(ref_msg);
+      }
+
       int value;
       clang::Expr::EvalResult eval_result;
 
