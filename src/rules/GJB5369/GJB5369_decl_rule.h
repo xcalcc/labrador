@@ -232,6 +232,12 @@ private:
 
   void CheckIandOUsedAsVariable(const clang::ParmVarDecl *decl);
 
+  /*
+   * GJB5369: 4.8.2.7
+   * using register variable carefully
+   */
+  void CheckRegisterVariable(const clang::VarDecl *decl);
+
 public:
   void Finalize() {
     CheckFunctionNameReuse();
@@ -285,6 +291,7 @@ public:
     CheckPointerNestedLevel(decl);
     CheckFunctionPointer(decl);
     CheckIandOUsedAsVariable(decl);
+    CheckRegisterVariable(decl);
   }
 
   void VisitField(const clang::FieldDecl *decl) {

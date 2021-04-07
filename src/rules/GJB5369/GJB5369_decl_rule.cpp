@@ -995,6 +995,23 @@ void GJB5369DeclRule::CheckIandOUsedAsVariable(const clang::ParmVarDecl *decl) {
   }
 }
 
+/*
+ * GJB5369: 4.8.2.7
+ * using register variable carefully
+ */
+void GJB5369DeclRule::CheckRegisterVariable(const clang::VarDecl *decl) {
+  if (decl->getStorageClass() == clang::SC_Register) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G5_4_8_2_7, decl);
+    std::string ref_msg = "Using register variable carefully: ";
+    ref_msg += decl->getNameAsString();
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+
 
 } // rule
 } // xsca
