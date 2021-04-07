@@ -11,6 +11,7 @@
 //
 
 #include <map>
+#include "GJB5369_enum.inc"
 #include "stmt_null_handler.h"
 #include "xsca_checker_manager.h"
 
@@ -384,6 +385,52 @@ private:
    */
   void CheckLoopVariable(const clang::ForStmt *stmt);
 
+  /*
+  * GJB5369: 4.11.2.1
+  * avoid using infinite loop
+  */
+  template<typename _STMT_CLASS>
+  void CheckInfiniteLoop(_STMT_CLASS *stmt) {
+    bool need_report = false;
+    const clang::Expr *cond = nullptr;
+    auto ctx = XcalCheckerManager::GetAstContext();
+
+    if (auto for_stmt = clang::dyn_cast<clang::ForStmt>(stmt)) {
+      cond = for_stmt->getCond();
+    } else if (auto while_stmt = clang::dyn_cast<clang::WhileStmt>(stmt)) {
+      cond = while_stmt->getCond();
+    } else if (auto do_stmt = clang::dyn_cast<clang::DoStmt>(stmt)) {
+      cond = do_stmt->getCond();
+    } else {
+      DBG_WARN(1, "Cast loop-cond failed");
+    }
+
+    if (cond == nullptr) need_report = true;
+    else if (auto literal = clang::dyn_cast<clang::IntegerLiteral>(cond->IgnoreParenImpCasts())) {
+      int value;
+      clang::Expr::EvalResult eval_result;
+
+      // try to fold the const expr
+      if (literal->EvaluateAsInt(eval_result, *ctx)) {
+        value = eval_result.Val.getInt().getZExtValue();
+      } else {
+        value = literal->getValue().getZExtValue();
+      }
+      if (value == 1) {
+        need_report = true;
+      }
+    }
+
+    if (need_report) {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+
+      issue = report->ReportIssue(GJB5369, G5_4_11_2_1, stmt);
+      std::string ref_msg = "Avoid using infinite loop";
+      issue->SetRefMsg(ref_msg);
+    }
+  }
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -391,11 +438,17 @@ public:
 
   void VisitWhileStmt(const clang::WhileStmt *stmt) {
     CheckLoopBrace(stmt);
+    CheckInfiniteLoop<const clang::WhileStmt>(stmt);
   }
 
   void VisitForStmt(const clang::ForStmt *stmt) {
     CheckLoopBrace(stmt);
     CheckLoopVariable(stmt);
+    CheckInfiniteLoop<const clang::ForStmt>(stmt);
+  }
+
+  void VisitDoStmt(const clang::DoStmt *stmt) {
+    CheckInfiniteLoop<const clang::DoStmt>(stmt);
   }
 
   void VisitIfStmt(const clang::IfStmt *stmt) {

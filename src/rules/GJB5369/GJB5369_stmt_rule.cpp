@@ -10,7 +10,6 @@
 // implement all stmt related rules in GJB5369
 //
 
-#include "GJB5369_enum.inc"
 #include "GJB5369_stmt_rule.h"
 
 namespace xsca {
