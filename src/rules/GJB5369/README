@@ -119,7 +119,7 @@ Rule		Kind		Implementation
 4.8.2.3     Stmt        CheckContinueStmt
 4.8.2.4
 4.8.2.5     Stmt        CheckBinocularOper
-4.8.2.6
+4.8.2.6     Stmt        CheckNullStmt
 4.8.2.7
 4.8.2.8
 --------------+------------------------------------------------

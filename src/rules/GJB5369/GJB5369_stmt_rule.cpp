@@ -1038,5 +1038,18 @@ void GJB5369StmtRule::CheckBinocularOper(const clang::ConditionalOperator *stmt)
   issue->SetRefMsg(ref_msg);
 }
 
+/*
+ * GJB5369: 4.8.2.6
+ * avoid using Null statements
+ */
+void GJB5369StmtRule::CheckNullStmt(const clang::NullStmt *stmt) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  issue = report->ReportIssue(GJB5369, G5_4_8_2_6, stmt);
+  std::string ref_msg = "Avoid using Null statements";
+  issue->SetRefMsg(ref_msg);
+}
+
 } // rule
 } // xsca

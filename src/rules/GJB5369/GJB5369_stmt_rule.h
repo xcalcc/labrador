@@ -346,6 +346,12 @@ private:
    */
   void CheckBinocularOper(const clang::ConditionalOperator *stmt);
 
+  /*
+   * GJB5369: 4.8.2.6
+   * avoid using Null statements
+   */
+  void CheckNullStmt(const clang::NullStmt *stmt);
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -436,6 +442,10 @@ public:
 
   void VisitConditionalOperator(const clang::ConditionalOperator *stmt) {
     CheckBinocularOper(stmt);
+  }
+
+  void VisitNullStmt(const clang::NullStmt *stmt) {
+    CheckNullStmt(stmt);
   }
 
   void VisitCompoundStmt(const clang::CompoundStmt *stmt) {
