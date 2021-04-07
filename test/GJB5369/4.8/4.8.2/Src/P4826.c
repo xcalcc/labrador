@@ -5,5 +5,7 @@
 
 void static_p(void){
     unsigned int Timing_Loop = 100u;
-    Timing_Loop--;  /* free statement */
+    Timing_Loop--;
+    /* free statement */
+    ;
 }

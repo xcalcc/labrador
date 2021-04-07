@@ -1025,5 +1025,18 @@ void GJB5369StmtRule::CheckContinueStmt(const clang::ContinueStmt *stmt) {
   issue->SetRefMsg(ref_msg);
 }
 
+/*
+ * GJB5369: 4.8.2.4
+ * Binocular operation should be using carefully
+ */
+void GJB5369StmtRule::CheckBinocularOper(const clang::ConditionalOperator *stmt) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  issue = report->ReportIssue(GJB5369, G5_4_8_2_4, stmt);
+  std::string ref_msg = "Binocular operation should be using carefully";
+  issue->SetRefMsg(ref_msg);
+}
+
 } // rule
 } // xsca

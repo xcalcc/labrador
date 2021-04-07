@@ -340,6 +340,11 @@ private:
    */
   void CheckContinueStmt(const clang::ContinueStmt *stmt);
 
+  /*
+   * GJB5369: 4.8.2.4
+   * Binocular operation should be using carefully
+   */
+  void CheckBinocularOper(const clang::ConditionalOperator *stmt);
 
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
@@ -427,6 +432,10 @@ public:
 
   void VisitContinueStmt(const clang::ContinueStmt *stmt) {
     CheckContinueStmt(stmt);
+  }
+
+  void VisitConditionalOperator(const clang::ConditionalOperator *stmt) {
+    CheckBinocularOper(stmt);
   }
 
   void VisitCompoundStmt(const clang::CompoundStmt *stmt) {
