@@ -66,6 +66,8 @@ public:
     } else {
       this->Visit(stmt);
     }
+
+    _stmt_handler.VisitAtFunctionExit(stmt);
   }
 
   // generate individual Visit##CLASS method

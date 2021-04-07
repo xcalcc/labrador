@@ -42,6 +42,11 @@ public:
     _rest.VisitFunctionBody(stmt);
   }
 
+  void VisitAtFunctionExit(const clang::Stmt *stmt) {
+    _first.VisitAtFunctionExit(stmt);
+    _rest.VisitAtFunctionExit(stmt);
+  }
+
 };  // StmtListHandler
 
 // class StmtListHandler with single template parameters as handlers
@@ -63,6 +68,10 @@ public:
 
   void VisitFunctionBody(const clang::Stmt *stmt) {
     _first.VisitFunctionBody(stmt);
+  }
+
+  void VisitAtFunctionExit(const clang::Stmt *stmt) {
+    _first.VisitAtFunctionExit(stmt);
   }
 
 };  // StmtListHandler

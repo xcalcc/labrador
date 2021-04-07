@@ -24,6 +24,9 @@ public:
 private:
   bool _is_single_asm_stmt;
 
+  bool _func_has_return_stmt;
+
+
   // check add overflow
   bool AddOverflowed(int a, int b);
 
@@ -352,6 +355,17 @@ private:
    */
   void CheckNullStmt(const clang::NullStmt *stmt);
 
+  /*
+   * GJB5369: 4.9.1.1
+   * return statement is necessary for a function
+   * @param: initial
+   *  if "initial" is true, it means that it's caller is VisitFunctionBody().
+   *  Otherwise, its caller is VisitAtFunctionExit().
+   */
+  void CheckReturnStmt(const clang::Stmt *stmt, bool initial);
+
+  void CheckReturnStmt(const clang::ReturnStmt *stmt);
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -395,6 +409,7 @@ public:
 
   void VisitFunctionBody(const clang::Stmt *stmt) {
     CheckAsmInProcedure(stmt);
+    CheckReturnStmt(stmt, true);
   }
 
   void VisitGCCAsmStmt(const clang::GCCAsmStmt *stmt) {
@@ -448,7 +463,15 @@ public:
     CheckNullStmt(stmt);
   }
 
+  void VisitReturnStmt(const clang::ReturnStmt *stmt) {
+    CheckReturnStmt(stmt);
+  }
+
   void VisitCompoundStmt(const clang::CompoundStmt *stmt) {
+  }
+
+  void VisitAtFunctionExit(const clang::Stmt *stmt) {
+    CheckReturnStmt(stmt, false);
   }
 }; // GJB5369StmtRule
 

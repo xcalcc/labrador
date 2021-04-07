@@ -40,6 +40,8 @@ public:
 
   void VisitFunctionBody(const clang::Stmt *stmt) {}
 
+  void VisitAtFunctionExit(const clang::Stmt *stmt) {}
+
 };  // StmtNullHandler
 
 }  // namespace xsca
