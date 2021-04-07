@@ -431,6 +431,12 @@ private:
     }
   }
 
+  /*
+   * GJB5369: 4.11.2.2
+   * avoid using break in a loop
+   */
+  void CheckBreakInLoop(const clang::BreakStmt *stmt);
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -547,6 +553,10 @@ public:
   void VisitAtFunctionExit(const clang::Stmt *stmt) {
     _current_function_decl = nullptr;
     CheckReturnStmt(stmt, false);
+  }
+
+  void VisitBreakStmt(const clang::BreakStmt *stmt) {
+    CheckBreakInLoop(stmt);
   }
 
 public:

@@ -1067,8 +1067,16 @@ void GJB5369StmtRule::CheckNullStmt(const clang::NullStmt *stmt) {
  */
 void GJB5369StmtRule::CheckReturnStmt(const clang::Stmt *stmt, bool initial) {
   if (initial) {
-    _func_has_return_stmt = false;
+    if (_current_function_decl->getReturnType()->isVoidType()) {
+      _func_has_return_stmt = true;
+    } else {
+      _func_has_return_stmt = false;
+    }
     return;
+  }
+
+  if (_func_has_return_stmt) {
+      /* Check last statement. */
   }
 
   if (!_func_has_return_stmt) {
@@ -1167,6 +1175,19 @@ void GJB5369StmtRule::CheckLoopVariable(const clang::ForStmt *stmt) {
     issue->SetRefMsg(ref_msg);
     issue->AddStmt(init_stmt);
   }
+}
+
+/*
+ * GJB5369: 4.11.2.2
+ * avoid using break in a loop
+ */
+void GJB5369StmtRule::CheckBreakInLoop(const clang::BreakStmt *stmt) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  issue = report->ReportIssue(GJB5369, G5_4_11_2_2, stmt);
+  std::string ref_msg = "Avoid using break in a loop";
+  issue->SetRefMsg(ref_msg);
 }
 
 
