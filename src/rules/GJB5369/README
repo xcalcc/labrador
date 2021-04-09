@@ -145,11 +145,11 @@ Rule		Kind		Implementation
 4.12.2.3    Stmt        CheckConditionalOperType
 --------------+------------------------------------------------
 4.13.1.1    Decl        CheckEnumDeclInit
-4.13.1.2
-4.13.1.3
-4.13.1.4
+4.13.1.2    Stmt        CheckRecordInitType
+4.13.1.3                Have no idea😢
+4.13.1.4    Decl        CheckUsedBeforeInit         // TODO: Need refine -> with false positive:
 --------------+------------------------------------------------
-4.14.1.1
+4.14.1.1    Stmt        CheckComparingRealNumber
 4.14.1.2
 4.14.1.3
 4.14.2.1

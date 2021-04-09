@@ -258,34 +258,41 @@ void GJB5369StmtRule::CheckAsmInProcedure(const clang::GCCAsmStmt *stmt) {
  * TODO: The '\' has been killed.
  */
 void GJB5369StmtRule::CheckStringLiteralEnd(const clang::StringLiteral *stmt) {
-#if 0
-  std::string init_val = stmt->getString().str();
-  if (init_val[init_val.size() - 1] != '\0') {
-    std::string::size_type pos = 0;
-    bool need_report = false;
-    do {
-      if (init_val[pos] != '\\') {
-        ++pos;
+  if (stmt->getLength() == 0) return;
+  auto start_loc = stmt->getBeginLoc();
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  const char *start = src_mgr->getCharacterData(start_loc);
+  const char *end = stmt->getLength() + start;
+
+  bool need_report = false, pre_is_backslash = false, found_single_backslash = false;
+  do {
+    if (*start != '\\') {
+      ++start;
+      pre_is_backslash = false;
+      continue;
+    } else {
+      pre_is_backslash = true;
+      ++start;  // eat '\'
+      if (!std::isspace(*start) || *start == 0) {
+        pre_is_backslash = *start == '\\';
+        start++;
         continue;
       } else {
-        if (!std::isspace(init_val[++pos])) {
-          pos++;
-          continue;
-        } else {
-          need_report = true;
-        }
+        pre_is_backslash = *start == '\\';
+        found_single_backslash = true;
+        ++start;
       }
-    } while (pos < init_val.size());
+    }
+  } while (!(!pre_is_backslash && *start == '"'));
+  if (*(start - 1) != '0' && found_single_backslash) need_report = true;
 
-    if (!need_report) return;
-    XcalIssue *issue = nullptr;
-    XcalReport *report = XcalCheckerManager::GetReport();
+  if (!need_report) return;
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
 
-    issue = report->ReportIssue(GJB5369, G4_2_1_9, stmt);
-    std::string ref_msg = "'\\' used alone in a string is forbidden";
-    issue->SetRefMsg(ref_msg);
-  }
-#endif
+  issue = report->ReportIssue(GJB5369, G4_2_1_9, stmt);
+  std::string ref_msg = "'\\' used alone in a string is forbidden";
+  issue->SetRefMsg(ref_msg);
 }
 
 /*
