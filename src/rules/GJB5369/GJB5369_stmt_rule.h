@@ -454,6 +454,12 @@ private:
    */
   void CheckPointerCast(const clang::BinaryOperator *stmt);
 
+  /*
+   * GJB5369: 4.12.2.2
+   * avoid using unnecessary cast
+   */
+  void CheckUnnessaryCast(const clang::CStyleCastExpr *stmt);
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -575,6 +581,10 @@ public:
 
   void VisitBreakStmt(const clang::BreakStmt *stmt) {
     CheckBreakInLoop(stmt);
+  }
+
+  void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {
+    CheckUnnessaryCast(stmt);
   }
 
 public:

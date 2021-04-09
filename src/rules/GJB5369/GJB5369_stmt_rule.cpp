@@ -1076,7 +1076,7 @@ void GJB5369StmtRule::CheckReturnStmt(const clang::Stmt *stmt, bool initial) {
   }
 
   if (_func_has_return_stmt) {
-      /* Check last statement. */
+    /* Check last statement. */
   }
 
   if (!_func_has_return_stmt) {
@@ -1211,6 +1211,24 @@ void GJB5369StmtRule::CheckPointerCast(const clang::BinaryOperator *stmt) {
     issue->SetRefMsg(ref_msg);
   }
 
+}
+
+/*
+ * GJB5369: 4.12.2.2
+ * avoid using unnecessary cast
+ */
+void GJB5369StmtRule::CheckUnnessaryCast(const clang::CStyleCastExpr *stmt) {
+  auto type_kind = GetBuiltinTypeKind(stmt->getType());
+  auto sub_stmt = stmt->getSubExpr()->IgnoreParenImpCasts();
+  auto sub_kind = GetBuiltinTypeKind(sub_stmt->getType());
+  if (type_kind == sub_kind) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G5_4_12_2_2, stmt);
+    std::string ref_msg = "Avoid using unnecessary cast";
+    issue->SetRefMsg(ref_msg);
+  }
 }
 
 

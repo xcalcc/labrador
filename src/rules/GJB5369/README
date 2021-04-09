@@ -136,7 +136,7 @@ Rule		Kind		Implementation
 4.11.1.1    Stmt        CheckLoopVariable
 4.11.1.2    Stmt        CheckLoopVariable
 4.11.2.1                Need to collect the error report from clang
-4.11.2.2
+4.11.2.2    Stmt        CheckUnnessaryCast
 4.11.2.3
 --------------+------------------------------------------------
 4.12.1.1
