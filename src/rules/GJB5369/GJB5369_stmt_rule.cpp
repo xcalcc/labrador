@@ -1177,6 +1177,7 @@ void GJB5369StmtRule::CheckLoopVariable(const clang::ForStmt *stmt) {
   }
 }
 
+
 /*
  * GJB5369: 4.11.2.2
  * avoid using break in a loop
@@ -1188,6 +1189,28 @@ void GJB5369StmtRule::CheckBreakInLoop(const clang::BreakStmt *stmt) {
   issue = report->ReportIssue(GJB5369, G5_4_11_2_2, stmt);
   std::string ref_msg = "Avoid using break in a loop";
   issue->SetRefMsg(ref_msg);
+}
+
+/*
+ * GJB5369: 4.12.1.1
+ * cast on pointer is forbidden
+ */
+void GJB5369StmtRule::CheckPointerCast(const clang::BinaryOperator *stmt) {
+  if (!stmt->isAssignmentOp() && !stmt->isCompoundAssignmentOp()) return;
+
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+  if (!lhs->getType()->isPointerType()) return;
+
+  if (clang::dyn_cast<clang::CastExpr>(rhs)) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G5_4_12_1_1, stmt);
+    std::string ref_msg = "Cast on pointer is forbidden";
+    issue->SetRefMsg(ref_msg);
+  }
+
 }
 
 

@@ -448,6 +448,12 @@ private:
    */
   void CheckBreakInLoop(const clang::BreakStmt *stmt);
 
+  /*
+   * GJB5369: 4.12.1.1
+   * cast on pointer is forbidden
+   */
+  void CheckPointerCast(const clang::BinaryOperator *stmt);
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -494,6 +500,7 @@ public:
     CheckCommaStmt(stmt);
     CheckDifferentTypeArithm(stmt);
     CheckMultiCallExprInSingleStmt(stmt);
+    CheckPointerCast(stmt);
   }
 
   void VisitFunctionBody(const clang::Stmt *stmt) {
