@@ -1062,5 +1062,23 @@ void GJB5369DeclRule::CheckEnumDeclInit(const clang::EnumDecl *decl) {
 
 }
 
+/*
+ * GJB5369: 4.13.1.4
+ * value used before init is forbidden
+ */
+void GJB5369DeclRule::CheckUsedBeforeInit(const clang::VarDecl *decl) {
+  TRACE0();
+  if (decl->hasInit()) return;
+  if (decl->isUsed()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G4_13_1_4, decl);
+    std::string ref_msg = "Value used before init is forbidden: ";
+    ref_msg += decl->getNameAsString();
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 } // rule
 } // xsca

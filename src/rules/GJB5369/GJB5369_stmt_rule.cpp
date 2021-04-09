@@ -251,6 +251,43 @@ void GJB5369StmtRule::CheckAsmInProcedure(const clang::GCCAsmStmt *stmt) {
   }
 }
 
+
+/*
+ * GJB5369: 4.2.1.9
+ * '\' used alone in a string is forbidden
+ * TODO: The '\' has been killed.
+ */
+void GJB5369StmtRule::CheckStringLiteralEnd(const clang::StringLiteral *stmt) {
+#if 0
+  std::string init_val = stmt->getString().str();
+  if (init_val[init_val.size() - 1] != '\0') {
+    std::string::size_type pos = 0;
+    bool need_report = false;
+    do {
+      if (init_val[pos] != '\\') {
+        ++pos;
+        continue;
+      } else {
+        if (!std::isspace(init_val[++pos])) {
+          pos++;
+          continue;
+        } else {
+          need_report = true;
+        }
+      }
+    } while (pos < init_val.size());
+
+    if (!need_report) return;
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G4_2_1_9, stmt);
+    std::string ref_msg = "'\\' used alone in a string is forbidden";
+    issue->SetRefMsg(ref_msg);
+  }
+#endif
+}
+
 /*
  * GJB5369: 4.3.1.1
  * non-statement is forbidden as the conditional
@@ -267,7 +304,6 @@ void GJB5369StmtRule::CheckAsmInProcedure(const clang::GCCAsmStmt *stmt) {
  */
 void GJB5369StmtRule::CheckEmptyIfElseStmt(const clang::IfStmt *stmt) {
   bool need_report_if = false, need_report_else = false;
-  auto src_mgr = XcalCheckerManager::GetSourceManager();
 
   // check if-blcok
   auto _then = stmt->getThen();

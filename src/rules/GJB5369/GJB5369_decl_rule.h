@@ -244,6 +244,12 @@ private:
    */
   void CheckEnumDeclInit(const clang::EnumDecl *decl);
 
+  /*
+   * GJB5369: 4.13.1.4
+   * value used before init is forbidden
+   */
+  void CheckUsedBeforeInit(const clang::VarDecl *decl);
+
 public:
   void Finalize() {
     CheckFunctionNameReuse();
@@ -298,6 +304,7 @@ public:
     CheckFunctionPointer(decl);
     CheckIandOUsedAsVariable(decl);
     CheckRegisterVariable(decl);
+    CheckUsedBeforeInit(decl);
   }
 
   void VisitField(const clang::FieldDecl *decl) {

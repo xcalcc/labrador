@@ -88,6 +88,12 @@ private:
   void CheckAsmInProcedure(const clang::GCCAsmStmt *stmt);
 
   /*
+   * GJB5369: 4.2.1.9
+   * '\' used alone in a string is forbidden
+   */
+  void CheckStringLiteralEnd(const clang::StringLiteral *stmt);
+
+  /*
    * GJB5369: 4.3.1.1
    * non-statement is forbidden as the conditional
    * judgement is true:
@@ -530,10 +536,9 @@ public:
     CheckAsmInProcedure(stmt);
   }
 
-//  void VisitStringLiteral(const clang::StringLiteral *stmt) {
-//    TRACE0();
-//    CheckStringLiteralEnd(stmt);
-//  }
+  void VisitStringLiteral(const clang::StringLiteral *stmt) {
+    CheckStringLiteralEnd(stmt);
+  }
 
   void VisitSwitchStmt(const clang::SwitchStmt *stmt) {
     CheckSwitchWithoutDefaultStmt(stmt);

@@ -44,7 +44,7 @@ Rule		Kind		Implementation
 4.2.1.6     PP          CheckParamWithParentheses
 4.2.1.7     Stmt        CheckAsmInProcedure
 4.2.1.8     PP          CheckIncludeName
-4.2.1.9
+4.2.1.9     Stmt        CheckStringLiteralEnd       // TODO: Haven't implemented yet
 4.2.1.10    Stmt        CheckMainFunctionDefine
 --------------+------------------------------------------------
 4.2.2
