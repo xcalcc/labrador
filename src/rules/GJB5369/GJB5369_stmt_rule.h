@@ -466,6 +466,12 @@ private:
    */
   void CheckConditionalOperType(const clang::ConditionalOperator *stmt);
 
+  /*
+   * GJB5369: 4.13.1.2
+   * initial value type of struct should stay the same with struct
+   */
+  void CheckRecordInitType(const clang::InitListExpr *stmt);
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -524,10 +530,10 @@ public:
     CheckAsmInProcedure(stmt);
   }
 
-  void VisitStringLiteral(const clang::StringLiteral *stmt) {
+//  void VisitStringLiteral(const clang::StringLiteral *stmt) {
 //    TRACE0();
 //    CheckStringLiteralEnd(stmt);
-  }
+//  }
 
   void VisitSwitchStmt(const clang::SwitchStmt *stmt) {
     CheckSwitchWithoutDefaultStmt(stmt);
@@ -592,6 +598,10 @@ public:
 
   void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {
     CheckUnnessaryCast(stmt);
+  }
+
+  void VisitInitListExpr(const clang::InitListExpr *stmt) {
+    CheckRecordInitType(stmt);
   }
 
 public:

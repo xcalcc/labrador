@@ -9,8 +9,8 @@ struct s_type_a {
 };
 
 void static_p(void) {
-    /* The type of xs is float. */
-  struct s_type_a_sta {
-    3.14f, 0.0f
+  /* The type of xs is float. */
+  struct s_type_a s_type_a_sta = {
+      3.14f, 0.0f
   };
 }

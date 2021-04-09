@@ -1177,8 +1177,6 @@ void GJB5369StmtRule::CheckLoopVariable(const clang::ForStmt *stmt) {
   }
 }
 
-
-
 /*
  * GJB5369: 4.11.2.2
  * avoid using break in a loop
@@ -1258,6 +1256,27 @@ void GJB5369StmtRule::CheckConditionalOperType(const clang::ConditionalOperator 
     issue->AddStmt(rhs);
   }
 
+}
+
+/*
+ * GJB5369: 4.13.1.2
+ * initial value type of struct should stay the same with struct
+ * TODO: Can't get struct decl here. Thus, we can't match each field's and init-value's type.
+ */
+void GJB5369StmtRule::CheckRecordInitType(const clang::InitListExpr *stmt) {
+  if (!stmt->getType()->isRecordType()) return;
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  for (const auto &it: stmt->children()) {
+    if (it->getStmtClass() == clang::Stmt::StmtClass::ImplicitCastExprClass) {
+      if (issue == nullptr) {
+        issue = report->ReportIssue(GJB5369, G4_13_1_2, stmt);
+        std::string ref_msg = "Initial value type of struct should stay the same with struct";
+        issue->SetRefMsg(ref_msg);
+      }
+      issue->AddStmt(&(*it));
+    }
+  }
 }
 
 

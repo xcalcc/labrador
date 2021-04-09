@@ -1062,6 +1062,5 @@ void GJB5369DeclRule::CheckEnumDeclInit(const clang::EnumDecl *decl) {
 
 }
 
-
 } // rule
 } // xsca
