@@ -135,16 +135,16 @@ Rule		Kind		Implementation
 --------------+------------------------------------------------
 4.11.1.1    Stmt        CheckLoopVariable
 4.11.1.2    Stmt        CheckLoopVariable
-4.11.2.1                Need to collect the error report from clang
-4.11.2.2    Stmt        CheckUnnessaryCast
-4.11.2.3    Stmt        CheckConditionalOperType
+4.11.2.1                CheckInfiniteLoop
+4.11.2.2    Stmt        CheckBreakInLoop
+4.11.2.3    Stmt        CheckInfiniteLoop
 --------------+------------------------------------------------
-4.12.1.1
-4.12.2.1
-4.12.2.2
-4.12.2.3
+4.12.1.1    Stmt        CheckPointerCast
+4.12.2.1                Need to collect the error report from clang
+4.12.2.2    Stmt        CheckUnnessaryCast
+4.12.2.3    Stmt        CheckConditionalOperType
 --------------+------------------------------------------------
-4.13.1.1
+4.13.1.1    Decl        CheckEnumDeclInit
 4.13.1.2
 4.13.1.3
 4.13.1.4
