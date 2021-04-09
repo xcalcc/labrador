@@ -413,7 +413,7 @@ private:
         XcalIssue *issue = nullptr;
         XcalReport *report = XcalCheckerManager::GetReport();
 
-        issue = report->ReportIssue(GJB5369, G5_4_11_2_3, stmt);
+        issue = report->ReportIssue(GJB5369, G4_11_2_3, stmt);
         std::string ref_msg = "Avoid using uncontrollable loop value";
         issue->SetRefMsg(ref_msg);
       }
@@ -436,7 +436,7 @@ private:
       XcalIssue *issue = nullptr;
       XcalReport *report = XcalCheckerManager::GetReport();
 
-      issue = report->ReportIssue(GJB5369, G5_4_11_2_1, stmt);
+      issue = report->ReportIssue(GJB5369, G4_11_2_1, stmt);
       std::string ref_msg = "Avoid using infinite loop";
       issue->SetRefMsg(ref_msg);
     }
@@ -459,6 +459,12 @@ private:
    * avoid using unnecessary cast
    */
   void CheckUnnessaryCast(const clang::CStyleCastExpr *stmt);
+
+  /*
+   * GJB5369: 4.12.2.3
+   * pay attention to the type of operator of binocular operation
+   */
+  void CheckConditionalOperType(const clang::ConditionalOperator *stmt);
 
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
@@ -560,6 +566,7 @@ public:
 
   void VisitConditionalOperator(const clang::ConditionalOperator *stmt) {
     CheckBinocularOper(stmt);
+    CheckConditionalOperType(stmt);
   }
 
   void VisitNullStmt(const clang::NullStmt *stmt) {

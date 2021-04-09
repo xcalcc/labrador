@@ -18,7 +18,7 @@
 //     "path": "filename.c"
 //   }
 // ]
-// ["A10"],[key],[filename][fid:line],[SML],[D],[G5_4_2_1_7],[1,0,0],[var/typename],[funcname],[fid:line:path,fid:line:path,...]
+// ["A10"],[key],[filename][fid:line],[SML],[D],[G4_2_1_7],[1,0,0],[var/typename],[funcname],[fid:line:path,fid:line:path,...]
 //
 // stdout format:
 // filename.c:line:column: GJB5369:4.1.1.1 msg
