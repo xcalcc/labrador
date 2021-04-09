@@ -255,7 +255,6 @@ void GJB5369StmtRule::CheckAsmInProcedure(const clang::GCCAsmStmt *stmt) {
 /*
  * GJB5369: 4.2.1.9
  * '\' used alone in a string is forbidden
- * TODO: The '\' has been killed.
  */
 void GJB5369StmtRule::CheckStringLiteralEnd(const clang::StringLiteral *stmt) {
   if (stmt->getLength() == 0) return;

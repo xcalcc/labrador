@@ -484,6 +484,39 @@ private:
    */
   void CheckComparingRealNumber(const clang::BinaryOperator *stmt);
 
+  /*
+   * GJB5369: 4.14.1.2
+   * Logical discriminant can only be logical expression
+   */
+  template<typename _STMT_CLASS>
+  void CheckLogicalDiscriminant(_STMT_CLASS *stmt) {
+    bool need_report = false;
+    const clang::Expr *cond = nullptr;
+
+    if (auto for_stmt = clang::dyn_cast<clang::ForStmt>(stmt)) {
+      cond = for_stmt->getCond()->IgnoreParenImpCasts();
+    } else if (auto while_stmt = clang::dyn_cast<clang::WhileStmt>(stmt)) {
+      cond = while_stmt->getCond()->IgnoreParenImpCasts();
+    } else if (auto do_stmt = clang::dyn_cast<clang::DoStmt>(stmt)) {
+      cond = do_stmt->getCond()->IgnoreParenImpCasts();
+    } else if (auto if_stmt = clang::dyn_cast<clang::IfStmt>(stmt)) {
+      cond = if_stmt->getCond()->IgnoreParenImpCasts();
+    }
+    else {
+      DBG_WARN(1, "Cast loop-cond failed");
+    }
+
+    if (cond == nullptr) return;
+    if (!cond->getType()->isBooleanType()) {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+
+      issue = report->ReportIssue(GJB5369, G4_14_1_2, stmt);
+      std::string ref_msg = "Logical discriminant can only be logical expression";
+      issue->SetRefMsg(ref_msg);
+    }
+  }
+
 
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
@@ -493,16 +526,19 @@ public:
   void VisitWhileStmt(const clang::WhileStmt *stmt) {
     CheckLoopBrace(stmt);
     CheckInfiniteLoop<const clang::WhileStmt>(stmt);
+    CheckLogicalDiscriminant<const clang::WhileStmt>(stmt);
   }
 
   void VisitForStmt(const clang::ForStmt *stmt) {
     CheckLoopBrace(stmt);
     CheckLoopVariable(stmt);
     CheckInfiniteLoop<const clang::ForStmt>(stmt);
+    CheckLogicalDiscriminant<const clang::ForStmt>(stmt);
   }
 
   void VisitDoStmt(const clang::DoStmt *stmt) {
     CheckInfiniteLoop<const clang::DoStmt>(stmt);
+    CheckLogicalDiscriminant<const clang::DoStmt>(stmt);
   }
 
   void VisitIfStmt(const clang::IfStmt *stmt) {
@@ -512,6 +548,7 @@ public:
     CheckAssignInLogicExpr(stmt);
     CheckFalseIfContidion(stmt);
     CheckUsingFunctionNotByCalling(stmt);
+    CheckLogicalDiscriminant<const clang::IfStmt>(stmt);
   }
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
