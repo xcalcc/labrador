@@ -1065,9 +1065,14 @@ void GJB5369DeclRule::CheckEnumDeclInit(const clang::EnumDecl *decl) {
 /*
  * GJB5369: 4.13.1.4
  * value used before init is forbidden
+ * TODO: Need refine -> with false positive:
+ * int x;
+ * int y = 2;
+ * int z;
+ * x = 3;
+ * z = x;
  */
 void GJB5369DeclRule::CheckUsedBeforeInit(const clang::VarDecl *decl) {
-  TRACE0();
   if (decl->hasInit()) return;
   if (decl->isUsed()) {
     XcalIssue *issue = nullptr;
