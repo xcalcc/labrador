@@ -139,6 +139,8 @@ public:
   #define ENUM(DERIVED, BASE)
   #define FUNCTION(DERIVED, BASE)
   #define RECORD(DERIVED, BASE)
+
+//  #define VAR(DERIVED, BASE)
   # include "clang/AST/DeclNodes.inc"
 
   // general Visit method
@@ -154,6 +156,13 @@ public:
     default:
       TRACE("TODO: handle %s\n", decl->getDeclKindName());
       break;
+    }
+
+    if (decl->getKind() == clang::Decl::Var) {
+      const auto *var_decl = clang::dyn_cast<clang::VarDecl>(decl);
+      if (var_decl && var_decl->hasInit()) {
+        _stmt_visitor.Visit(var_decl->getInit());
+      }
     }
   }
 };  // XcalDeclVisitor
