@@ -1011,6 +1011,56 @@ void GJB5369DeclRule::CheckRegisterVariable(const clang::VarDecl *decl) {
   }
 }
 
+/*
+ * GJB5369: 4.13.1.1
+ * initial value is a must for the enum
+ */
+void GJB5369DeclRule::CheckEnumDeclInit(const clang::EnumDecl *decl) {
+  auto enum_begin = decl->enumerator_begin();
+  auto enum_end = decl->enumerator_end();
+  auto init_expr = enum_begin->getInitExpr();
+
+  bool need_report = false;
+  if (init_expr == nullptr) { need_report = true; }
+  else {
+    enum_begin++;
+
+    if (enum_begin != enum_end) {
+      // check the second
+      bool init_all = false;
+      init_expr = enum_begin->getInitExpr();
+      if (init_expr == nullptr) {
+        init_all = false;
+      } else {
+        init_all = true;
+      }
+      enum_begin++;
+      if (enum_begin != enum_end) {
+        for (; enum_begin != enum_end; enum_begin++) {
+          init_expr = enum_begin->getInitExpr();
+          if (init_all) {
+            if (init_expr == nullptr) need_report = true;
+          } else {
+            if (init_expr != nullptr) need_report = true;
+          }
+        }
+      }
+
+    }
+
+  }
+
+  if (need_report) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G4_13_1_1, decl);
+    std::string ref_msg = "Initial value is a must for the enum: ";
+    ref_msg += decl->getNameAsString();
+    issue->SetRefMsg(ref_msg);
+  }
+
+}
 
 
 } // rule

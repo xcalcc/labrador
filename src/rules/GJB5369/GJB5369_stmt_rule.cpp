@@ -1178,6 +1178,7 @@ void GJB5369StmtRule::CheckLoopVariable(const clang::ForStmt *stmt) {
 }
 
 
+
 /*
  * GJB5369: 4.11.2.2
  * avoid using break in a loop
