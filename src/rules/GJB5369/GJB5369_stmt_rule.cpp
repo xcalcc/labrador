@@ -1315,6 +1315,28 @@ void GJB5369StmtRule::CheckRecordInitType(const clang::InitListExpr *stmt) {
   }
 }
 
+/*
+ * GJB5369: 4.14.1.1
+ * avoid comparing two real numbers
+ */
+void GJB5369StmtRule::CheckComparingRealNumber(const clang::BinaryOperator *stmt) {
+  if (!stmt->isComparisonOp()) return;
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+  auto lhs_type = lhs->getType();
+  auto rhs_type = rhs->getType();
+  if (lhs_type->isRealFloatingType() || rhs_type->isRealFloatingType()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G4_14_1_1, stmt);
+    std::string ref_msg = "Avoid comparing two real numbers";
+    issue->SetRefMsg(ref_msg);
+    issue->AddStmt(lhs);
+    issue->AddStmt(rhs);
+  }
+}
+
 
 } // rule
 } // xsca
