@@ -268,6 +268,12 @@ private:
    */
   void CheckParamNameCollideWithTypeName();
 
+  /*
+   * GJB5369: 4.15.1.5
+   * redefining the exist variable is frobidden
+   */
+  void CheckVariableRedefine();
+
 
 public:
   void Finalize() {
@@ -278,6 +284,7 @@ public:
     CheckEnumNameDuplicate();
     CheckLocalVarCollideWithGlobal();
     CheckParamNameCollideWithTypeName();
+    CheckVariableRedefine();
   }
 
   void VisitFunction(const clang::FunctionDecl *decl) {
