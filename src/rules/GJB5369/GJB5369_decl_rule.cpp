@@ -1204,6 +1204,45 @@ void GJB5369DeclRule::CheckParamNameCollideWithTypeName() {
 
 }
 
+/*
+ * GJB5369: 4.15.1.5
+ * redefining the exist variable is forbidden
+ */
+void GJB5369DeclRule::CheckVariableRedefine() {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+
+  using IdentifierKind = IdentifierManager::IdentifierKind;
+  constexpr uint32_t kind = IdentifierKind::VAR;
+
+  for (const auto &it : top_scope->Children()) {
+    if (it->GetScopeKind() != SK_FUNCTION) continue;
+    it->TraverseAll<kind,
+        const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+        [&issue, &report, &it](const std::string &var_name, const clang::Decl *decl, IdentifierManager *id_mgr) {
+          auto cur_scope = id_mgr->scope();
+          if (cur_scope->Children().empty()) return;
+          for (const auto &block : cur_scope->Children()) {
+            if (block->HasVariableName<true>(var_name)) {
+              if (issue == nullptr) {
+                issue = report->ReportIssue(GJB5369, G4_15_1_5, decl);
+                std::string ref_msg = "Redefining the exist variable is forbidden: ";
+                ref_msg += var_name;
+                issue->SetRefMsg(ref_msg);
+              } else {
+                issue->AddDecl(decl);
+              }
+
+            }
+          }
+        }, true);
+  }
+
+}
+
 
 } // rule
 } // xsca

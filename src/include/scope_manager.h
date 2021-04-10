@@ -151,6 +151,7 @@ public:
   template<bool _RECURSIVE>
   void GetVariables(const std::string &var_name, std::vector<const clang::VarDecl *> &) const;
 
+  /* Get typedefs name and decl pair */
   template<bool _RECURSIVE>
   void GetTypedefs(const std::string &typedef_name, std::vector<const clang::TypedefDecl *> &) const;
 
@@ -248,6 +249,9 @@ public:
   /* Check if source location in the function define range. */
   bool InFunctionRange(clang::SourceLocation Loc) const;
 
+  /* Get LexicalScpoe */
+  LexicalScope *scope() { return _scope; };
+
 };  // IdentifierManager
 
 // class LexicalScope
@@ -338,11 +342,13 @@ public:
     return _children.back().get();
   }
 
+  /* Get variables' name and decl pairs */
   template<bool _RECURSIVE>
   void GetVariables(const std::string &var_name, std::vector<const clang::VarDecl *> &variables) const {
     _identifiers->GetVariables<_RECURSIVE>(var_name, variables);
   }
 
+  /* Get typedefs's name and decl pairs */
   template<bool _RECURSIVE>
   void GetTypeDefs(const std::string &typedef_name, std::vector<const clang::TypedefDecl *> &typedefs) const {
     _identifiers->GetTypedefs<_RECURSIVE>(typedef_name, typedefs);
@@ -480,12 +486,21 @@ IdentifierManager::HasVariableName(const std::string &var_name) const {
   return res;
 }  // IdentifierManager::HasVariableName
 
+/* Get variables' name and decl pairs
+ * return all VarDecls if var_name == ""
+ */
 template<bool _RECURSIVE>
 void IdentifierManager::GetVariables(const std::string &var_name,
          std::vector<const clang::VarDecl *> &variables) const {
-  for (const auto &it : this->_id_to_var) {
-    if (var_name == it.first) {
+  if (var_name.empty()) {
+    for (const auto &it : this->_id_to_var) {
       variables.push_back(it.second);
+    }
+  } else {
+    for (const auto &it : this->_id_to_var) {
+      if (var_name == it.first) {
+        variables.push_back(it.second);
+      }
     }
   }
 
@@ -497,6 +512,9 @@ void IdentifierManager::GetVariables(const std::string &var_name,
   }
 }
 
+/* Get variables' name and decl pairs
+ * return all TypedefDecls if typedef_name == ""
+ */
 template<bool _RECURSIVE>
 void IdentifierManager::GetTypedefs(const std::string &typedef_name,
         std::vector<const clang::TypedefDecl *> &typedefs) const {
