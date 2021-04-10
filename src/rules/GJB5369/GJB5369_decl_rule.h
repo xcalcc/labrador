@@ -250,12 +250,26 @@ private:
    */
   void CheckUsedBeforeInit(const clang::VarDecl *decl);
 
+   /*
+    * GJB5369: 4.15.1.1
+    * enum name should not be collide with global variable
+    */
+  void CheckEnumNameDuplicate();
+
+  /*
+   * GJB5369: 4.15.1.2
+   * local variable name should be different from the global variable
+   */
+  void CheckLocalVarCollideWithGlobal();
+
 public:
   void Finalize() {
     CheckFunctionNameReuse();
     CheckVariableNameReuse();
     CheckKeywordRedefine();
     CheckTypedefRedefine();
+    CheckEnumNameDuplicate();
+    CheckLocalVarCollideWithGlobal();
   }
 
   void VisitFunction(const clang::FunctionDecl *decl) {
