@@ -262,6 +262,13 @@ private:
    */
   void CheckLocalVarCollideWithGlobal();
 
+  /*
+   * GJB5369: 4.15.1.4
+   * formal parameter's name should be different with typename or identifier
+   */
+  void CheckParamNameCollideWithTypeName();
+
+
 public:
   void Finalize() {
     CheckFunctionNameReuse();
@@ -270,6 +277,7 @@ public:
     CheckTypedefRedefine();
     CheckEnumNameDuplicate();
     CheckLocalVarCollideWithGlobal();
+    CheckParamNameCollideWithTypeName();
   }
 
   void VisitFunction(const clang::FunctionDecl *decl) {

@@ -151,6 +151,9 @@ public:
   template<bool _RECURSIVE>
   void GetVariables(const std::string &var_name, std::vector<const clang::VarDecl *> &) const;
 
+  template<bool _RECURSIVE>
+  void GetTypedefs(const std::string &typedef_name, std::vector<const clang::TypedefDecl *> &) const;
+
   /* Check if the identifier is the C/C++ keywords. */
   bool IsKeyword(const std::string &var_name) const;
 
@@ -340,6 +343,11 @@ public:
     _identifiers->GetVariables<_RECURSIVE>(var_name, variables);
   }
 
+  template<bool _RECURSIVE>
+  void GetTypeDefs(const std::string &typedef_name, std::vector<const clang::TypedefDecl *> &typedefs) const {
+    _identifiers->GetTypedefs<_RECURSIVE>(typedef_name, typedefs);
+  }
+
   // Get parent scope
   LexicalScope *Parent() const {
     DBG_ASSERT(_parent != nullptr, "parent scope is null");
@@ -485,6 +493,29 @@ void IdentifierManager::GetVariables(const std::string &var_name,
     if (_scope->Children().empty()) return;
     for (const auto &it : _scope->Children()) {
       it->GetVariables<true>(var_name, variables);
+    }
+  }
+}
+
+template<bool _RECURSIVE>
+void IdentifierManager::GetTypedefs(const std::string &typedef_name,
+        std::vector<const clang::TypedefDecl *> &typedefs) const {
+  if (typedef_name.empty()) {
+    for (const auto &it : this->_id_to_typedef) {
+      typedefs.push_back(it.second);
+    }
+  } else {
+   for (const auto &it : this->_id_to_typedef) {
+     if (typedef_name == it.first) {
+       typedefs.push_back(it.second);
+     }
+   }
+  }
+
+  if (_RECURSIVE) {
+    if (_scope->Children().empty()) return;
+    for (const auto &it : _scope->Children()) {
+      it->GetTypeDefs<true>(typedef_name, typedefs);
     }
   }
 }

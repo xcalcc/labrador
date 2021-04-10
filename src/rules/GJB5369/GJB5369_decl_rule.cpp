@@ -1118,9 +1118,11 @@ void GJB5369DeclRule::CheckEnumNameDuplicate() {
 /*
  * GJB5369: 4.15.1.2
  * local variable name should be different from the global variable
+ * GJB5369: 4.15.1.3
+ * formal parameter's name should be different from global variable
  */
 void GJB5369DeclRule::CheckLocalVarCollideWithGlobal() {
-  XcalIssue *issue = nullptr;
+  XcalIssue *var_issue = nullptr, *param_issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
 
   auto scope_mgr = XcalCheckerManager::GetScopeManager();
@@ -1133,21 +1135,75 @@ void GJB5369DeclRule::CheckLocalVarCollideWithGlobal() {
     if (it->GetScopeKind() != SK_FUNCTION) continue;
     it->TraverseAll<kind,
         const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
-        [&issue, &report, &top_scope](const std::string &var_name, const clang::Decl *decl, IdentifierManager *id_mgr) {
+        [&](const std::string &var_name, const clang::Decl *decl, IdentifierManager *id_mgr) {
           if (top_scope->HasVariableName<false>(var_name)) {
-            if (issue == nullptr) {
-              issue = report->ReportIssue(GJB5369, G4_15_1_2, decl);
-              std::string ref_msg = "Local variable name should be different from the global variable: ";
-              ref_msg += clang::dyn_cast<clang::VarDecl>(decl)->getNameAsString();
-              issue->SetRefMsg(ref_msg);
+
+            if (auto param_decl = clang::dyn_cast<clang::ParmVarDecl>(decl)) {
+              if (param_issue == nullptr) {
+                param_issue = report->ReportIssue(GJB5369, G4_15_1_3, decl);
+
+                std::string ref_msg = "Formal parameter's name should be different from global variable: ";
+                ref_msg += param_decl->getNameAsString();
+                param_issue->SetRefMsg(ref_msg);
+              } else {
+                param_issue->AddDecl(param_decl);
+              }
             } else {
-              issue->AddDecl(decl);
+              if (var_issue == nullptr) {
+                var_issue = report->ReportIssue(GJB5369, G4_15_1_2, decl);
+                std::string ref_msg = "Local variable name should be different from the global variable: ";
+                ref_msg += clang::dyn_cast<clang::VarDecl>(decl)->getNameAsString();
+                var_issue->SetRefMsg(ref_msg);
+              } else {
+                var_issue->AddDecl(decl);
+              }
             }
           }
+
         },
         true);
   }
 }
+
+/*
+ * GJB5369: 4.15.1.4
+ * formal parameter's name should be different with typename or identifier
+ */
+void GJB5369DeclRule::CheckParamNameCollideWithTypeName() {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+
+  using IdentifierKind = IdentifierManager::IdentifierKind;
+  constexpr uint32_t kind = IdentifierKind::FUNCTION;
+
+  std::vector<const clang::TypedefDecl *> typedefs;
+  top_scope->GetTypeDefs<true>("", typedefs);
+  top_scope->TraverseAll<kind,
+      const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+      [&](const std::string &func_name, const clang::Decl *decl, IdentifierManager *id_mgr) {
+        auto func_decl = clang::dyn_cast<clang::FunctionDecl>(decl);
+        std::string param_name;
+        for (const auto &param : func_decl->parameters()) {
+          param_name = param->getNameAsString();
+          for (const auto &type : typedefs) {
+            if (param_name == type->getNameAsString()) {
+              if (issue == nullptr) {
+                issue = report->ReportIssue(GJB5369, G4_15_1_4, decl);
+                std::string ref_msg = "Formal parameter's name should be different with typename or identifier: ";
+                ref_msg += param_name;
+                issue->SetRefMsg(ref_msg);
+              }
+              issue->AddDecl(&(*param));
+            }
+          }
+        }
+      }, true);
+
+}
+
 
 } // rule
 } // xsca

@@ -23,7 +23,6 @@ bool IdentifierManager::IsKeyword(const std::string &var_name) const {
 
 bool IdentifierManager::InFunctionRange(clang::SourceLocation Loc) const {
   clang::SourceLocation start_loc, end_loc;
-  auto src_mgr = XcalCheckerManager::GetSourceManager();
 
   for (const auto &it : _id_to_func) {
     start_loc = it.second->getBeginLoc();

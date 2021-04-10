@@ -42,6 +42,7 @@ public:
     scope_mgr->GlobalScope()->AddIdentifier<clang::FunctionDecl>(decl);
 
     /* Add FuncParamDecl to the lexical scope. */
+    // TODO: Is this useless? not so sure
     for (const auto &it : decl->parameters()) {
       if (clang::dyn_cast<clang::VarDecl>(it)) {
         scope_mgr->CurrentScope()->AddIdentifier<clang::VarDecl>(
