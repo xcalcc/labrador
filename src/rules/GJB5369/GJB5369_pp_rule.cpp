@@ -15,8 +15,11 @@
 
 namespace xsca {
 namespace rule {
+
 /* GJB5369: 4.1.1.11
  * Using '#' and '##' in the same macro is forbidden
+ * GJB5369: 4.15.2.2
+ * using ## and # carefully in macro
  */
 void GJB5369PPRule::CheckMultipleSharp(const clang::MacroDirective *MD) {
   auto src_mgr = XcalCheckerManager::GetSourceManager();
@@ -49,6 +52,11 @@ void GJB5369PPRule::CheckMultipleSharp(const clang::MacroDirective *MD) {
   if (tokens.size() >= 2) {
     REPORT("GJB5396:4.1.1.11: Using '#' and '##' in the same macro is "
            "forbidden: %s\n",
+           macro_loc.printToString(*src_mgr).c_str());
+  }
+
+  if (!tokens.empty()) {
+    REPORT("GJB5396:4.15.2.2: Using ## and # carefully in macro : %s\n",
            macro_loc.printToString(*src_mgr).c_str());
   }
 }
