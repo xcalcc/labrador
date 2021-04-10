@@ -162,4 +162,4 @@ Rule		Kind		Implementation
 4.15.1.5    Decl        CheckVariableRedefine
 4.15.1.6    Decl        CheckVolatileTypeVar
 4.15.2.1    Decl        CheckNonANSIChar
-4.15.2.2
+4.15.2.2    PP          CheckMultipleSharp

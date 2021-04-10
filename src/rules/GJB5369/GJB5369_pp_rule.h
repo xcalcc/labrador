@@ -26,6 +26,8 @@ public:
 private:
   /* GJB5369: 4.1.1.11
    * Using '#' and '##' in the same macro is forbidden
+   * GJB5369: 4.15.2.2
+   * using ## and # carefully in macro
    */
   void CheckMultipleSharp(const clang::MacroDirective *MD);
 
