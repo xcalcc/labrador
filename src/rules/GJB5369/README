@@ -157,8 +157,8 @@ Rule		Kind		Implementation
 --------------+------------------------------------------------
 4.15.1.1    Decl        CheckEnumNameDuplicate
 4.15.1.2    Decl        CheckLocalVarCollideWithGlobal
-4.15.1.3
-4.15.1.4
+4.15.1.3    Decl        CheckLocalVarCollideWithGlobal
+4.15.1.4    Decl        CheckParamNameCollideWithTypeName
 4.15.1.5
 4.15.1.6
 4.15.2.1
