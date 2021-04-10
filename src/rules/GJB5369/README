@@ -160,6 +160,6 @@ Rule		Kind		Implementation
 4.15.1.3    Decl        CheckLocalVarCollideWithGlobal
 4.15.1.4    Decl        CheckParamNameCollideWithTypeName
 4.15.1.5    Decl        CheckVariableRedefine
-4.15.1.6
-4.15.2.1
+4.15.1.6    Decl        CheckVolatileTypeVar
+4.15.2.1    Decl        CheckNonANSIChar
 4.15.2.2

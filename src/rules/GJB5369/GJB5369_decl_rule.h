@@ -274,6 +274,19 @@ private:
    */
   void CheckVariableRedefine();
 
+  /*
+   * GJB5369: 4.15.1.6
+   * using volatile type in complex in statement is forbidden
+   */
+  void CheckVolatileTypeVar(const clang::VarDecl *decl);
+
+  /*
+   * GJB5369: 4.15.2.1
+   * using non-ANSI char carefully
+   */
+  void CheckNonANSIChar(const clang::VarDecl *decl);
+
+
 
 public:
   void Finalize() {
@@ -334,6 +347,8 @@ public:
     CheckIandOUsedAsVariable(decl);
     CheckRegisterVariable(decl);
     CheckUsedBeforeInit(decl);
+    CheckVolatileTypeVar(decl);
+    CheckNonANSIChar(decl);
   }
 
   void VisitField(const clang::FieldDecl *decl) {

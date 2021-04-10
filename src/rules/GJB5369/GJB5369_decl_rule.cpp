@@ -1240,7 +1240,62 @@ void GJB5369DeclRule::CheckVariableRedefine() {
           }
         }, true);
   }
+}
 
+/*
+ * GJB5369: 4.15.1.6
+ * using volatile type in complex in statement is forbidden
+ */
+void GJB5369DeclRule::CheckVolatileTypeVar(const clang::VarDecl *decl) {
+  if (decl->getType().isVolatileQualified()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB5369, G4_15_1_6, decl);
+    std::string ref_msg = "Using volatile type in complex in statement is forbidden: ";
+    ref_msg += decl->getNameAsString();
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+/*
+ * GJB5369: 4.15.2.1
+ * using non-ANSI char carefully
+ */
+
+void GJB5369DeclRule::CheckNonANSIChar(const clang::VarDecl *decl) {
+  if (!decl->getType()->isCharType() || !decl->hasInit()) return;
+  bool need_report = false;
+  auto init_stmt = decl->getInit()->IgnoreParenImpCasts();
+
+  if (auto int_literal = clang::dyn_cast<clang::IntegerLiteral>(init_stmt)) {
+    int value;
+    clang::Expr::EvalResult eval_result;
+    auto ctx = XcalCheckerManager::GetAstContext();
+
+    // try to fold the const expr
+    if (init_stmt->EvaluateAsInt(eval_result, *ctx)) {
+      value = eval_result.Val.getInt().getZExtValue();
+    } else {
+      value = int_literal->getValue().getZExtValue();
+    }
+    if (value > 127) {
+      need_report = true;
+    }
+  } else if (auto char_literal = clang::dyn_cast<clang::CharacterLiteral>(init_stmt)) {
+    unsigned char value = char_literal->getValue();
+    if (value > 127) {
+      need_report = true;
+    }
+  }
+
+  if (need_report) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB5369, G4_15_2_1, decl);
+    std::string ref_msg = "Using non-ANSI char carefully: ";
+    ref_msg += decl->getNameAsString();
+    issue->SetRefMsg(ref_msg);
+  }
 }
 
 
