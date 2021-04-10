@@ -1343,6 +1343,23 @@ void GJB5369StmtRule::CheckComparingRealNumber(const clang::BinaryOperator *stmt
   }
 }
 
+/*
+ * GJB5369: 4.14.1.3
+ * logical expression is forbidden in switch statement
+ */
+void GJB5369StmtRule::CheckLogicalStmtInSwitchCond(const clang::SwitchStmt *stmt) {
+  auto cond = stmt->getCond();
+  if (cond == nullptr) return;
+  if (cond->IgnoreParenImpCasts()->getType()->isBooleanType()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G4_14_1_3, stmt);
+    std::string ref_msg = "Logical expression is forbidden in switch statement";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 } // rule
 } // xsca

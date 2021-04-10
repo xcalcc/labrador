@@ -451,6 +451,7 @@ private:
   /*
    * GJB5369: 4.11.2.2
    * avoid using break in a loop
+   * TODO: break in SwitchStmt will be reported mistakenly
    */
   void CheckBreakInLoop(const clang::BreakStmt *stmt);
 
@@ -517,6 +518,11 @@ private:
     }
   }
 
+  /*
+   * GJB5369: 4.14.1.3
+   * logical expression is forbidden in switch statement
+   */
+  void CheckLogicalStmtInSwitchCond(const clang::SwitchStmt *stmt);
 
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
@@ -588,6 +594,7 @@ public:
   void VisitSwitchStmt(const clang::SwitchStmt *stmt) {
     CheckSwitchWithoutDefaultStmt(stmt);
     CheckCaseEndWithBreak(stmt);
+    CheckLogicalStmtInSwitchCond(stmt);
   }
 
   void VisitGotoStmt(const clang::GotoStmt *stmt) {

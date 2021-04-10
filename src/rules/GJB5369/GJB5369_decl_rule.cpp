@@ -1085,5 +1085,69 @@ void GJB5369DeclRule::CheckUsedBeforeInit(const clang::VarDecl *decl) {
   }
 }
 
+/*
+ * GJB5369: 4.15.1.1
+ * enum name should not be collide with global variable
+ */
+void GJB5369DeclRule::CheckEnumNameDuplicate() {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+  using IdentifierKind = IdentifierManager::IdentifierKind;
+
+  top_scope->TraverseAll<IdentifierKind::VALUE,
+      std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+      [&issue, &report, &top_scope](const std::string &var_name, const clang::Decl *decl, IdentifierManager *id_mgr) {
+        if (auto enum_decl = clang::dyn_cast<clang::EnumConstantDecl>(decl)) {
+          if (top_scope->HasVariableName<false>(var_name)) {
+            if (issue == nullptr) {
+              issue = report->ReportIssue(GJB5369, G4_15_1_1, decl);
+              std::string ref_msg = "Enum name should not be collide with global variable: ";
+              ref_msg += enum_decl->getNameAsString();
+              issue->SetRefMsg(ref_msg);
+            } else {
+              issue->AddDecl(decl);
+            }
+          }
+        }
+      }, true);
+}
+
+/*
+ * GJB5369: 4.15.1.2
+ * local variable name should be different from the global variable
+ */
+void GJB5369DeclRule::CheckLocalVarCollideWithGlobal() {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+
+  using IdentifierKind = IdentifierManager::IdentifierKind;
+  constexpr uint32_t kind = IdentifierKind::VAR;
+
+  for (const auto &it : top_scope->Children()) {
+    if (it->GetScopeKind() != SK_FUNCTION) continue;
+    it->TraverseAll<kind,
+        const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+        [&issue, &report, &top_scope](const std::string &var_name, const clang::Decl *decl, IdentifierManager *id_mgr) {
+          if (top_scope->HasVariableName<false>(var_name)) {
+            if (issue == nullptr) {
+              issue = report->ReportIssue(GJB5369, G4_15_1_2, decl);
+              std::string ref_msg = "Local variable name should be different from the global variable: ";
+              ref_msg += clang::dyn_cast<clang::VarDecl>(decl)->getNameAsString();
+              issue->SetRefMsg(ref_msg);
+            } else {
+              issue->AddDecl(decl);
+            }
+          }
+        },
+        true);
+  }
+}
+
 } // rule
 } // xsca
