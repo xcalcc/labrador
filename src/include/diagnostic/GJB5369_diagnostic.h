@@ -26,6 +26,8 @@ public:
 
   ~GJB5369Diagnostic() override = default;
 
+  bool HandleReport(const clang::Diagnostic &diagnosticInfo);
+
   void AddIssue(const std::string &rule, const std::string &ref_msg, clang::SourceLocation location) override {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();

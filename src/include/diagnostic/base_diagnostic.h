@@ -30,6 +30,8 @@ public:
 
   virtual void AddIssue(const std::string &rule, const std::string &ref_msg, clang::SourceLocation location) = 0;
 
+  virtual bool HandleReport(const clang::Diagnostic &diagnosticInfo) = 0;
+
   virtual std::string name() const { return _std_name; }
 };
 }
