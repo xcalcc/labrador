@@ -5,7 +5,7 @@
 #include "diagnostic_dispatcher.h"
 
 // add all decl rules into macro below
-#define ALL_DECL_RULES(R)                      \
+#define ALL_Diagnostic(R)                      \
   R(GJB5369Diagnostic,   "GJB5369Diagnostic")
 //  R(GJB8114DeclRule,   "GJB8114DeclRule"),     \
 //  R(MISRADeclRule,     "MISRADeclRule"),       \
@@ -18,7 +18,7 @@ using namespace rule;
 
 #define GetClass(CLASS, ...) CLASS
 
-using RuleDiagnosticDispatcher = DiagnosticDispatcher<ALL_DECL_RULES(GetClass)>;
+using RuleDiagnosticDispatcher = DiagnosticDispatcher<ALL_Diagnostic(GetClass)>;
 using RuleDiagnosticManager = DiagnosticManager<RuleDiagnosticDispatcher>;
 }
 

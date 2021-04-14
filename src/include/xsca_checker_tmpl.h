@@ -25,7 +25,8 @@ namespace xsca {
 template<typename _DeclHandler,
          typename _StmtHandler,
          typename _TypeHandler,
-         typename _PPHandler>
+         typename _PPHandler,
+         typename _DiagHandler>
 class XcalCheckerTmpl : public XcalChecker {
 private:
   using _ASTHandler  = XcalDeclVisitor<_DeclHandler, _StmtHandler, _TypeHandler>;
@@ -61,6 +62,11 @@ public:
 
   std::unique_ptr<clang::PPCallbacks> GetPPCallbacks() override {
     return std::make_unique<_PPCallback>(_pp_handler, _CI);
+  }
+
+  std::unique_ptr<clang::DiagnosticConsumer>
+  GetDiagnosticConsumer() override{
+    return std::make_unique<_DiagHandler>();
   }
 
 };  // XcalCheckerTmpl

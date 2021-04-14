@@ -26,25 +26,16 @@ namespace xsca {
 template<typename _FIRST, typename... _REST>
 class DiagnosticDispatcher  {
 private:
-  clang::CompilerInstance        *_CI;
-
   _FIRST                          _first;
   DiagnosticDispatcher<_REST...>  _rest;
 
 public:
   DiagnosticDispatcher() = default;;
-  explicit DiagnosticDispatcher(clang::CompilerInstance *CI) : _CI(CI) {};
 
   void HandleDiagnostic(clang::DiagnosticsEngine::Level diagnosticLevel,
                         const clang::Diagnostic &diagnosticInfo) {
     _first.HandleDiagnostic(diagnosticLevel, diagnosticInfo);
     _rest.HandleDiagnostic(diagnosticLevel, diagnosticInfo);
-  }
-
-  void SetCI(clang::CompilerInstance *CI) {
-    _CI = CI;
-    _first.CI;
-    _rest.SetCI(CI);
   }
 };
 
@@ -52,28 +43,13 @@ template<typename _FIRST>
 class DiagnosticDispatcher<_FIRST> {
 private:
   _FIRST                   _first;
-  clang::CompilerInstance *_CI;
-
-  clang::DiagnosticOptions _options;
-
-  // FIXME: Have no idea why we can't free this pointer.
-  clang::TextDiagnostic   *_TextDiag{};
 
 public:
   DiagnosticDispatcher() = default;;
-  explicit DiagnosticDispatcher(clang::CompilerInstance *CI)
-      : _CI(CI), _TextDiag(new clang::TextDiagnostic(llvm::errs(), CI->getLangOpts(), &_options)) {
-    DBG_ASSERT(_TextDiag, "Init TextDiagnostic failed");
-  }
 
   void HandleDiagnostic(clang::DiagnosticsEngine::Level diagnosticLevel,
                         const clang::Diagnostic &diagnosticInfo) {
     _first.HandleDiagnostic(diagnosticLevel, diagnosticInfo);
-  }
-
-  void SetCI(clang::CompilerInstance *CI) {
-    _CI = CI;
-    _first.SetCI(CI);
   }
 };
 
@@ -81,19 +57,54 @@ template<typename _DISPATCHER>
 class DiagnosticManager : public clang::DiagnosticConsumer {
 private:
   _DISPATCHER               _dispatcher;
-  clang::CompilerInstance  *_CI;
 public:
   DiagnosticManager() = default;
-  explicit DiagnosticManager(clang::CompilerInstance *CI) : _CI(CI) {
-    _dispatcher.SetCI(_CI);
-  }
 
   void HandleDiagnostic(clang::DiagnosticsEngine::Level diagnosticLevel,
                         const clang::Diagnostic &diagnosticInfo) override {
     _dispatcher.HandleDiagnostic(diagnosticLevel, diagnosticInfo);
   }
+};
 
-  void setCI(clang::CompilerInstance *CI) { _CI = CI; }
+class XscaDiagnosticConsumer : public clang::DiagnosticConsumer {
+private:
+  std::vector<clang::DiagnosticConsumer *> _diagnostic_consumers;
+  clang::CompilerInstance  *_CI;
+  clang::DiagnosticOptions _options;
+
+  // FIXME: Have no idea why we can't free this pointer.
+  clang::TextDiagnostic   *_TextDiag;
+public:
+
+  explicit XscaDiagnosticConsumer(clang::CompilerInstance *CI)
+  : _CI(CI),
+    _TextDiag(new clang::TextDiagnostic(llvm::errs(), CI->getLangOpts(), &_options)) {
+    DBG_ASSERT(_TextDiag, "Init TextDiagnostic failed");
+  }
+  void AddConsumer(clang::DiagnosticConsumer *consumer) {
+    _diagnostic_consumers.push_back(consumer);
+  }
+
+  void HandleDiagnostic(clang::DiagnosticsEngine::Level diagnosticLevel,
+                        const clang::Diagnostic &diagnosticInfo) override {
+    for (const auto &it : _diagnostic_consumers) {
+      clang::DiagnosticConsumer::HandleDiagnostic(diagnosticLevel, diagnosticInfo);
+      it->HandleDiagnostic(diagnosticLevel, diagnosticInfo);
+      HandleByTextDiagnostic(diagnosticLevel, diagnosticInfo);
+    }
+  }
+
+  void HandleByTextDiagnostic(clang::DiagnosticsEngine::Level diagnosticLevel,
+                              const clang::Diagnostic &diagnosticInfo) {
+    clang::SmallString<100> diagnosticMessage;
+    diagnosticInfo.FormatDiagnostic(diagnosticMessage);
+
+    llvm::raw_svector_ostream DiagMessageStream(diagnosticMessage);
+    auto full_loc = clang::FullSourceLoc(diagnosticInfo.getLocation(), diagnosticInfo.getSourceManager());
+    _TextDiag->emitDiagnostic(full_loc, diagnosticLevel, DiagMessageStream.str(),
+                              diagnosticInfo.getRanges(), diagnosticInfo.getFixItHints());
+  }
+
 };
 
 }

@@ -25,7 +25,7 @@ namespace xsca {
 namespace rule {
 
 using RuleChecker = xsca::XcalCheckerTmpl<RuleDeclHandler, RuleStmtHandler,
-                                          RuleTypeHandler, RulePPHandler>;
+                                          RuleTypeHandler, RulePPHandler, RuleDiagnosticManager>;
 
 // RuleCheckerFactory
 class RuleCheckerFactory : public XcalCheckerFactory {
@@ -36,16 +36,7 @@ public:
   }
 };
 
-class RuleDiagnosticFactory : public XcalDiagnosticFactory {
-public:
-  std::unique_ptr<clang::DiagnosticConsumer>
-  CreateDiagnostic(clang::CompilerInstance *CI) override {
-    return std::make_unique<RuleDiagnosticManager>(CI);
-  }
-};
-
 static XcalCheckerFactoryRegister<RuleCheckerFactory> registry;
-static XcalDiagnosticFactoryRegister<RuleDiagnosticFactory> diag_registry;
 
 }  // namespace rule
 }  // namespace xsca

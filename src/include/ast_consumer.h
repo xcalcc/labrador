@@ -16,6 +16,7 @@
 #include "xsca_defs.h"
 #include "clang/AST/ASTContext.h"
 #include "clang/AST/ASTConsumer.h"
+#include "xsca_checker_manager.h"
 #include "clang/Frontend/CompilerInstance.h"
 
 namespace xsca {

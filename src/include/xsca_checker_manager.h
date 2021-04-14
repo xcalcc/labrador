@@ -45,13 +45,10 @@ private:
   std::vector< std::unique_ptr<XcalChecker> >           _checkers;
   std::vector< std::unique_ptr<XcalCheckerFactory> >    _factories;
   std::unique_ptr<clang::DiagnosticConsumer>            _diagnostic_mgr;
-  std::unique_ptr<XcalDiagnosticFactory>                _diagnostic_factory;
 
   clang::SourceManager                                 *_source_mgr;
 
   clang::ASTContext                                    *_ast_context;
-
-  clang::CompilerInstance                              *_CI;
 
   XcalCheckerManager()
     : _scope_mgr(std::make_unique<ScopeManager>()) ,
@@ -68,10 +65,6 @@ private:
 
   void AddFactory(std::unique_ptr<XcalCheckerFactory> manager) {
     _factories.push_back(std::move(manager));
-  }
-
-  void AddDiagnosticManager(std::unique_ptr<clang::DiagnosticConsumer> manager) {
-    _diagnostic_mgr = std::move(manager);
   }
 
   void AddChecker(std::unique_ptr<XcalChecker> checker) {
@@ -113,12 +106,6 @@ public:
     return  _instance._ast_context;
   }
 
-  static clang::CompilerInstance *
-  GetCompilerInstance() {
-    DBG_ASSERT(_instance._CI != nullptr, "CompilerInstance is null");
-    return _instance._CI;
-  }
-
   static std::unique_ptr<clang::ASTConsumer>
   Initialize(clang::CompilerInstance &CI, llvm::StringRef InFile) {
     return _instance.InitCheckers(CI, InFile);
@@ -132,14 +119,6 @@ public:
   static void RegisterFactory(std::unique_ptr<XcalCheckerFactory> factory) {
     _instance.AddFactory(std::move(factory));
   }
-
-  static void RegisterDiagnosticFactory(std::unique_ptr<XcalDiagnosticFactory> factory) {
-    _instance._diagnostic_factory = std::move(factory);
-  }
-
-  static void RegisterDiagnosticManager(std::unique_ptr<clang::DiagnosticConsumer> manager) {
-    _instance.AddDiagnosticManager(std::move(manager));
-  }
 };
 
 template<typename _CheckerFactory>
@@ -151,21 +130,6 @@ public:
   }
 };
 
-template<typename _DiagnosticFactory>
-class XcalDiagnosticFactoryRegister {
-public:
-  XcalDiagnosticFactoryRegister() {
-    auto factory = std::make_unique<_DiagnosticFactory>();
-    XcalCheckerManager::RegisterDiagnosticFactory(std::move(factory));
-  }
-};
-
-// class XcalDiagnosticFactory
-class XcalDiagnosticFactory {
-public:
-  virtual std::unique_ptr<clang::DiagnosticConsumer>
-  CreateDiagnostic(clang::CompilerInstance *) = 0;
-};  // XcalDiagnosticFactory
 
 }  // namespace xsca
 

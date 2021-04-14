@@ -11,8 +11,8 @@
 // instances from checker factories
 //
 
-#include "xsca_checker_manager.h"
 #include "xsca_null_checker.h"
+#include "xsca_checker_manager.h"
 #include "clang/Frontend/MultiplexConsumer.h"
 #include <libgen.h>
 
@@ -26,7 +26,6 @@ XcalCheckerManager::InitCheckers(clang::CompilerInstance &CI,
   DBG_ASSERT(_checkers.size() == 0, "checkers initialized.\n");
 
   // get ast context and source manager from CI
-  _CI = &CI;
   _ast_context = &CI.getASTContext();
   _source_mgr = &CI.getASTContext().getSourceManager();
 
@@ -44,6 +43,9 @@ XcalCheckerManager::InitCheckers(clang::CompilerInstance &CI,
   std::vector<std::unique_ptr<clang::ASTConsumer> > consumers;
   clang::Preprocessor *pp = &CI.getPreprocessor();
 
+  auto diag_client = &CI.getDiagnosticClient();
+  auto client = static_cast<XscaDiagnosticConsumer *>(diag_client);
+
   for (auto &factory : _factories) {
     std::unique_ptr<XcalChecker> checker = factory->CreateChecker(this);
     DBG_ASSERT(checker, "failed to create checker.\n");
@@ -57,11 +59,13 @@ XcalCheckerManager::InitCheckers(clang::CompilerInstance &CI,
     if (pp_callbacks)
       pp->addPPCallbacks(std::move(pp_callbacks));
 
+    _diagnostic_mgr = checker->GetDiagnosticConsumer();
+    if (_diagnostic_mgr != nullptr)
+      client->AddConsumer(_diagnostic_mgr.get());
+
     AddChecker(std::move(checker));
   }
 
-  _diagnostic_mgr = _diagnostic_factory->CreateDiagnostic(&CI);
-  CI.createDiagnostics(_diagnostic_mgr.get());
 
   if (consumers.size() == 0) {
     return XcalNullChecker(this).GetAstConsumer();

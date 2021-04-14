@@ -19,21 +19,17 @@ void GJB5369Diagnostic::HandleDiagnostic(clang::DiagnosticsEngine::Level diagnos
       break;
     }
     default: {
-      llvm::raw_svector_ostream DiagMessageStream(diagnosticMessage);
-      auto full_loc = clang::FullSourceLoc(diagnosticInfo.getLocation(), diagnosticInfo.getSourceManager());
-      _TextDiag->emitDiagnostic(full_loc, diagnosticLevel, DiagMessageStream.str(),
-                                diagnosticInfo.getRanges(), diagnosticInfo.getFixItHints());
       break;
     }
   }
 }
 
-void GJB5369Diagnostic::AddIssue(const std::string &rule,
+void GJB5369Diagnostic::AddIssue(const char *rule,
                                  const std::string &ref_msg,
                                  clang::SourceLocation location) {
-  XcalIssue *issue = nullptr;
+  XcalIssue *issue;
   XcalReport *report = XcalCheckerManager::GetReport();
-  issue = report->ReportIssue(GJB5369, rule.c_str(), location);
+  issue = report->ReportIssue(GJB5369, rule, location);
   issue->SetRefMsg(ref_msg);
 }
 

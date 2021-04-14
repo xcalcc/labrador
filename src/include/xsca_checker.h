@@ -40,6 +40,9 @@ public:
   virtual std::unique_ptr<clang::ASTConsumer> GetAstConsumer() = 0;
   virtual std::unique_ptr<clang::PPCallbacks> GetPPCallbacks() = 0;
 
+  virtual std::unique_ptr<clang::DiagnosticConsumer>
+  GetDiagnosticConsumer() = 0;
+
 };  // XcalChecker
 
 }  // name xsca

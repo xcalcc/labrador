@@ -63,6 +63,11 @@ public:
     return std::make_unique<XcalNullCallback>(_pp_handler, _CI);
   }
 
+  std::unique_ptr<clang::DiagnosticConsumer>
+  GetDiagnosticConsumer() override {
+    return nullptr;
+  }
+
 };  // XcalNullChecker
 
 }  // name xsca
