@@ -13,10 +13,10 @@
 #ifndef AST_CONSUMER_INCLUDED
 #define AST_CONSUMER_INCLUDED
 
-#include "clang/AST/ASTContext.h"
 #include "xsca_defs.h"
-#include "clang/Frontend/CompilerInstance.h"
+#include "clang/AST/ASTContext.h"
 #include "clang/AST/ASTConsumer.h"
+#include "clang/Frontend/CompilerInstance.h"
 
 namespace xsca {
 

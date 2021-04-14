@@ -26,6 +26,7 @@ XcalCheckerManager::InitCheckers(clang::CompilerInstance &CI,
   DBG_ASSERT(_checkers.size() == 0, "checkers initialized.\n");
 
   // get ast context and source manager from CI
+  _CI = &CI;
   _ast_context = &CI.getASTContext();
   _source_mgr = &CI.getASTContext().getSourceManager();
 
@@ -58,6 +59,9 @@ XcalCheckerManager::InitCheckers(clang::CompilerInstance &CI,
 
     AddChecker(std::move(checker));
   }
+
+  _diagnostic_mgr = _diagnostic_factory->CreateDiagnostic(&CI);
+  CI.createDiagnostics(_diagnostic_mgr.get());
 
   if (consumers.size() == 0) {
     return XcalNullChecker(this).GetAstConsumer();

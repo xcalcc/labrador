@@ -3,7 +3,8 @@ add_library (xscaGJB5369Rule STATIC
         GJB5369_decl_rule.cpp
         GJB5369_stmt_rule.cpp
         GJB5369_pp_rule.cpp
-  )
+        diagnostic.cpp
+    )
 #
 target_link_libraries (xscaGJB5369Rule
   xscaRule

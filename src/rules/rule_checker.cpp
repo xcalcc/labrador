@@ -16,6 +16,7 @@
 #include "xsca_type_rule.h"
 #include "xsca_pp_rule.h"
 #include "xsca_checker_tmpl.h"
+#include "xsca_diagnostics.h"
 
 int __RuleLinked__;
 
@@ -35,7 +36,16 @@ public:
   }
 };
 
+class RuleDiagnosticFactory : public XcalDiagnosticFactory {
+public:
+  std::unique_ptr<clang::DiagnosticConsumer>
+  CreateDiagnostic(clang::CompilerInstance *CI) override {
+    return std::make_unique<RuleDiagnosticManager>(CI);
+  }
+};
+
 static XcalCheckerFactoryRegister<RuleCheckerFactory> registry;
+static XcalDiagnosticFactoryRegister<RuleDiagnosticFactory> diag_registry;
 
 }  // namespace rule
 }  // namespace xsca

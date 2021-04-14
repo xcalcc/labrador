@@ -14,7 +14,7 @@
 
 #include "clang/Basic/Stack.h"
 #include "clang/Basic/TargetOptions.h"
-#include "diagnostic/diagnostic_dispatcher.h"
+#include "include/diagnostic_dispatcher.h"
 #ifndef BUILD_XSCA
 #include "clang/CodeGen/ObjectFilePCHContainerOperations.h"
 #endif
@@ -241,7 +241,7 @@ int cc1_main(ArrayRef<const char *> Argv, const char *Argv0, void *MainAddr) {
       CompilerInvocation::GetResourcesPath(Argv0, MainAddr);
 
   // Create the actual diagnostics engine.
-  Clang->createDiagnostics(new xsca::DiagnosticDispatcher(Clang.get()));
+  Clang->createDiagnostics();
   if (!Clang->hasDiagnostics())
     return 1;
 
