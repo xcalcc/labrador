@@ -90,6 +90,13 @@ public:
     return issue_ptr;
   }
 
+  XcalIssue *ReportIssue(const char *std, const char *rule, const clang::SourceLocation location) {
+    auto issue = std::make_unique<XcalIssue>(std, rule, location);
+    XcalIssue *issue_ptr = issue.get();
+    _issue_vec.push_back(std::move(issue));
+    return issue_ptr;
+  }
+
 };  // XcalReport
 
 #define REPORT(fmt, ...) printf(fmt, ##__VA_ARGS__);

@@ -7,4 +7,5 @@ add_library (xscaCore STATIC
   xsca_opts.cpp
   xsca_report.cpp
   scope_manager.cpp
+  diagnostic_dispatcher.cpp
 )

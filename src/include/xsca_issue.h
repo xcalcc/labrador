@@ -41,6 +41,11 @@ public:
     : _start(stmt->getBeginLoc()), _end(stmt->getEndLoc()), _kind(PK_SPOT) {
   }
 
+  XcalPathInfo(const clang::SourceLocation start)
+    : _start(start), _end(start), _kind(PK_SPOT) {
+
+  }
+
   clang::SourceLocation Start() const {
     return _start;
   }
@@ -77,6 +82,11 @@ public:
   XcalIssue(const char *std, const char *rule, const clang::Stmt *stmt)
     : _std_name(std), _rule_name(rule) {
     _path_info.push_back(XcalPathInfo(stmt));
+  }
+
+  XcalIssue(const char *std, const char *rule, clang::SourceLocation location)
+    : _std_name(std), _rule_name(rule) {
+    _path_info.push_back(XcalPathInfo(location));
   }
 
 public:
