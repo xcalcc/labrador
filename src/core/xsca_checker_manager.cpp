@@ -61,7 +61,7 @@ XcalCheckerManager::InitCheckers(clang::CompilerInstance &CI,
 
     _diagnostic_mgr = checker->GetDiagnosticConsumer();
     if (_diagnostic_mgr != nullptr)
-      client->AddConsumer(_diagnostic_mgr.get());
+      client->AddConsumer(std::move(_diagnostic_mgr));
 
     AddChecker(std::move(checker));
   }

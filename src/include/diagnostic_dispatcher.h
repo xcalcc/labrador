@@ -68,7 +68,7 @@ public:
 
 class XscaDiagnosticConsumer : public clang::DiagnosticConsumer {
 private:
-  std::vector<clang::DiagnosticConsumer *> _diagnostic_consumers;
+  std::vector< std::unique_ptr<clang::DiagnosticConsumer> > _diagnostic_consumers;
   clang::CompilerInstance  *_CI;
   clang::DiagnosticOptions _options;
 
@@ -81,8 +81,8 @@ public:
     _TextDiag(new clang::TextDiagnostic(llvm::errs(), CI->getLangOpts(), &_options)) {
     DBG_ASSERT(_TextDiag, "Init TextDiagnostic failed");
   }
-  void AddConsumer(clang::DiagnosticConsumer *consumer) {
-    _diagnostic_consumers.push_back(consumer);
+  void AddConsumer(std::unique_ptr<clang::DiagnosticConsumer> consumer) {
+    _diagnostic_consumers.push_back(std::move(consumer));
   }
 
   void HandleDiagnostic(clang::DiagnosticsEngine::Level diagnosticLevel,
@@ -90,8 +90,8 @@ public:
     for (const auto &it : _diagnostic_consumers) {
       clang::DiagnosticConsumer::HandleDiagnostic(diagnosticLevel, diagnosticInfo);
       it->HandleDiagnostic(diagnosticLevel, diagnosticInfo);
-      HandleByTextDiagnostic(diagnosticLevel, diagnosticInfo);
     }
+    HandleByTextDiagnostic(diagnosticLevel, diagnosticInfo);
   }
 
   void HandleByTextDiagnostic(clang::DiagnosticsEngine::Level diagnosticLevel,
