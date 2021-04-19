@@ -18,7 +18,20 @@ void GJB5369Diagnostic::HandleDiagnostic(clang::DiagnosticsEngine::Level diagnos
       AddIssue(G4_15_1_6, "size of array has non-integer type 'float'", location);
       break;
     }
+    case clang::diag::note_ovl_candidate_arity: {
+      AddIssue(G4_7_1_7, "real and formal parameters' number should be the same", location);
+      break;
+    }
+    case clang::diag::err_bad_cxx_cast_generic: {
+      // TODO: 4.7.1.7
+//      AddIssue(G4_7_1_7, "")
+    }
+    case clang::diag::err_typecheck_convert_int_pointer: {
+      // TODO: int * p = (float) a;
+      AddIssue(G4_12_2_1, "assign to pointer with other types is dangerous", location);
+    }
     default: {
+      printf("%d\n",diagnosticInfo.getID());
       break;
     }
   }

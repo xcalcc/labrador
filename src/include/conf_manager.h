@@ -22,6 +22,7 @@ private:
   std::string _conf_path;
   std::vector<std::string> _cxx_identifiers;
   std::vector<std::string> _c_cxx_identifiers;
+  std::vector<std::string> _jump_functions;
 
   // TODO: move this to file
   std::vector<std::string> _danger_functions = {"exit", "abort"};
@@ -34,6 +35,7 @@ private:
   enum {
     CXX_IDENTIFIERS = 0,
     C_CXX_IDENTIFIERS = 1,
+    JUMP_FUNCTIONS = 2,
     ALL,
   };
 
@@ -47,6 +49,7 @@ public:
   void Initialize() {
     LoadFile<CXX_IDENTIFIERS>("cxx_identifier.conf");
     LoadFile<C_CXX_IDENTIFIERS>("c_cxx_identifier.conf");
+    LoadFile<JUMP_FUNCTIONS>("jump_function.conf");
   }
 
   template<unsigned conf>
@@ -65,6 +68,8 @@ public:
         _cxx_identifiers.push_back(identifier);
       } else if (conf == C_CXX_IDENTIFIERS) {
         _c_cxx_identifiers.push_back(identifier);
+      } else if (conf == JUMP_FUNCTIONS) {
+        _jump_functions.push_back(identifier);
       } else {
         printf("Conf file type not set.\n");
       }
@@ -85,6 +90,11 @@ public:
   bool IsDangerFunction(const std::string &str) const {
     auto res = std::find(_danger_functions.begin(), _danger_functions.end(), str);
     return (res != _danger_functions.end());
+  }
+
+  bool IsJumpFunction(const std::string &str) const {
+    auto res = std::find(_jump_functions.begin(), _jump_functions.end(), str);
+    return (res != _jump_functions.end());
   }
 
   template<unsigned conf>

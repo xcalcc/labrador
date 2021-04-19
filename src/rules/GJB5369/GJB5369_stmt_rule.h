@@ -524,6 +524,13 @@ private:
    */
   void CheckLogicalStmtInSwitchCond(const clang::SwitchStmt *stmt);
 
+  /*
+   * GJB5369: 4.14.2.1
+   * avoid using complex logical expression
+   */
+  void CheckComplexLogicalExpr(const clang::UnaryOperator *stmt);
+
+
 public:
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
@@ -617,6 +624,7 @@ public:
   void VisitUnaryOperator(const clang::UnaryOperator *stmt) {
     CheckNonOperationOnConstant(stmt);
     CheckPreIncrementAndPostIncrement(stmt);
+    CheckComplexLogicalExpr(stmt);
   }
 
   void VisitUnaryExprOrTypeTraitExpr(const clang::UnaryExprOrTypeTraitExpr *stmt) {

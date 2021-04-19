@@ -600,16 +600,21 @@ void GJB5369StmtRule::CheckGotoStmt(const clang::GotoStmt *stmt) {
 void GJB5369StmtRule::CheckSetjumpAndLongjump(const clang::CallExpr *stmt) {
   auto callee = stmt->getCalleeDecl();
   auto func_decl = callee->getAsFunction();
+  auto conf_mgr = XcalCheckerManager::GetConfigureManager();
 
   if (func_decl == nullptr) return;
   auto func_name = func_decl->getNameAsString();
 
-  if (func_name == "setjmp" || func_name == "longjmp") {
-    XcalIssue *issue = nullptr;
+  if (conf_mgr->IsJumpFunction(func_name)) {
+    XcalIssue *issue = nullptr, *issue1 = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(GJB5369, G4_5_2_1, stmt);
     std::string ref_msg = "setjmp/longjmp is forbidden";
     issue->SetRefMsg(ref_msg);
+
+    issue1 = report->ReportIssue(GJB5369, G4_5_1_1, stmt);
+    std::string msg = "jump out from a function is forbidden";
+    issue1->SetRefMsg(msg);
   }
 }
 
@@ -1357,6 +1362,36 @@ void GJB5369StmtRule::CheckLogicalStmtInSwitchCond(const clang::SwitchStmt *stmt
     issue = report->ReportIssue(GJB5369, G4_14_1_3, stmt);
     std::string ref_msg = "Logical expression is forbidden in switch statement";
     issue->SetRefMsg(ref_msg);
+  }
+}
+
+/*
+ * GJB5369: 4.14.2.1
+ * avoid using complex logical expression
+ */
+void GJB5369StmtRule::CheckComplexLogicalExpr(const clang::UnaryOperator *stmt) {
+  bool need_report = false;
+  auto op = stmt->getOpcode();
+  if (op != clang::UnaryOperator::Opcode::UO_LNot) return;
+  auto sub_stmt = stmt->getSubExpr()->IgnoreParenImpCasts();
+  if (sub_stmt != nullptr) {
+    if (clang::dyn_cast<clang::UnaryOperator>(sub_stmt)) {
+      need_report = true;
+    } else if (auto bin_stmt = clang::dyn_cast<clang::BinaryOperator>(sub_stmt)) {
+      if (bin_stmt->isLogicalOp() || bin_stmt->isComparisonOp()) {
+        need_report = true;
+      }
+    }
+
+    if (need_report) {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+
+      issue = report->ReportIssue(GJB5369, G4_14_2_1, stmt);
+      std::string ref_msg = "Avoid using complex logical expression";
+      issue->SetRefMsg(ref_msg);
+      issue->AddStmt(sub_stmt);
+    }
   }
 }
 

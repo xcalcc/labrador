@@ -45,7 +45,7 @@ XcalCheckerManager::InitCheckers(clang::CompilerInstance &CI,
 
   auto diag_client = &CI.getDiagnosticClient();
   auto client = static_cast<XscaDiagnosticConsumer *>(diag_client);
-
+  
   for (auto &factory : _factories) {
     std::unique_ptr<XcalChecker> checker = factory->CreateChecker(this);
     DBG_ASSERT(checker, "failed to create checker.\n");

@@ -58,28 +58,28 @@ Rule		Kind		Implementation
 4.3.1.6     Stmt        CheckSwitchWithoutDefaultStmt
 4.3.1.7     Stmt        CheckCaseEndWithBreak
 4.3.1.8     Stmt        CheckEmptyCaseStmt
-4.4.1.1
+4.4.1.1 // assign to global or return local address
 4.4.1.2     Decl        CheckPointerNestedLevel
 4.4.1.3     Decl        CheckFunctionPointer
 --------------+------------------------------------------------
 4.4.2
 4.4.2.1     Decl        CheckPointerCompareStmt
 4.4.2.2     Decl        CheckPointerCalculateStmt
-4.5.1.1
+4.5.1.1     Stmt        jump out from a function is forbidden
 4.5.1.2     Stmt        CheckGotoStmt
 --------------+------------------------------------------------
 4.5.2
 4.5.2.1     Stmt        CheckSetjumpAndLongjump
 4.6.1.1
-4.6.1.2
+4.6.1.2 //-ArraySubscriptExpr
 4.6.1.3     Stmt        CheckShiftOnSignedNumber
 4.6.1.4     Stmt        CheckShiftOverflow
 4.6.1.5     Stmt        CheckAssignNegativetoUnsigned
 4.6.1.6     Decl        CheckSingleBitSignedValue
-4.6.1.7     Decl        CheckBitsIfInteger                      // can't hit this function
+4.6.1.7     Decl        CheckBitsIfInteger
 4.6.1.8     Stmt        CheckDifferentTypeAssign
 4.6.1.9
-4.6.1.10                Need to collect the error-report of clang
+4.6.1.10    Diag        HandleDiagnostic
 4.6.1.11    Stmt        CheckNonOperationOnConstant
 4.6.1.12    Stmt        CheckBitwiseOperationOnSignedValue
 4.6.1.13    Stmt        CheckEnumBeyondLimit
@@ -95,7 +95,7 @@ Rule		Kind		Implementation
 4.6.2.3     Stmt        CheckDifferentTypeArithm
 4.6.2.4     Stmt        CheckFalseIfContidion
 --------------+------------------------------------------------
-4.7.1.1                 Need to collect the error report from clang
+4.7.1.1     Diag        HandleDiagnostic
 4.7.1.2
 4.7.1.3
 4.7.1.4
@@ -146,13 +146,13 @@ Rule		Kind		Implementation
 --------------+------------------------------------------------
 4.13.1.1    Decl        CheckEnumDeclInit
 4.13.1.2    Stmt        CheckRecordInitType
-4.13.1.3                Have no idea😢
+4.13.1.3                Have no idea😢   // check at initlist
 4.13.1.4    Decl        CheckUsedBeforeInit         // TODO: Need refine -> with false positive:
 --------------+------------------------------------------------
 4.14.1.1    Stmt        CheckComparingRealNumber
 4.14.1.2    Stmt        CheckLogicalDiscriminant
 4.14.1.3    Stmt        CheckLogicalStmtInSwitchCond
-4.14.2.1                Have no idea😢
+4.14.2.1    Stmt        CheckComplexLogicalExpr
 --------------+------------------------------------------------
 4.15.1.1    Decl        CheckEnumNameDuplicate
 4.15.1.2    Decl        CheckLocalVarCollideWithGlobal

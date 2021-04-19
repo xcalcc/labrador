@@ -210,7 +210,7 @@ private:
    * GJB5369: 4.6.1.7
    * bits can only be defined as signed/unsigned int type
    */
-  void CheckBitsIfInteger(const clang::FieldDecl *decl);
+  void CheckBitsIfInteger(const clang::RecordDecl *decl);
 
   /*
    * GJB5369: 4.7.1.8
@@ -325,6 +325,7 @@ public:
     checkExplicitCharType(decl);
     CheckPointerNestedLevel(decl);
     CheckSingleBitSignedValue(decl);
+    CheckBitsIfInteger(decl);
   }
 
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
@@ -336,6 +337,7 @@ public:
     checkExplicitCharType(decl);
     CheckPointerNestedLevel(decl);
     CheckSingleBitSignedValue(decl);
+    CheckBitsIfInteger(decl);
   }
 
   void VisitVar(const clang::VarDecl *decl) {
@@ -349,10 +351,6 @@ public:
     CheckUsedBeforeInit(decl);
     CheckVolatileTypeVar(decl);
     CheckNonANSIChar(decl);
-  }
-
-  void VisitField(const clang::FieldDecl *decl) {
-    CheckBitsIfInteger(decl);
   }
 
   void VisitParmVar(const clang::ParmVarDecl *decl) {

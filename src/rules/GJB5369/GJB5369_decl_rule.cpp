@@ -900,22 +900,24 @@ void GJB5369DeclRule::CheckSingleBitSignedValue(const clang::RecordDecl *decl) {
  * GJB5369: 4.6.1.7
  * bits can only be defined as signed/unsigned int type
  */
-void GJB5369DeclRule::CheckBitsIfInteger(const clang::FieldDecl *decl) {
+void GJB5369DeclRule::CheckBitsIfInteger(const clang::RecordDecl *decl) {
   using BuiltinType = clang::BuiltinType;
-  if (decl->isBitField()) {
-    const auto *BT = clang::dyn_cast<clang::BuiltinType>(decl->getType().getCanonicalType());
-    if (BT == nullptr) return;
-    auto builtin_type = BT->getKind();
-    if (!((builtin_type >= BuiltinType::Int && builtin_type <= BuiltinType::Int128) ||
-          (builtin_type >= BuiltinType::UInt && builtin_type <= BuiltinType::UInt128))) {
+  for (const auto &it : decl->fields()) {
+    if (it->isBitField()) {
+      const auto *BT = clang::dyn_cast<clang::BuiltinType>(it->getType().getCanonicalType());
+      if (BT == nullptr) return;
+      auto builtin_type = BT->getKind();
+      if (!((builtin_type >= BuiltinType::Int && builtin_type <= BuiltinType::Int128) ||
+            (builtin_type >= BuiltinType::UInt && builtin_type <= BuiltinType::UInt128))) {
 
-      XcalIssue *issue = nullptr;
-      XcalReport *report = XcalCheckerManager::GetReport();
+        XcalIssue *issue = nullptr;
+        XcalReport *report = XcalCheckerManager::GetReport();
 
-      issue = report->ReportIssue(GJB5369, G4_6_1_7, decl);
-      std::string ref_msg = "Bits can only be defined as signed/unsigned int type: ";
-      ref_msg += decl->getNameAsString();
-      issue->SetRefMsg(ref_msg);
+        issue = report->ReportIssue(GJB5369, G4_6_1_7, decl);
+        std::string ref_msg = "Bits can only be defined as signed/unsigned int type: ";
+        ref_msg += decl->getNameAsString();
+        issue->SetRefMsg(ref_msg);
+      }
     }
   }
 }
