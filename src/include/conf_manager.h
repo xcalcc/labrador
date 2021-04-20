@@ -47,13 +47,12 @@ public:
   ~ConfigureManager() = default;
 
   void Initialize() {
-    LoadFile<CXX_IDENTIFIERS>("cxx_identifier.conf");
-    LoadFile<C_CXX_IDENTIFIERS>("c_cxx_identifier.conf");
-    LoadFile<JUMP_FUNCTIONS>("jump_function.conf");
+    LoadFile("cxx_identifier.conf", _cxx_identifiers );
+    LoadFile("c_cxx_identifier.conf", _c_cxx_identifiers);
+    LoadFile("jump_function.conf", _jump_functions);
   }
 
-  template<unsigned conf>
-  void LoadFile(const std::string &conf_name) {
+  void LoadFile(const std::string &conf_name, std::vector<std::string> &tokens) {
     std::fstream istream;
     std::string identifier;
 
@@ -64,15 +63,7 @@ public:
 
     while (!istream.eof()) {
       std::getline(istream, identifier);
-      if (conf == CXX_IDENTIFIERS) {
-        _cxx_identifiers.push_back(identifier);
-      } else if (conf == C_CXX_IDENTIFIERS) {
-        _c_cxx_identifiers.push_back(identifier);
-      } else if (conf == JUMP_FUNCTIONS) {
-        _jump_functions.push_back(identifier);
-      } else {
-        printf("Conf file type not set.\n");
-      }
+      tokens.push_back(identifier);
     }
   }
 
@@ -103,8 +94,10 @@ public:
       return FindCXXKeyword(str);
     } else if (conf == C_CXX_IDENTIFIERS) {
       return FindCAndCXXKeyword(str);
+    } else if (conf == JUMP_FUNCTIONS) {
+      return IsJumpFunction(str);
     } else if (conf == ALL) {
-      return FindCXXKeyword(str) || FindCAndCXXKeyword(str);
+      return FindCXXKeyword(str) || FindCAndCXXKeyword(str) || IsJumpFunction(str);
     } else {
       TRACE0();
       return false;
