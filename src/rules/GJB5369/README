@@ -146,7 +146,7 @@ Rule		Kind		Implementation
 --------------+------------------------------------------------
 4.13.1.1    Decl        CheckEnumDeclInit
 4.13.1.2    Stmt        CheckRecordInitType
-4.13.1.3                Have no idea😢   // check at initlist
+4.13.1.3    Decl        CheckNestedStruct
 4.13.1.4    Decl        CheckUsedBeforeInit         // TODO: Need refine -> with false positive:
 --------------+------------------------------------------------
 4.14.1.1    Stmt        CheckComparingRealNumber

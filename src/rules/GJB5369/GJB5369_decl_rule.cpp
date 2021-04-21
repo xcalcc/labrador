@@ -1065,6 +1065,48 @@ void GJB5369DeclRule::CheckEnumDeclInit(const clang::EnumDecl *decl) {
 }
 
 /*
+ * GJB5369: 4.13.1.3
+ * nested structure should stay the same with the struct
+ */
+void GJB5369DeclRule::CheckNestedStruct(const clang::VarDecl *decl) {
+  auto decl_type = decl->getType();
+  if (!decl_type->isRecordType() || !decl->hasInit()) return;
+
+  auto init_expr = decl->getInit();
+  auto initListExpr = clang::dyn_cast<clang::InitListExpr>(init_expr);
+  if (initListExpr == nullptr) return;
+  auto record_decl = decl_type.getCanonicalType()->getAsRecordDecl();
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  auto init_start = initListExpr->begin();
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+
+  for (const auto &it : record_decl->fields()) {
+    TRACE0();
+    if (!it->getType()->isRecordType()) {
+      init_start++;
+      continue;
+    } else {
+      auto init_loc = (*init_start)->getBeginLoc();
+      auto data = src_mgr->getCharacterData(init_loc);
+
+      if (*data != '{') {
+        if (issue == nullptr) {
+          issue = report->ReportIssue(GJB5369, G4_13_1_3, decl);
+          std::string ref_msg = "Nested structure should stay the same with the struct: ";
+          ref_msg += decl->getNameAsString();
+          issue->SetRefMsg(ref_msg);
+        }
+        issue->AddStmt(*init_start);
+      }
+      init_start++;
+    }
+  }
+}
+
+/*
  * GJB5369: 4.13.1.4
  * value used before init is forbidden
  * TODO: Need refine -> with false positive:

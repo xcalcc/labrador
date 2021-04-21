@@ -245,6 +245,12 @@ private:
   void CheckEnumDeclInit(const clang::EnumDecl *decl);
 
   /*
+   * GJB5369: 4.13.1.3
+   * nested structure should stay the same with the struct
+   */
+  void CheckNestedStruct(const clang::VarDecl *decl);
+
+  /*
    * GJB5369: 4.13.1.4
    * value used before init is forbidden
    */
@@ -351,6 +357,7 @@ public:
     CheckUsedBeforeInit(decl);
     CheckVolatileTypeVar(decl);
     CheckNonANSIChar(decl);
+    CheckNestedStruct(decl);
   }
 
   void VisitParmVar(const clang::ParmVarDecl *decl) {
