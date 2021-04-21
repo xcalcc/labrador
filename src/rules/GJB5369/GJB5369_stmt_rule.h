@@ -167,6 +167,12 @@ private:
   void CheckSetjumpAndLongjump(const clang::CallExpr *stmt);
 
   /*
+   * GJB5369: 4.6.1.2
+   * using array out of boundary is forbidden
+   */
+  void CheckArrayOutOfBoundary(const clang::ArraySubscriptExpr *stmt);
+
+  /*
    * GJB5369: 4.6.1.3
    * bit shift used on signed-number is forbidden
    */
@@ -667,6 +673,10 @@ public:
 
   void VisitInitListExpr(const clang::InitListExpr *stmt) {
     CheckRecordInitType(stmt);
+  }
+
+  void VisitArraySubscriptExpr(const clang::ArraySubscriptExpr *stmt) {
+    CheckArrayOutOfBoundary(stmt);
   }
 
 public:

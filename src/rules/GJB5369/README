@@ -71,7 +71,7 @@ Rule		Kind		Implementation
 4.5.2
 4.5.2.1     Stmt        CheckSetjumpAndLongjump
 4.6.1.1
-4.6.1.2 //-ArraySubscriptExpr
+4.6.1.2     Stmt        CheckArrayOutOfBoundary
 4.6.1.3     Stmt        CheckShiftOnSignedNumber
 4.6.1.4     Stmt        CheckShiftOverflow
 4.6.1.5     Stmt        CheckAssignNegativetoUnsigned

@@ -619,6 +619,46 @@ void GJB5369StmtRule::CheckSetjumpAndLongjump(const clang::CallExpr *stmt) {
 }
 
 /*
+ * GJB5369: 4.6.1.2
+ * using array out of boundary is forbidden
+ */
+void GJB5369StmtRule::CheckArrayOutOfBoundary(const clang::ArraySubscriptExpr *stmt) {
+  using StmtClass = clang::Stmt::StmtClass;
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+
+  auto ctx = XcalCheckerManager::GetAstContext();
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+
+  int value = 0;
+  clang::Expr::EvalResult eval_result;
+
+  if (lhs->getStmtClass() == StmtClass::DeclRefExprClass) {
+    auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(lhs);
+    auto array_decl = decl_ref->getDecl();
+
+    // ignore if array is not const array
+    auto array_type = ctx->getAsConstantArrayType(array_decl->getType());
+    if (array_type != nullptr) {
+      auto array_size = array_type->getSize().getZExtValue();
+
+      // try to evaluate index, ignore if can't evaluate
+      if (rhs->EvaluateAsInt(eval_result, *ctx)) {
+        value = eval_result.Val.getInt().getZExtValue();
+      }
+
+      if (value >= array_size) {
+        XcalIssue *issue = nullptr;
+        XcalReport *report = XcalCheckerManager::GetReport();
+        issue = report->ReportIssue(GJB5369, G4_6_1_2, stmt);
+        std::string ref_msg = "Using array out of boundary is forbidden";
+        issue->SetRefMsg(ref_msg);
+      }
+    }
+  }
+}
+
+/*
  * GJB5369: 4.6.1.8
  * The value assigned to a variable should be the same type
  * as the variable
