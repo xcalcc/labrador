@@ -167,6 +167,12 @@ private:
   void CheckSetjumpAndLongjump(const clang::CallExpr *stmt);
 
   /*
+   * GJB5369: 4.6.1.1
+   * "=" used in non-assignment statement is forbidden
+   */
+  void CheckAssignInCondition(const clang::IfStmt *stmt);
+
+  /*
    * GJB5369: 4.6.1.2
    * using array out of boundary is forbidden
    */
@@ -310,7 +316,7 @@ private:
    * GJB5369: 4.6.2.4
    * dead code is forbidden
    */
-  void CheckFalseIfContidion(const clang::IfStmt *stmt);
+  void CheckFalseIfCondition(const clang::IfStmt *stmt);
 
   /*
    * GJB5369: 4.7.1.6
@@ -565,7 +571,8 @@ public:
     CheckEmptyIfElseStmt(stmt);
     CheckIfWithoutElseStmt(stmt);
     CheckAssignInLogicExpr(stmt);
-    CheckFalseIfContidion(stmt);
+    CheckFalseIfCondition(stmt);
+    CheckAssignInCondition(stmt);
     CheckUsingFunctionNotByCalling(stmt);
     CheckLogicalDiscriminant<const clang::IfStmt>(stmt);
   }

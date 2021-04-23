@@ -17,7 +17,7 @@ Rule		Kind		Implementation
 4.1.1.13    PP          CheckMacroKeywords
 4.1.1.14    PP          CheckReservedWordRedefine
 4.1.1.15    Decl        CheckExplictCharType
-4.1.1.16    Decl        4.1.1.2
+4.1.1.16    Decl        CheckVariableNameReuse
 4.1.1.17    Decl        CheckTypedefRedefine
 4.1.1.18    PP          CheckUnterminatedIf
 4.1.1.19    Decl        CheckArrayBoundary
@@ -70,7 +70,7 @@ Rule		Kind		Implementation
 --------------+------------------------------------------------
 4.5.2
 4.5.2.1     Stmt        CheckSetjumpAndLongjump
-4.6.1.1
+4.6.1.1     Stmt        CheckAssignInCondition
 4.6.1.2     Stmt        CheckArrayOutOfBoundary
 4.6.1.3     Stmt        CheckShiftOnSignedNumber
 4.6.1.4     Stmt        CheckShiftOverflow
@@ -78,7 +78,7 @@ Rule		Kind		Implementation
 4.6.1.6     Decl        CheckSingleBitSignedValue
 4.6.1.7     Decl        CheckBitsIfInteger
 4.6.1.8     Stmt        CheckDifferentTypeAssign
-4.6.1.9
+4.6.1.9     Stmt        CheckDifferentTypeAssign
 4.6.1.10    Diag        HandleDiagnostic
 4.6.1.11    Stmt        CheckNonOperationOnConstant
 4.6.1.12    Stmt        CheckBitwiseOperationOnSignedValue
@@ -93,7 +93,7 @@ Rule		Kind		Implementation
 4.6.2.1     Stmt        CheckCommaStmt
 4.6.2.2     Stmt        CheckSizeofOnExpr
 4.6.2.3     Stmt        CheckDifferentTypeArithm
-4.6.2.4     Stmt        CheckFalseIfContidion
+4.6.2.4     Stmt        CheckFalseIfCondition
 --------------+------------------------------------------------
 4.7.1.1     Diag        HandleDiagnostic
 4.7.1.2
@@ -117,7 +117,7 @@ Rule		Kind		Implementation
 4.8.2.1     Stmt        CheckCompoundAssignOperator
 4.8.2.2     Stmt        CheckPreIncrementAndPostIncrement
 4.8.2.3     Stmt        CheckContinueStmt
-4.8.2.4
+4.8.2.4     Stmt        CheckBinocularOper
 4.8.2.5     Stmt        CheckBinocularOper
 4.8.2.6     Stmt        CheckNullStmt
 4.8.2.7     Stmt        CheckRegisterVariable

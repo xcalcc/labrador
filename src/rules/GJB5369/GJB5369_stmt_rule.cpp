@@ -619,6 +619,21 @@ void GJB5369StmtRule::CheckSetjumpAndLongjump(const clang::CallExpr *stmt) {
 }
 
 /*
+ * GJB5369: 4.6.1.1
+ * "=" used in non-assignment statement is forbidden
+ */
+void GJB5369StmtRule::CheckAssignInCondition(const clang::IfStmt *stmt) {
+  auto cond = stmt->getCond()->IgnoreParenImpCasts();
+  if (HasAssignmentSubStmt(cond)) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB5369, G4_6_1_1, stmt);
+    std::string ref_msg = "\"=\" used in non-assignment statement is forbidden";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+/*
  * GJB5369: 4.6.1.2
  * using array out of boundary is forbidden
  */
@@ -936,7 +951,7 @@ void GJB5369StmtRule::CheckDifferentTypeArithm(const clang::BinaryOperator *stmt
  * GJB5369: 4.6.2.4
  * dead code is forbidden
  */
-void GJB5369StmtRule::CheckFalseIfContidion(const clang::IfStmt *stmt) {
+void GJB5369StmtRule::CheckFalseIfCondition(const clang::IfStmt *stmt) {
   auto ctx = XcalCheckerManager::GetAstContext();
   auto cond = stmt->getCond()->IgnoreParenImpCasts();
   if (auto literial = clang::dyn_cast<clang::IntegerLiteral>(cond)) {
