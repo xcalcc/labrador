@@ -10,15 +10,18 @@
 // implement all stmt related rules in MISRA-C-2012
 //
 
+#include "MISRA_enum.inc"
+#include "stmt_null_handler.h"
+#include "xsca_checker_manager.h"
+
 namespace xsca {
 namespace rule {
 
 class MISRAStmtRule : public StmtNullHandler {
 public:
-  ~MISRAStmtRule() {}
+  ~MISRAStmtRule() = default;
 
 private:
-
 public:
 
 }; // MISRAStmtRule

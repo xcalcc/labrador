@@ -12,4 +12,5 @@ add_library (xscaRule STATIC
 target_link_libraries (xscaRule
   xscaCore
   xscaGJB5369Rule
+  xscaMISRARule
   )

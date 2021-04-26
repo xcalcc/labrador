@@ -11,20 +11,40 @@
 //
 
 #include "scope_manager.h"
-//#include <clang/AST/Decl.h>
-//#include <vector>
+#include "decl_null_handler.h"
+#include "xsca_checker_manager.h"
 
 namespace xsca {
 namespace rule {
 
 class MISRADeclRule : public DeclNullHandler {
 public:
-  ~MISRADeclRule() {}
+  ~MISRADeclRule() = default;
 
 private:
+  std::set<const clang::TypedefNameDecl *> _used_typedef;
+
+  /* MISRA
+   * Rule: 2.3
+   * A project should not contain unused type declarations
+   */
+  void CheckUnusedTypedef(const clang::VarDecl *decl);
+
+  void CheckUnusedTypedef(const clang::TypedefDecl *decl);
+
+  void CheckUnusedTypedef();
 
 public:
   void Finalize() {
+    CheckUnusedTypedef();
+  }
+
+  void VisitVar(const clang::VarDecl *decl) {
+    CheckUnusedTypedef(decl);
+  }
+
+  void VisitTypedef(const clang::TypedefDecl *decl) {
+    CheckUnusedTypedef(decl);
   }
 
 }; // MISRADeclRule

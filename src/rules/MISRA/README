@@ -3,3 +3,6 @@ This is for MISRA-C-2012 with the following rules:
 Rule		Kind		Implementation
 --------------+---------------+--------------------------------
 1.1
+
+
+2.3         Decl        CheckUnusedTypedef

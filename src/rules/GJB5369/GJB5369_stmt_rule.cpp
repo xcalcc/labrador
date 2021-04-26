@@ -1201,6 +1201,7 @@ void GJB5369StmtRule::CheckReturnStmt(const clang::ReturnStmt *stmt) {
  */
 void GJB5369StmtRule::CheckReturnType(const clang::ReturnStmt *stmt) {
   auto decl_return_type = _current_function_decl->getReturnType();
+  if (decl_return_type->isVoidType()) return;
   auto ret_type = stmt->getRetValue()->IgnoreParenImpCasts()->getType();
 
   if (decl_return_type->getTypeClass() == ret_type->getTypeClass()) {

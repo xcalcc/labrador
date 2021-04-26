@@ -23,6 +23,8 @@ public:
   ~GJB5369StmtRule() {}
 
 private:
+  bool _in_loop_now;
+
   bool _is_single_asm_stmt;
 
   bool _func_has_return_stmt;
@@ -466,6 +468,7 @@ private:
    * TODO: break in SwitchStmt will be reported mistakenly
    */
   void CheckBreakInLoop(const clang::BreakStmt *stmt);
+//  void CheckBreakInLoop
 
   /*
    * GJB5369: 4.12.1.1

@@ -7,7 +7,7 @@
 // GJB5369_enum.inc
 // ====================================================================
 //
-// the defines of about the rules
+// the defines of about the GJB5369 rules
 //
 
 #define GJB5369 "GJB5369"
