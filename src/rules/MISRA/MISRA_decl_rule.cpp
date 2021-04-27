@@ -65,5 +65,33 @@ void MISRADeclRule::CheckUnusedTypedef() {
       }, true);
 }
 
+/* MISRA
+ * Rule: 2.6
+ * A function should not contain unused label declarations
+ */
+void MISRADeclRule::CheckUnusedLabelInFunction() {
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+  constexpr uint32_t kind = IdentifierManager::LABEL;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  top_scope->TraverseAll<kind,
+      const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+      [&issue, &report](const std::string &x, const clang::Decl *decl,
+                        IdentifierManager *id_mgr) -> void {
+        if (!decl->isUsed()) {
+          if (issue == nullptr) {
+            issue = report->ReportIssue(MISRA, M_R_2_3, decl);
+            std::string ref_msg = "A project should not contain unused type declarations: ";
+            ref_msg += clang::dyn_cast<clang::LabelDecl>(decl)->getNameAsString();
+            issue->SetRefMsg(ref_msg);
+          } else {
+            issue->AddDecl(decl);
+          }
+        }
+      }, true);
+}
+
 }
 }
