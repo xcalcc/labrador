@@ -82,7 +82,7 @@ void MISRADeclRule::CheckUnusedLabelInFunction() {
                         IdentifierManager *id_mgr) -> void {
         if (!decl->isUsed()) {
           if (issue == nullptr) {
-            issue = report->ReportIssue(MISRA, M_R_2_3, decl);
+            issue = report->ReportIssue(MISRA, M_R_2_6, decl);
             std::string ref_msg = "A project should not contain unused type declarations: ";
             ref_msg += clang::dyn_cast<clang::LabelDecl>(decl)->getNameAsString();
             issue->SetRefMsg(ref_msg);
@@ -91,6 +91,28 @@ void MISRADeclRule::CheckUnusedLabelInFunction() {
           }
         }
       }, true);
+}
+
+/* MISRA
+ * Rule: 2.7
+ * A function should not contain unused label declarations
+ */
+void MISRADeclRule::CheckUnusedParameters(const clang::FunctionDecl *decl) {
+  if (decl->getNumParams() == 0) return;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  for (const auto &it : decl->parameters()) {
+    if (!it->isUsed()) {
+      if (issue == nullptr) {
+        issue = report->ReportIssue(MISRA, M_R_2_7, decl);
+        std::string ref_msg = "A function should not contain unused label declarations: ";
+        ref_msg += decl->getNameAsString();
+        issue->SetRefMsg(ref_msg);
+      }
+      issue->AddDecl(&(*it));
+    }
+  }
 }
 
 }

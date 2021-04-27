@@ -9,3 +9,4 @@ Rule		Kind		Implementation
 2.4
 2.5
 2.6         Decl        CheckUnusedLabelInFunction
+2.7         Decl        CheckUnusedParameters

@@ -40,6 +40,12 @@ private:
    */
   void CheckUnusedLabelInFunction();
 
+  /* MISRA
+   * Rule: 2.7
+   * A function should not contain unused label declarations
+   */
+  void CheckUnusedParameters(const clang::FunctionDecl *decl);
+
 public:
   void Finalize() {
     CheckUnusedTypedef();
@@ -52,6 +58,10 @@ public:
 
   void VisitTypedef(const clang::TypedefDecl *decl) {
     CheckUnusedTypedef(decl);
+  }
+
+  void VisitFunction(const clang::FunctionDecl *decl) {
+    CheckUnusedParameters(decl);
   }
 
 }; // MISRADeclRule
