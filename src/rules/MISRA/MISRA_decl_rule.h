@@ -42,14 +42,21 @@ private:
 
   /* MISRA
    * Rule: 2.7
-   * A function should not contain unused label declarations
+   * There should be no unused parameters in functions
    */
   void CheckUnusedParameters(const clang::FunctionDecl *decl);
+
+  /* MISRA
+   * Rule: 5.1
+   * External identifiers shall be distinct
+   */
+  void CheckUndistinctExternalIdent();
 
 public:
   void Finalize() {
     CheckUnusedTypedef();
     CheckUnusedLabelInFunction();
+    CheckUndistinctExternalIdent();
   }
 
   void VisitVar(const clang::VarDecl *decl) {
