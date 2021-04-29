@@ -13,3 +13,5 @@ Rule		Kind		Implementation
 
 
 5.1         Decl        CheckUndistinctExternalIdent
+5.2
+5.3         Decl

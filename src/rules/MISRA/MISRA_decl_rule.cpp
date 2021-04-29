@@ -141,7 +141,7 @@ void MISRADeclRule::CheckUndistinctExternalIdent() {
               if (name.substr(0, 31) == it.first.substr(0, 31)) {
                 found = true;
                 if (issue == nullptr) {
-                  issue = report->ReportIssue(MISRA, M_R_2_7, it.second);
+                  issue = report->ReportIssue(MISRA, M_R_5_1, it.second);
                   std::string ref_msg = "External identifiers shall be distinct: ";
                   ref_msg += var_decl->getNameAsString();
                   issue->SetRefMsg(ref_msg);
@@ -160,6 +160,43 @@ void MISRADeclRule::CheckUndistinctExternalIdent() {
         }
       }, true);
 
+}
+
+/* MISRA
+ * Rule: 5.3
+ * An identifier declared in an inner scope shall not hide an identifier declared in an outer scope
+ */
+void MISRADeclRule::CheckIdentifierNameConflict() {
+#if 0
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+  constexpr uint32_t kind = IdentifierManager::VAR | IdentifierManager::TYPEDEF;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  top_scope->TraverseAll<kind,
+      const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+      [&issue, &report](const std::string &var_name, const clang::Decl *decl, IdentifierManager *id_mgr) -> void {
+        std::vector<const clang::VarDecl *> vars;
+        id_mgr->GetOuterVariables(var_name, vars);
+
+        if (!vars.empty()) {
+          auto var_decl = clang::dyn_cast<clang::VarDecl>(decl);
+          if (issue == nullptr) {
+            issue = report->ReportIssue(MISRA, M_R_5_3, decl);
+            std::string ref_msg = "External identifiers shall be distinct: ";
+            ref_msg += var_decl->getNameAsString();
+            issue->SetRefMsg(ref_msg);
+          } else {
+            var_decl->dumpColor();
+            issue->AddDecl(var_decl);
+          }
+          for (const auto &it : vars) {
+            issue->AddDecl(&(*it));
+          }
+        }
+      }, true);
+#endif
 }
 
 }

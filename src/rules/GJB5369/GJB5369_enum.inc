@@ -10,7 +10,7 @@
 // the defines of about the GJB5369 rules
 //
 
-#define GJB5369 "GJB5369"
+#define GJB5369    "GJB5369"
 #define G4_1_1_1   "G4_1_1_1"
 #define G4_1_1_2   "G4_1_1_2"
 #define G4_1_1_3   "G4_1_1_3"

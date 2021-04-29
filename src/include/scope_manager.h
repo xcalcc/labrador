@@ -155,6 +155,9 @@ public:
   template<bool _RECURSIVE>
   void GetTypedefs(const std::string &typedef_name, std::vector<const clang::TypedefDecl *> &) const;
 
+  /* Get outter-scope variable name and decl pair  */
+  void GetOuterVariables(const std::string &var_name, std::vector<const clang::VarDecl *> &variables) const;
+
   /* Check if the identifier is the C/C++ keywords. */
   bool IsKeyword(const std::string &var_name) const;
 
@@ -354,6 +357,12 @@ public:
     _identifiers->GetTypedefs<_RECURSIVE>(typedef_name, typedefs);
   }
 
+  void GetOutterVariables(const std::string &var_name, std::vector<const clang::VarDecl *> &variables) const {
+    if (_parent == nullptr) return;
+    _parent->GetVariables<false>(var_name, variables);
+    _parent->GetOutterVariables(var_name, variables);
+  }
+
   // Get parent scope
   LexicalScope *Parent() const {
     DBG_ASSERT(_parent != nullptr, "parent scope is null");
@@ -372,6 +381,10 @@ public:
 
   ScopeKind GetScopeKind() const {
     return static_cast<ScopeKind>(_scope.getInt());
+  }
+
+  const LexicalScope *GetParent() const {
+    return _parent;
   }
 
 public:

@@ -5,6 +5,6 @@
 
 void static_p(void) {
   unsigned int y = 0u, x = 0u, z = 1u;
-  volatile unsigned int v = 1u;
+  unsigned int v = 1u;
   x = v + z / v * y;
 }

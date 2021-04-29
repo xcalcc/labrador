@@ -4,31 +4,16 @@
 
 //
 // ====================================================================
-// GJB8114_decl_rule.h
+// GJB8114_decl_rule.cpp
 // ====================================================================
 //
 // implement Decl related rules for GJB8114
 //
 
-#include "scope_manager.h"
-#include "decl_null_handler.h"
-//#include <clang/AST/Decl.h>
-//#include <vector>
+#include "GJB8114_decl_rule.h"
 
 namespace xsca {
 namespace rule {
 
-class GJB8114DeclRule : public DeclNullHandler {
-public:
-  ~GJB8114DeclRule() {}
-
-private:
-
-public:
-  void Finalize() {
-  }
-
-}; // GJB8114DeclRule
-
-} // rule
-} // xsca
+}
+}

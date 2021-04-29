@@ -52,11 +52,18 @@ private:
    */
   void CheckUndistinctExternalIdent();
 
+  /* MISRA
+   * Rule: 5.3
+   * An identifier declared in an inner scope shall not hide an identifier declared in an outer scope
+   */
+  void CheckIdentifierNameConflict();
+
 public:
   void Finalize() {
     CheckUnusedTypedef();
     CheckUnusedLabelInFunction();
     CheckUndistinctExternalIdent();
+    CheckIdentifierNameConflict();
   }
 
   void VisitVar(const clang::VarDecl *decl) {

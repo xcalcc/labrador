@@ -10,8 +10,11 @@
 // implement preprocess related rules in GJB8114
 //
 
-#include <clang/Lex/Preprocessor.h>
+#include "pp_null_handler.h"
+#include "xsca_checker_manager.h"
+
 #include <vector>
+#include <clang/Lex/Preprocessor.h>
 
 namespace xsca {
 namespace rule {
@@ -20,8 +23,19 @@ public:
   ~GJB8114PPRule() {}
 
 private:
+  /*
+   * GJB5111: 5.1.1.1
+   * Changing the definition of basic type or keywords by macro is forbidden
+   */
+  void CheckRedefineKeywordsByMacro(const clang::MacroDirective *MD);
+
 
 public:
+
+  void MacroDefined(const clang::Token &MacroNameTok,
+                    const clang::MacroDirective *MD) {
+    CheckRedefineKeywordsByMacro(MD);
+  }
 
 }; // GJB8114PPRule
 }

@@ -34,6 +34,12 @@ bool IdentifierManager::InFunctionRange(clang::SourceLocation Loc) const {
   return false;
 }
 
+/* Get outer-scope variable name and decl pair  */
+void IdentifierManager::GetOuterVariables(const std::string &var_name,
+                                          std::vector<const clang::VarDecl *> &variables) const {
+  _scope->GetOutterVariables(var_name, variables);
+}
+
 bool LexicalScope::InFunctionRange(clang::SourceLocation Loc) const {
   return _identifiers->InFunctionRange(Loc);
 }
