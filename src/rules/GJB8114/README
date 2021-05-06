@@ -3,4 +3,7 @@ This is for GJB8114 with the following rules:
 Rule		Kind		Implementation
 --------------+---------------+--------------------------------
 5.1.1.1		PP      CheckRedefineKeywordsByMacro
-5.1.1.2     PP      CheckDefineAsKeywords
+5.1.1.2             GJB5369: 4.1.1.13 -> CheckMacroKeywords
+5.1.1.3             GJB5369: 4.1.1.17 -> CheckTypedefRedefine
+5.1.1.4             GJB5369: 4.1.1.9 -> redefining the keywords of C/C++ is forbidden
+5.1.1.5     Diag    HandleDiagnostic

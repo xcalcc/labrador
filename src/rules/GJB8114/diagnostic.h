@@ -1,15 +1,15 @@
-#ifndef LABRADOR_GJB5369_DIAGNOSTIC_H
-#define LABRADOR_GJB5369_DIAGNOSTIC_H
+#ifndef LABRADOR_GJB8114_DIAGNOSTIC_H
+#define LABRADOR_GJB8114_DIAGNOSTIC_H
 
 #include "rules/common/base_diagnostic.h"
 
 namespace xsca {
 namespace rule {
 
-class GJB5369Diagnostic : public RuleBaseDiagnostic {
+class GJB8114Diagnostic : public RuleBaseDiagnostic {
 private:
 public:
-  GJB5369Diagnostic() = default;
+  GJB8114Diagnostic() = default;
 
   void HandleDiagnostic(clang::DiagnosticsEngine::Level diagnosticLevel,
                         const clang::Diagnostic &diagnosticInfo) override;

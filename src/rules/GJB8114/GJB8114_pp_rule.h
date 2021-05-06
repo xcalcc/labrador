@@ -32,15 +32,14 @@ private:
   /*
    * GJB5111: 5.1.1.2
    * Define other something as keywords is forbidden
+   * GJB5369: 4.1.1.13 -> CheckMacroKeywords
    */
-  void CheckDefineAsKeywords(const clang::MacroDirective *MD);
 
 public:
 
   void MacroDefined(const clang::Token &MacroNameTok,
                     const clang::MacroDirective *MD) {
     CheckRedefineKeywordsByMacro(MD);
-    CheckDefineAsKeywords(MD);
   }
 
 }; // GJB8114PPRule
