@@ -320,7 +320,8 @@ void GJB5369StmtRule::CheckEmptyIfElseStmt(const clang::IfStmt *stmt) {
       need_report_if = true;
     }
   } else {
-    DBG_ASSERT(0, "unknown if body");
+//    DBG_ASSERT(0, "unknown if body");
+    need_report_if = false;
   }
 
   // check else-block

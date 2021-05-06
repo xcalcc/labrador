@@ -3,3 +3,4 @@ This is for GJB8114 with the following rules:
 Rule		Kind		Implementation
 --------------+---------------+--------------------------------
 5.1.1.1		PP      CheckRedefineKeywordsByMacro
+5.1.1.2     PP      CheckDefineAsKeywords
