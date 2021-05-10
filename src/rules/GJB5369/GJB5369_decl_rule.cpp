@@ -277,7 +277,7 @@ void GJB5369DeclRule::CheckParameterTypeDecl(const clang::FunctionDecl *decl) {
    * declaring the type of parameters is a must
    */
   if (DoesParamHasNotTypeDecl(decl)) {
-    issue = report->ReportIssue(GJB5369, "4.1.1.5", decl);
+    issue = report->ReportIssue(GJB5369, G4_1_1_5, decl);
     std::string ref_msg = "Declaring the type of parameters is a must: ";
     ref_msg += decl->getNameAsString();
     issue->SetRefMsg(ref_msg);
