@@ -96,8 +96,8 @@ XcalReport::PrintVtxtIssue(const XcalIssue *issue)
     // output path
     ploc = _source_mgr->getPresumedLoc(it->Start());
     fe = _source_mgr->getFileEntryForID(ploc.getFileID());
-    fprintf(_vtxt_file, "%d:%d:%d",
-                         fe->getUID() + 1, ploc.getLine(), it->Kind());
+    fprintf(_vtxt_file, "%d:%d:%d:%d",
+                         fe->getUID() + 1, ploc.getLine(), ploc.getColumn(), it->Kind());
   }
 
   fprintf(_vtxt_file, "]\n");
