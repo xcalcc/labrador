@@ -1,5 +1,5 @@
 /*
- * GJB5111: 5.1.1.4
+ * GJB8114: 5.1.1.4
  * Redefining the keywords of C/C++ is forbidden
  */
 int main() {

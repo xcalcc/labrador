@@ -1,5 +1,5 @@
 /*
- * GJB5111: 5.1.1.3
+ * GJB8114: 5.1.1.3
  * Self-defined types(typedef) redefined as other types is forbidden
  */
 

@@ -253,7 +253,7 @@ void GJB5369DeclRule::CheckParameterTypeDecl(const clang::FunctionDecl *decl) {
   GetFunctionTokens(decl, tokens);
 
   if (!decl->doesThisDeclarationHaveABody()) {
-    if (decl->param_empty()) {
+    if (tokens.empty()) {
       issue = report->ReportIssue(GJB5369, G4_1_1_6, decl);
       std::string ref_msg = "Without the parameter declarations in function declaration is forbidden: ";
       ref_msg += decl->getNameAsString();

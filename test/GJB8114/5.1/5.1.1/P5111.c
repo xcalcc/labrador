@@ -1,5 +1,5 @@
 /*
- * GJB5111: 5.1.1.1
+ * GJB8114: 5.1.1.1
  * Changing the definition of basic type or keywords by macro is forbidden
  */
 
