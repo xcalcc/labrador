@@ -29,6 +29,12 @@ public:
   void CheckAnonymousRecord(const clang::RecordDecl *decl);
   void CheckAnonymousEnum(const clang::EnumDecl *decl);
 
+  /*
+   * GJB8114: 5.1.1.9
+   * Anonymous struct in struct is forbidden
+   */
+  void CheckAnonymousStructInRecord(const clang::RecordDecl *decl);
+
 private:
 
 public:
@@ -37,7 +43,13 @@ public:
 
   void VisitRecord(const clang::RecordDecl *decl) {
     CheckAnonymousRecord(decl);
+    CheckAnonymousStructInRecord(decl);
   }
+
+  void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
+    CheckAnonymousRecord(decl);
+    CheckAnonymousStructInRecord(decl);
+}
 
   void VisitEnum(const clang::EnumDecl *decl) {
     CheckAnonymousEnum(decl);

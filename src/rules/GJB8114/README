@@ -10,3 +10,4 @@ Rule		Kind		Implementation
 5.1.1.6             Not sure
 5.1.1.7             GJB5369: 4.2.1.6
 5.1.1.8     Decl    CheckAnonymousRecord
+5.1.1.9     Decl    CheckAnonymousStructInRecord
