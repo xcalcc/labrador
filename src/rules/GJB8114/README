@@ -11,3 +11,6 @@ Rule		Kind		Implementation
 5.1.1.7             GJB5369: 4.2.1.6
 5.1.1.8     Decl    CheckAnonymousRecord
 5.1.1.9     Decl    CheckAnonymousStructInRecord
+5.1.1.10    Decl    GJB5369: 4.6.1.6 -> CheckSingleBitSignedValue
+5.1.1.11    Decl    GJB5369: 4.6.1.7 -> CheckBitsIfInteger
+5.1.1.12    Decl    CheckUniformityOfBitFields

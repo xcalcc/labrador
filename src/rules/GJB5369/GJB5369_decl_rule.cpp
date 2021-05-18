@@ -907,8 +907,8 @@ void GJB5369DeclRule::CheckBitsIfInteger(const clang::RecordDecl *decl) {
       const auto *BT = clang::dyn_cast<clang::BuiltinType>(it->getType().getCanonicalType());
       if (BT == nullptr) return;
       auto builtin_type = BT->getKind();
-      if (!((builtin_type >= BuiltinType::Int && builtin_type <= BuiltinType::Int128) ||
-            (builtin_type >= BuiltinType::UInt && builtin_type <= BuiltinType::UInt128))) {
+      if (!((builtin_type >= BuiltinType::Short && builtin_type <= BuiltinType::Int128) ||
+            (builtin_type >= BuiltinType::UShort && builtin_type <= BuiltinType::UInt128))) {
 
         XcalIssue *issue = nullptr;
         XcalReport *report = XcalCheckerManager::GetReport();

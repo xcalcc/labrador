@@ -35,6 +35,12 @@ public:
    */
   void CheckAnonymousStructInRecord(const clang::RecordDecl *decl);
 
+  /*
+   * GJB8114: 5.1.1.12
+   * Bit-fields should be the same length and within the length of its origin type
+   */
+  void CheckUniformityOfBitFields(const clang::RecordDecl *decl);
+
 private:
 
 public:
@@ -44,11 +50,13 @@ public:
   void VisitRecord(const clang::RecordDecl *decl) {
     CheckAnonymousRecord(decl);
     CheckAnonymousStructInRecord(decl);
+    CheckUniformityOfBitFields(decl);
   }
 
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
     CheckAnonymousRecord(decl);
     CheckAnonymousStructInRecord(decl);
+    CheckUniformityOfBitFields(decl);
 }
 
   void VisitEnum(const clang::EnumDecl *decl) {

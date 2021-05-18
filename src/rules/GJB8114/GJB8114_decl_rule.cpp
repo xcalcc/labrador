@@ -11,6 +11,7 @@
 //
 
 #include <unordered_map>
+#include <clang/AST/ASTContext.h>
 
 #include "GJB8114_enum.inc"
 #include "GJB8114_decl_rule.h"
@@ -80,6 +81,45 @@ void GJB8114DeclRule::CheckAnonymousStructInRecord(const clang::RecordDecl *decl
     issue->AddDecl(it.second);
   }
 
+}
+
+/*
+ * GJB8114: 5.1.1.12
+ * Bit-fields should be the same length and within the length of its origin type
+ */
+void GJB8114DeclRule::CheckUniformityOfBitFields(const clang::RecordDecl *decl) {
+  if (decl->field_empty()) return;
+  auto ctx = XcalCheckerManager::GetAstContext();
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  bool need_report = false;
+  unsigned length = decl->field_begin()->getBitWidthValue(*ctx);
+  for (const auto &it : decl->fields()) {
+    if (!it->isBitField()) continue;
+    unsigned width = it->getBitWidthValue(*ctx);
+    if (length != width) {
+      need_report = true;
+    } else {
+      auto f_type = it->getType();
+      auto typeInfo = ctx->getTypeInfo(f_type);
+      auto origin_width = typeInfo.Width;
+      if (origin_width < width) {
+        need_report = true;
+      }
+    }
+
+    if (need_report) {
+      if (issue == nullptr) {
+        issue = report->ReportIssue(GJB8114, G5_1_1_12, decl);
+        std::string ref_msg = "Bit-fields should be the same length and within the length of its origin type";
+        issue->SetRefMsg(ref_msg);
+      }
+      issue->AddDecl(it);
+      need_report = false;
+    }
+
+  }
 }
 
 
