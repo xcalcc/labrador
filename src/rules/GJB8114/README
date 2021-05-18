@@ -21,3 +21,6 @@ Rule		Kind		Implementation
 5.1.1.17    Decl    CheckExternVariableInFunction
 5.1.1.18            GJB5369: 4.1.1.19 -> CheckArrayBoundary
 5.1.1.19    Diag    HandleDiagnostic
+5.1.1.20            GJB5369: 4.1.1.15 -> CheckExplicitCharType
+5.1.1.21            GJB5369: 4.1.1.20 -> CheckAbsolutePathInclude
+5.1.1.22

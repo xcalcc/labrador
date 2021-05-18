@@ -13,6 +13,7 @@
 #include "pp_null_handler.h"
 #include "xsca_checker_manager.h"
 
+#include <unordered_set>
 #include <vector>
 #include <clang/Lex/Preprocessor.h>
 
@@ -21,8 +22,13 @@ namespace rule {
 class GJB8114PPRule : public PPNullHandler {
 public:
   ~GJB8114PPRule() {}
+  GJB8114PPRule() {
+    _included_file.clear();
+  }
 
 private:
+  std::unordered_set<std::string> _included_file;
+
   /*
    * GJB5111: 5.1.1.1
    * Changing the definition of basic type or keywords by macro is forbidden
@@ -30,16 +36,25 @@ private:
   void CheckRedefineKeywordsByMacro(const clang::MacroDirective *MD);
 
   /*
-   * GJB5111: 5.1.1.2
-   * Define other something as keywords is forbidden
-   * GJB5369: 4.1.1.13 -> CheckMacroKeywords
+   * GJB8114: 5.1.1.22
+   * Head file being re-included is forbidden
    */
+  void CheckReIncludeHeadFile(llvm::StringRef IncludedFilename);
 
 public:
 
   void MacroDefined(const clang::Token &MacroNameTok,
                     const clang::MacroDirective *MD) {
     CheckRedefineKeywordsByMacro(MD);
+  }
+
+  void InclusionDirective(clang::SourceLocation DirectiveLoc,
+                          const clang::Token &IncludeToken, llvm::StringRef IncludedFilename,
+                          bool IsAngled, clang::CharSourceRange FilenameRange,
+                          const clang::FileEntry *IncludedFile, llvm::StringRef SearchPath,
+                          llvm::StringRef RelativePath, const clang::Module *Imported,
+                          clang::SrcMgr::CharacteristicKind FileType) {
+    CheckReIncludeHeadFile(IncludedFilename);
   }
 
 }; // GJB8114PPRule

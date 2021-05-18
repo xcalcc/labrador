@@ -50,6 +50,20 @@ void GJB8114PPRule::CheckRedefineKeywordsByMacro(const clang::MacroDirective *MD
   }
 }
 
+/*
+ * GJB8114: 5.1.1.22
+ * Head file being re-included is forbidden
+ */
+void GJB8114PPRule::CheckReIncludeHeadFile(llvm::StringRef IncludedFilename) {
+  auto filename = IncludedFilename.str();
+  // TODO: crashed here
+  if (_included_file.find(filename) != _included_file.end()) {
+    REPORT("GJB9114:5.1.1.22: Head file being re-included is forbidden: %s\n", filename.c_str())
+  } else {
+    _included_file.insert(filename);
+  }
+}
+
 
 }
 }
