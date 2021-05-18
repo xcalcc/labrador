@@ -29,7 +29,7 @@ private:
   clang::CompilerInstance *_ci;
 
 public:
-  XcalPPCallback(_Handler handler, clang::CompilerInstance *CI)
+  XcalPPCallback(_Handler &handler, clang::CompilerInstance *CI)
       : _handler(handler), _ci(CI) {}
 
   ~XcalPPCallback() {}

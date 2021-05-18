@@ -37,8 +37,8 @@ private:
   _DeclHandler             _decl_handler;
   _StmtHandler             _stmt_handler;
   _TypeHandler             _type_handler;
-  _ASTHandler              _ast_handler;
   _PPHandler               _pp_handler;
+  _ASTHandler              _ast_handler;
 
 public:
   XcalCheckerTmpl(XcalCheckerManager *mgr)
