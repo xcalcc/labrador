@@ -16,6 +16,8 @@ void GJB8114Diagnostic::HandleDiagnostic(clang::DiagnosticsEngine::Level diagnos
   switch (diagnosticInfo.getID()) {
     case 1016:  // macro redefine TODO: replace the hardcode with clang::diag::blablabla
       AddIssue(G5_1_1_5, diagnosticMessage.c_str(), location);
+    case 5589:  // GJB8114 5.1.1.19
+      AddIssue(G5_1_1_19, diagnosticMessage.c_str(), location);
     default: {
       printf("%d\n",diagnosticInfo.getID());
       break;

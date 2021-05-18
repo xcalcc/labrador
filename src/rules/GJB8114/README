@@ -19,3 +19,5 @@ Rule		Kind		Implementation
 5.1.1.15            GJB5369: 4.1.1.5 -> CheckParameterTypeDecl
 5.1.1.16            Need to handle multiple files
 5.1.1.17    Decl    CheckExternVariableInFunction
+5.1.1.18            GJB5369: 4.1.1.19 -> CheckArrayBoundary
+5.1.1.19    Diag    HandleDiagnostic
