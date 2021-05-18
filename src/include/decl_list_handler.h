@@ -66,6 +66,7 @@ public:
   #undef ABSTRACT_DECL
   #undef DECL
 
+
 };  // DeclListHandler
 
 }  // namespace xsca

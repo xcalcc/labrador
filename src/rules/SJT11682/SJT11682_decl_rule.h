@@ -11,6 +11,7 @@
 //
 
 #include "scope_manager.h"
+#include "decl_null_handler.h"
 //#include <clang/AST/Decl.h>
 //#include <vector>
 
@@ -25,6 +26,7 @@ private:
 public:
   void Finalize() {
   }
+
 
 }; // SJT11682DeclRule
 }  // rule

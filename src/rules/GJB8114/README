@@ -14,3 +14,8 @@ Rule		Kind		Implementation
 5.1.1.10    Decl    GJB5369: 4.6.1.6 -> CheckSingleBitSignedValue
 5.1.1.11    Decl    GJB5369: 4.6.1.7 -> CheckBitsIfInteger
 5.1.1.12    Decl    CheckUniformityOfBitFields
+5.1.1.13    Decl    GJB5369: 4.1.1.6 and 4.1.1.7
+5.1.1.14            Need to collect error report of clang
+5.1.1.15            GJB5369: 4.1.1.5 -> CheckParameterTypeDecl
+5.1.1.16            Need to handle multiple files
+5.1.1.17    Decl    CheckExternVariableInFunction

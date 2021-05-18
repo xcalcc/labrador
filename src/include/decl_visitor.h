@@ -97,10 +97,8 @@ public:
   void VisitFunction(const clang::FunctionDecl *decl) {
     auto scope_mgr = XcalCheckerManager::GetScopeManager();
 
-    // setup function scope
-    ScopeHelper<clang::FunctionDecl> scope(scope_mgr, decl);
-
     _decl_handler.VisitFunction(decl);
+
     _type_visitor.Visit(decl->clang::ValueDecl::getType().getTypePtr());
 
     // visit parameters

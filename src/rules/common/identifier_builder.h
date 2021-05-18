@@ -20,6 +20,9 @@ class IdentifierBuilder : public DeclNullHandler {
 public:
   ~IdentifierBuilder() {}
 
+private:
+  const clang::FunctionDecl *_current_function_decl;
+
 public:
   void VisitLabel(const clang::LabelDecl *decl) {
     auto scope_mgr = XcalCheckerManager::GetScopeManager();
@@ -73,6 +76,11 @@ public:
   void VisitTypedef(const clang::TypedefDecl *decl) {
     auto scope_mgr = XcalCheckerManager::GetScopeManager();
     scope_mgr->CurrentScope()->AddIdentifier<clang::TypedefDecl>(decl);
+  }
+
+public:
+  void SetCurrentFunctionDecl(const clang::FunctionDecl *decl) {
+    _current_function_decl = decl;
   }
 
 }; // IdentifierBuilder

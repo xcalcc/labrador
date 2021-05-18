@@ -78,6 +78,7 @@ public:
     CheckUnusedParameters(decl);
   }
 
+
 }; // MISRADeclRule
 } // rule
 } // xsca

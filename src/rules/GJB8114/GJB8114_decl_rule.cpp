@@ -11,6 +11,7 @@
 //
 
 #include <unordered_map>
+#include <clang/AST/Decl.h>
 #include <clang/AST/ASTContext.h>
 
 #include "GJB8114_enum.inc"
@@ -121,6 +122,31 @@ void GJB8114DeclRule::CheckUniformityOfBitFields(const clang::RecordDecl *decl) 
 
   }
 }
+
+/*
+ * GJB8114: 5.1.1.17
+ * Using "extern" variable in function is forbidden
+ */
+void GJB8114DeclRule::CheckExternVariableInFunction(const clang::VarDecl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  auto decl_ctx = decl->isLocalVarDeclOrParm();
+  if (!const_cast<clang::VarDecl *>(decl)->isLocalExternDecl()) return;
+  issue = report->ReportIssue(GJB8114, G5_1_1_17, decl);
+  std::string ref_msg = "Using \"extern\" variable in function is forbidden";
+  issue->SetRefMsg(ref_msg);
+}
+
+void GJB8114DeclRule::CheckExternVariableInFunction(const clang::FunctionDecl *decl) {
+  auto decl_ctx = decl->getParent();
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  if (!const_cast<clang::FunctionDecl *>(decl)->isLocalExternDecl()) return;
+  issue = report->ReportIssue(GJB8114, G5_1_1_17, decl);
+  std::string ref_msg = "Using \"extern\" variable in function is forbidden";
+  issue->SetRefMsg(ref_msg);
+}
+
 
 
 }
