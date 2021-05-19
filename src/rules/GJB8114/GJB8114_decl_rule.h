@@ -53,6 +53,12 @@ private:
 
   void CheckExternVariableInFunction(const clang::FunctionDecl *decl);
 
+  /*
+   * GJB8114: 5.1.2.4
+   * Variables should be declared at the beginning of function body
+   */
+  void CheckVariableDeclPosition(const clang::FunctionDecl *decl);
+
 public:
   void Finalize() {}
 
@@ -74,6 +80,7 @@ public:
 
   void VisitFunction(const clang::FunctionDecl *decl) {
     CheckExternVariableInFunction(decl);
+    CheckVariableDeclPosition(decl);
   }
 
   void VisitVar(const clang::VarDecl *decl) {

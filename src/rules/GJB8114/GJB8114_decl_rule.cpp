@@ -147,6 +147,32 @@ void GJB8114DeclRule::CheckExternVariableInFunction(const clang::FunctionDecl *d
   issue->SetRefMsg(ref_msg);
 }
 
+/*
+ * GJB8114: 5.1.2.4
+ * Variables should be declared at the beginning of function body
+ */
+void GJB8114DeclRule::CheckVariableDeclPosition(const clang::FunctionDecl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  if (!decl->doesThisDeclarationHaveABody()) return;
+  bool hit_stmt = false;
+  for (const auto &it : decl->getBody()->children()) {
+    if (it->getStmtClass() == clang::Stmt::StmtClass::DeclStmtClass) {
+      if (hit_stmt) continue; // continue if not meet other statement
+      else {
+        if (issue == nullptr) {
+          issue = report->ReportIssue(GJB8114, G5_1_2_4, decl);
+          std::string ref_msg = "Variables should be declared at the beginning of function body: ";
+          ref_msg += decl->getNameAsString();
+          issue->SetRefMsg(ref_msg);
+        }
+        auto it_decl = clang::dyn_cast<clang::DeclStmt>(it)->getSingleDecl();
+        issue->AddDecl(it_decl);
+      }
+    }
+    else hit_stmt = true;
+  }
+}
 
 
 }
