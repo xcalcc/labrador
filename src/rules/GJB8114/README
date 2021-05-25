@@ -31,3 +31,4 @@ Rule		Kind		Implementation
 5.1.2.3                 GJB5369: 4.15.2.2 -> CheckMultipleSharp
 5.1.2.4     Decl        CheckVariableDeclPosition
 5.1.2.5     Decl        CheckNestedStructure
+5.2.1.1     Stmt        CheckLoopBodyWithBrace

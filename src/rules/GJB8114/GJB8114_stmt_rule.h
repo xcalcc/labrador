@@ -10,6 +10,9 @@
 // implement all stmt related rules in GJB8114
 //
 
+#include "stmt_null_handler.h"
+#include "xsca_checker_manager.h"
+
 namespace xsca {
 namespace rule {
 
@@ -19,7 +22,16 @@ public:
 
 private:
 
+  /*
+   * GJB8114: 5.1.2.6
+   * Loop body should be enclosed with brace
+   */
+  void CheckLoopBodyWithBrace(const clang::ForStmt *stmt);
+
 public:
+  void VisitForStmt(const clang::ForStmt *stmt) {
+    CheckLoopBodyWithBrace(stmt);
+  }
 
 }; // GJB8114StmtRule
 }
