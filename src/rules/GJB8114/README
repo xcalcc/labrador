@@ -32,3 +32,6 @@ Rule		Kind		Implementation
 5.1.2.4     Decl        CheckVariableDeclPosition
 5.1.2.5     Decl        CheckNestedStructure
 5.2.1.1     Stmt        CheckLoopBodyWithBrace
+5.2.1.2                 GJB5369: 4.2.1.3 -> CheckIfBrace
+5.2.1.3                 Have no idea 😢
+5.2.1.4

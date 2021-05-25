@@ -1,5 +1,5 @@
 /*
- * GJB8114: 5.1.2.6
+ * GJB8114: 5.2.1.2
  * Loop body should be enclosed with brace
  */
 

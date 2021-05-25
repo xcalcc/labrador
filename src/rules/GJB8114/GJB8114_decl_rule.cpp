@@ -158,7 +158,7 @@ void GJB8114DeclRule::CheckVariableDeclPosition(const clang::FunctionDecl *decl)
   bool hit_stmt = false;
   for (const auto &it : decl->getBody()->children()) {
     if (it->getStmtClass() == clang::Stmt::StmtClass::DeclStmtClass) {
-      if (hit_stmt) continue; // continue if not meet other statement
+      if (!hit_stmt) continue; // continue if not meet other statement
       else {
         if (issue == nullptr) {
           issue = report->ReportIssue(GJB8114, G5_1_2_4, decl);
@@ -166,11 +166,18 @@ void GJB8114DeclRule::CheckVariableDeclPosition(const clang::FunctionDecl *decl)
           ref_msg += decl->getNameAsString();
           issue->SetRefMsg(ref_msg);
         }
-        auto it_decl = clang::dyn_cast<clang::DeclStmt>(it)->getSingleDecl();
-        issue->AddDecl(it_decl);
+        if (auto decl_stmt = clang::dyn_cast<clang::DeclStmt>(it)) {
+          if (decl_stmt->isSingleDecl()) {
+            auto it_decl = clang::dyn_cast<clang::DeclStmt>(it)->getSingleDecl();
+            issue->AddDecl(it_decl);
+          } else {
+            for (const auto &it_decl : decl_stmt->decls()) {
+              issue->AddDecl(&(*it_decl));
+            }
+          }
+        }
       }
-    }
-    else hit_stmt = true;
+    } else hit_stmt = true;
   }
 }
 

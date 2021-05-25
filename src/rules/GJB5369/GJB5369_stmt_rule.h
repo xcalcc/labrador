@@ -503,6 +503,7 @@ private:
   /*
    * GJB5369: 4.14.1.2
    * Logical discriminant can only be logical expression
+   * TODO: false positive (i == 0) || (j == 2)
    */
   template<typename _STMT_CLASS>
   void CheckLogicalDiscriminant(_STMT_CLASS *stmt) {
