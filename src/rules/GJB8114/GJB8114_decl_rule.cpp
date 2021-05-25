@@ -174,6 +174,31 @@ void GJB8114DeclRule::CheckVariableDeclPosition(const clang::FunctionDecl *decl)
   }
 }
 
+/*
+ * GJB8114: 5.1.2.5
+ * Struct should not nest more than three levels
+ */
+void GJB8114DeclRule::CheckNestedStructure(const clang::RecordDecl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  if (decl->decls_empty()) return;
+
+  for (const auto &it : decl->decls()) {
+    if (auto record = clang::dyn_cast<clang::RecordDecl>(it)) {
+      for (const auto &sub_it : record->decls()) {
+        if (clang::dyn_cast<clang::RecordDecl>(sub_it)) {
+          if (issue == nullptr) {
+            issue = report->ReportIssue(GJB8114, G5_1_2_5, decl);
+            std::string ref_msg = "Struct should not nest more than three levels: ";
+            ref_msg += decl->getNameAsString();
+            issue->SetRefMsg(ref_msg);
+          }
+          issue->AddDecl(sub_it);
+        }
+      }
+    }
+  }
+}
 
 }
 }

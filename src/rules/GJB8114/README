@@ -30,3 +30,4 @@ Rule		Kind		Implementation
 5.1.2.2                 GJB5369: 4.1.1.12 -> CheckUnFunctionLike
 5.1.2.3                 GJB5369: 4.15.2.2 -> CheckMultipleSharp
 5.1.2.4     Decl        CheckVariableDeclPosition
+5.1.2.5     Decl        CheckNestedStructure

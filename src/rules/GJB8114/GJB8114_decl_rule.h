@@ -59,6 +59,12 @@ private:
    */
   void CheckVariableDeclPosition(const clang::FunctionDecl *decl);
 
+  /*
+   * GJB8114: 5.1.2.5
+   * Struct should not nest more than three levels
+   */
+  void CheckNestedStructure(const clang::RecordDecl *decl);
+
 public:
   void Finalize() {}
 
@@ -66,12 +72,14 @@ public:
     CheckAnonymousRecord(decl);
     CheckAnonymousStructInRecord(decl);
     CheckUniformityOfBitFields(decl);
+    CheckNestedStructure(decl);
   }
 
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
     CheckAnonymousRecord(decl);
     CheckAnonymousStructInRecord(decl);
     CheckUniformityOfBitFields(decl);
+    CheckNestedStructure(decl);
   }
 
   void VisitEnum(const clang::EnumDecl *decl) {
