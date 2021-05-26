@@ -43,3 +43,4 @@ Rule		Kind		Implementation
 5.3.1.1                 GJB5369: 4.4.1.2 -> CheckPointerNestedLevel
 5.3.1.2     Diag        HandleDiagnostic
 5.3.1.3     Stmt        CheckAssignToPointerParam
+5.3.1.4     Diag        HandleDiagnostic
