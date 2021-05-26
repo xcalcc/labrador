@@ -39,7 +39,7 @@ Rule		Kind		Implementation
 4.2.1.1     Decl        CheckProcedureWithBraces
 4.2.1.2     Stmt        CheckLoopBrace
 4.2.1.3     Stmt        CheckIfBrace
-4.2.1.4     Stmt        CheckLogicExprParen
+4.2.1.4     Stmt        CheckLogicExprParen     // TODO: with false positive
 4.2.1.5                 Need to record some info in PP stage
 4.2.1.6     PP          CheckParamWithParentheses
 4.2.1.7     Stmt        CheckAsmInProcedure
@@ -150,7 +150,7 @@ Rule		Kind		Implementation
 4.13.1.4    Decl        CheckUsedBeforeInit         // TODO: Need refine -> with false positive:
 --------------+------------------------------------------------
 4.14.1.1    Stmt        CheckComparingRealNumber
-4.14.1.2    Stmt        CheckLogicalDiscriminant    // TODO: With false positive
+4.14.1.2    Stmt        CheckLogical4.14.1.2 Discriminant    // TODO: With false positive
 4.14.1.3    Stmt        CheckLogicalStmtInSwitchCond
 4.14.2.1    Stmt        CheckComplexLogicalExpr
 --------------+------------------------------------------------
