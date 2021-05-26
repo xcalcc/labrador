@@ -910,6 +910,7 @@ void GJB5369StmtRule::CheckCommaStmt(const clang::BinaryOperator *stmt) {
 void GJB5369StmtRule::CheckSizeofOnExpr(const clang::UnaryExprOrTypeTraitExpr *stmt) {
   if (stmt->getKind() != clang::UnaryExprOrTypeTrait::UETT_SizeOf) { return; }
   auto ctx = XcalCheckerManager::GetAstContext();
+  if (stmt->isArgumentType()) return;
   if (stmt->getArgumentExpr()->HasSideEffects(*ctx, false)) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
