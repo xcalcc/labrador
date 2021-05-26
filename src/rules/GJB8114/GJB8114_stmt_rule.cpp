@@ -44,5 +44,27 @@ bool GJB8114StmtRule::CheckStmtWithBrace(const clang::Stmt *stmt) {
   return true;
 }
 
+/*
+ * GJB8114: 5.3.1.3
+ * Assigning to pointer parameters is forbidden
+ */
+void GJB8114StmtRule::CheckAssignToPointerParam(const clang::BinaryOperator *stmt) {
+  if (stmt->getOpcode() != clang::BinaryOperatorKind::BO_Assign) return;
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+
+  if (auto decl_ref_expr = clang::dyn_cast<clang::DeclRefExpr>(lhs)) {
+    auto decl = decl_ref_expr->getDecl();
+    if (auto param_decl = clang::dyn_cast<clang::ParmVarDecl>(decl)) {
+      if (!param_decl->getType()->isPointerType()) return;
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+      issue = report->ReportIssue(GJB8114, G5_3_1_3, stmt);
+      std::string ref_msg = "Assigning to pointer parameters is forbidden";
+      issue->SetRefMsg(ref_msg);
+      issue->AddDecl(decl);
+    }
+  }
+}
+
 }
 }

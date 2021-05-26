@@ -31,6 +31,11 @@ private:
 
   bool CheckStmtWithBrace(const clang::Stmt *stmt);
 
+  /*
+   * GJB8114: 5.3.1.3
+   * Assigning to pointer parameters is forbidden
+   */
+  void CheckAssignToPointerParam(const clang::BinaryOperator *stmt);
 
 public:
   void VisitForStmt(const clang::ForStmt *stmt) {
@@ -43,6 +48,10 @@ public:
 
   void VisitDoStmt(const clang::DoStmt *stmt) {
     CheckLoopBodyWithBrace(stmt->getBody());
+  }
+
+  void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
+    CheckAssignToPointerParam(stmt);
   }
 
 }; // GJB8114StmtRule
