@@ -27,40 +27,22 @@ private:
    * GJB8114: 5.2.1.1
    * Loop body should be enclosed with brace
    */
-  template<typename Type>
-  void CheckLoopBodyWithBrace(const Type *stmt) {
-    if (CheckStmtWithBrace(stmt->getBody())) return;
+  void CheckLoopBodyWithBrace(const clang::Stmt *stmt);
 
-    XcalIssue *issue = nullptr;
-    XcalReport *report = XcalCheckerManager::GetReport();
-    issue = report->ReportIssue(GJB8114, G5_1_2_6, stmt);
-    std::string ref_msg = "Loop body should be enclosed with brace";
-    issue->SetRefMsg(ref_msg);
-  }
-
-  bool CheckStmtWithBrace(const clang::Stmt *stmt)  {
-    auto src_mgr = XcalCheckerManager::GetSourceManager();
-    auto location = stmt->getBeginLoc();
-    auto data = src_mgr->getCharacterData(location);
-
-    if (*data != '{') {
-      return false;
-    }
-    return true;
-  }
+  bool CheckStmtWithBrace(const clang::Stmt *stmt);
 
 
 public:
   void VisitForStmt(const clang::ForStmt *stmt) {
-    CheckLoopBodyWithBrace<clang::ForStmt>(stmt);
+    CheckLoopBodyWithBrace(stmt->getBody());
   }
 
   void VisitWhileStmt(const clang::WhileStmt *stmt) {
-    CheckLoopBodyWithBrace<clang::WhileStmt>(stmt);
+    CheckLoopBodyWithBrace(stmt->getBody());
   }
 
   void VisitDoStmt(const clang::DoStmt *stmt) {
-    CheckLoopBodyWithBrace<clang::DoStmt>(stmt);
+    CheckLoopBodyWithBrace(stmt->getBody());
   }
 
 }; // GJB8114StmtRule

@@ -23,5 +23,26 @@ namespace rule {
  */
 
 
+void GJB8114StmtRule::CheckLoopBodyWithBrace(const clang::Stmt *stmt) {
+  if (CheckStmtWithBrace(stmt)) return;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(GJB8114, G5_1_2_6, stmt);
+  std::string ref_msg = "Loop body should be enclosed with brace";
+  issue->SetRefMsg(ref_msg);
+}
+
+bool GJB8114StmtRule::CheckStmtWithBrace(const clang::Stmt *stmt) {
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  auto location = stmt->getBeginLoc();
+  auto data = src_mgr->getCharacterData(location);
+
+  if (*data != '{') {
+    return false;
+  }
+  return true;
+}
+
 }
 }

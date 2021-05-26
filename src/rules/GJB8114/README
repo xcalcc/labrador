@@ -38,5 +38,7 @@ Rule		Kind		Implementation
 5.2.1.5                 GJB5369: 4.2.1.4 -> CheckLogicExprParen // TODO: with false positive
 5.2.1.6                 Have no idea 😢  // TODO: need check comment
 5.2.2.1                 GJB5369: 4.2.2.1 // TODO: not implemented yet
-5.2.2.2                 GJB5360: 4.2.2.2 -> CheckFunctionLength
-
+5.2.2.2                 GJB5369: 4.2.2.2 -> CheckFunctionLength
+5.2.2.3                 Have no idea 😢  // TODO: need check comment
+5.3.1.1                 GJB5369: 4.4.1.2 -> CheckPointerNestedLevel
+5.3.1.2     Diag        HandleDiagnostic
