@@ -95,6 +95,7 @@ void GJB8114DeclRule::CheckUniformityOfBitFields(const clang::RecordDecl *decl) 
   XcalReport *report = XcalCheckerManager::GetReport();
 
   bool need_report = false;
+  if (decl->field_empty()) return;
   unsigned length = decl->field_begin()->getBitWidthValue(*ctx);
   for (const auto &it : decl->fields()) {
     if (!it->isBitField()) continue;

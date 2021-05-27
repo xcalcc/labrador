@@ -47,4 +47,8 @@ Rule		Kind		Implementation
 5.3.1.5                 Have no idea 😢  // UAF
 5.3.1.6                 Have no idea 😢  // Setting free pointer to be null
 5.3.1.7     Decl        CheckPointerInitWithNull
+5.3.1.8                 Have no idea 😢
+5.3.1.9     Stmt        CheckUsingNullWithPointer
+5.3.1.10                Not sure, need discuss
+
 

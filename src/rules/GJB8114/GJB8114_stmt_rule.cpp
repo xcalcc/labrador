@@ -66,5 +66,51 @@ void GJB8114StmtRule::CheckAssignToPointerParam(const clang::BinaryOperator *stm
   }
 }
 
+/*
+ * GJB8114: 5.3.1.9
+ * Using NULL to stand a nullptr instead of using 0
+ */
+void GJB8114StmtRule::CheckUsingNullWithPointer(const clang::BinaryOperator *stmt) {
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+
+  // reuturn if not operating on pointer
+  if (!lhs->getType()->isPointerType()) return;
+
+  if (auto literal = clang::dyn_cast<clang::IntegerLiteral>(rhs)) {
+    rhs->dumpColor();
+
+    int value;
+    clang::Expr::EvalResult eval_result;
+    auto ctx = XcalCheckerManager::GetAstContext();
+
+    // try to fold the const expr
+    if (literal->EvaluateAsInt(eval_result, *ctx)) {
+      value = eval_result.Val.getInt().getZExtValue();
+    } else {
+      value = literal->getValue().getZExtValue();
+    }
+    if (value != 0) return;
+
+    // check if rhs is NULL
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    auto data = src_mgr->getCharacterData(literal->getBeginLoc());
+    auto end = src_mgr->getCharacterData(literal->getEndLoc());
+    std::string init_val;
+    while (data != end) {
+      init_val += *data;
+      data++;
+    }
+
+    if (init_val != "NULL") {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+      issue = report->ReportIssue(GJB8114, G5_3_1_9, stmt);
+      std::string ref_msg = "Using NULL to stand a nullptr instead of using 0";
+      issue->SetRefMsg(ref_msg);
+    }
+  }
+  }
+
 }
 }

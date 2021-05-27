@@ -37,6 +37,12 @@ private:
    */
   void CheckAssignToPointerParam(const clang::BinaryOperator *stmt);
 
+  /*
+   * GJB8114: 5.3.1.9
+   * Using NULL to stand a nullptr instead of using 0
+   */
+  void CheckUsingNullWithPointer(const clang::BinaryOperator *stmt);
+
 public:
   void VisitForStmt(const clang::ForStmt *stmt) {
     CheckLoopBodyWithBrace(stmt->getBody());
@@ -52,6 +58,7 @@ public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
     CheckAssignToPointerParam(stmt);
+    CheckUsingNullWithPointer(stmt);
   }
 
 }; // GJB8114StmtRule
