@@ -65,6 +65,12 @@ private:
    */
   void CheckNestedStructure(const clang::RecordDecl *decl);
 
+  /*
+   * GJB8114: 5.3.1.7
+   * Pointers should be initialized as NULL
+   */
+  void CheckPointerInitWithNull(const clang::VarDecl *decl);
+
 public:
   void Finalize() {}
 
@@ -93,8 +99,8 @@ public:
 
   void VisitVar(const clang::VarDecl *decl) {
     CheckExternVariableInFunction(decl);
+    CheckPointerInitWithNull(decl);
   }
-
 
 }; // GJB8114DeclRule
 

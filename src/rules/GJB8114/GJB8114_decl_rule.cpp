@@ -207,5 +207,40 @@ void GJB8114DeclRule::CheckNestedStructure(const clang::RecordDecl *decl) {
   }
 }
 
+/*
+ * GJB8114: 5.3.1.7
+ * Pointers should be initialized as NULL
+ */
+void GJB8114DeclRule::CheckPointerInitWithNull(const clang::VarDecl *decl) {
+  if (!decl->getType()->isPointerType()) return;
+
+  auto ctx = XcalCheckerManager::GetAstContext();
+
+  if (decl->hasInit()) {
+    auto init_val = decl->getInit()->IgnoreParenImpCasts();
+    if (auto literal = clang::dyn_cast<clang::IntegerLiteral>(init_val)) {
+      int value;
+      clang::Expr::EvalResult eval_result;
+
+      // try to fold the const expr
+      if (literal->EvaluateAsInt(eval_result, *ctx)) {
+        value = eval_result.Val.getInt().getZExtValue();
+      } else {
+        value = literal->getValue().getZExtValue();
+      }
+
+      // return if pointer has been initialized with NULL
+      if (value == 0) return;
+    }
+  }
+
+  // report issue
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(GJB8114, G5_3_1_7, decl);
+  std::string ref_msg = "Pointers should be initialized as NULL";
+  issue->SetRefMsg(ref_msg);
+}
+
 }
 }
