@@ -243,5 +243,41 @@ void GJB8114DeclRule::CheckPointerInitWithNull(const clang::VarDecl *decl) {
   issue->SetRefMsg(ref_msg);
 }
 
+/*
+ * GJB8114: 5.3.2.2
+ * Using void pointer carefully
+ */
+void GJB8114DeclRule::CheckVoidPointer(const clang::VarDecl *decl) {
+  auto type = decl->getType();
+  if (!type->isPointerType()) return;
+  if (type->getPointeeType()->isVoidType()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB8114, G5_3_2_2, decl);
+    std::string ref_msg = "Using void pointer carefully: ";
+    ref_msg += decl->getNameAsString();
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+void GJB8114DeclRule::CheckVoidPointer(const clang::FunctionDecl *decl) {
+  if (decl->param_empty()) return;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  for (const auto &it : decl->parameters()) {
+    if (!it->getType()->isPointerType()) continue;
+    if(it->getType()->getPointeeType()->isVoidType()) {
+      if (issue == nullptr) {
+        issue = report->ReportIssue(GJB8114, G5_3_2_2, decl);
+        std::string ref_msg = "Using void pointer carefully: ";
+        ref_msg += decl->getNameAsString();
+        issue->SetRefMsg(ref_msg);
+      }
+      issue->AddDecl(&(*it));
+    }
+  }
+}
+
 }
 }

@@ -71,6 +71,14 @@ private:
    */
   void CheckPointerInitWithNull(const clang::VarDecl *decl);
 
+  /*
+   * GJB8114: 5.3.2.2
+   * Using void pointer carefully
+   */
+  void CheckVoidPointer(const clang::VarDecl *decl);
+
+  void CheckVoidPointer(const clang::FunctionDecl *decl);
+
 public:
   void Finalize() {}
 
@@ -95,11 +103,13 @@ public:
   void VisitFunction(const clang::FunctionDecl *decl) {
     CheckExternVariableInFunction(decl);
     CheckVariableDeclPosition(decl);
+    CheckVoidPointer(decl);
   }
 
   void VisitVar(const clang::VarDecl *decl) {
     CheckExternVariableInFunction(decl);
     CheckPointerInitWithNull(decl);
+    CheckVoidPointer(decl);
   }
 
 }; // GJB8114DeclRule
