@@ -22,6 +22,8 @@ void GJB8114Diagnostic::HandleDiagnostic(clang::DiagnosticsEngine::Level diagnos
       AddIssue(G5_3_1_2, diagnosticMessage.c_str(), location);
     case 5949:
       AddIssue(G5_3_1_3, diagnosticMessage.c_str(), location);
+    case 5382:  // GJB8114 5.4.1.4
+      AddIssue(G5_4_1_4, diagnosticMessage.c_str(), location);
     default: {
       printf("%d\n",diagnosticInfo.getID());
       break;
