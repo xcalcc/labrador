@@ -260,6 +260,10 @@ void GJB8114DeclRule::CheckVoidPointer(const clang::VarDecl *decl) {
   }
 }
 
+/*
+ * GJB8114: 5.3.2.2
+ * Using void pointer carefully
+ */
 void GJB8114DeclRule::CheckVoidPointer(const clang::FunctionDecl *decl) {
   if (decl->param_empty()) return;
 

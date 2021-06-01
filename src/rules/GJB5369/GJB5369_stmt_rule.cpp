@@ -1322,8 +1322,8 @@ void GJB5369StmtRule::CheckPointerCast(const clang::BinaryOperator *stmt) {
  * avoid using unnecessary cast
  */
 void GJB5369StmtRule::CheckUnnessaryCast(const clang::CStyleCastExpr *stmt) {
-  if (!stmt->getType()->isBuiltinType() || !stmt->getType()->isBuiltinType()) return;
   auto sub_stmt = stmt->getSubExpr()->IgnoreParenImpCasts();
+  if (!stmt->getType()->isBuiltinType() || !sub_stmt->getType()->isBuiltinType()) return;
   auto type_kind = GetBuiltinTypeKind(stmt->getType());
   auto sub_kind = GetBuiltinTypeKind(sub_stmt->getType());
   if (type_kind == sub_kind) {
