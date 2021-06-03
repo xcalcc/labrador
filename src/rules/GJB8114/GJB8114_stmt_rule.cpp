@@ -18,12 +18,31 @@
 namespace xsca {
 namespace rule {
 
+// Check if stmt contains bitwise operator
+// used by CheckBitwiseOpInLogicStmt
+bool GJB8114StmtRule::HasBitwiseSubStmt(const clang::Stmt *stmt) {
+  bool has_assignment = false;
+  if (auto binary = clang::dyn_cast<clang::BinaryOperator>(stmt)) {
+    if (binary->isBitwiseOp()) { return true; }
+  }
+
+  for (const auto &it : stmt->children()) {
+    if (auto binary_stmt = clang::dyn_cast<clang::BinaryOperator>(it)) {
+      if (binary_stmt->isAssignmentOp()) {
+        return true;
+      }
+    }
+    if (it->child_begin() != it->child_end()) {
+      has_assignment |= HasBitwiseSubStmt(it);
+    }
+  }
+  return has_assignment;
+}
+
 /*
  * GJB8114: 5.1.2.6
  * Loop body should be enclosed with brace
  */
-
-
 void GJB8114StmtRule::CheckLoopBodyWithBrace(const clang::Stmt *stmt) {
   if (CheckStmtWithBrace(stmt)) return;
 
@@ -177,6 +196,20 @@ void GJB8114StmtRule::CheckBranchNestedTooMuch(const clang::IfStmt *stmt) {
       std::string ref_msg = "Branches nested more than 7 level is forbidden";
       issue->SetRefMsg(ref_msg);
     }
+  }
+}
+
+/*
+ * GJB8114: 5.6.1.4
+ * Bitwise operator within logic statement is forbidden
+ */
+void GJB8114StmtRule::CheckBitwiseOpInLogicStmt(const clang::IfStmt *stmt) {
+  if (HasBitwiseSubStmt(stmt->getCond())) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB8114, G5_6_1_4, stmt);
+    std::string ref_msg = "Bitwise operator within logic statement is forbidden";
+    issue->SetRefMsg(ref_msg);
   }
 }
 

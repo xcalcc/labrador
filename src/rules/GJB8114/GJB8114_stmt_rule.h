@@ -23,6 +23,8 @@ public:
 
 private:
 
+  bool HasBitwiseSubStmt(const clang::Stmt *stmt);
+
   /*
    * GJB8114: 5.2.1.1
    * Loop body should be enclosed with brace
@@ -55,9 +57,16 @@ private:
    */
   void CheckBranchNestedTooMuch(const clang::IfStmt *stmt);
 
+  /*
+ * GJB8114: 5.6.1.4
+ * Bitwise operator within logic statement is forbidden
+ */
+  void CheckBitwiseOpInLogicStmt(const clang::IfStmt *stmt);
+
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckBranchNestedTooMuch(stmt);
+    CheckBitwiseOpInLogicStmt(stmt);
   }
 
   void VisitForStmt(const clang::ForStmt *stmt) {
