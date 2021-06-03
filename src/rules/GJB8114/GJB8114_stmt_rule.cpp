@@ -28,7 +28,7 @@ bool GJB8114StmtRule::HasBitwiseSubStmt(const clang::Stmt *stmt) {
 
   for (const auto &it : stmt->children()) {
     if (auto binary_stmt = clang::dyn_cast<clang::BinaryOperator>(it)) {
-      if (binary_stmt->isAssignmentOp()) {
+      if (binary_stmt->isBitwiseOp()) {
         return true;
       }
     }
@@ -38,6 +38,29 @@ bool GJB8114StmtRule::HasBitwiseSubStmt(const clang::Stmt *stmt) {
   }
   return has_assignment;
 }
+
+bool IsSingleStmt(const clang::Stmt *stmt) {
+  stmt->dumpColor();
+  using StmtClass = clang::Stmt::StmtClass;
+  auto ctx = XcalCheckerManager::GetAstContext();
+  auto parents = ctx->getParents(*stmt);
+  auto parent = parents[0].get<clang::Stmt>();
+
+  auto stmtClass = parent->getStmtClass();
+  if ((stmtClass != StmtClass::CompoundStmtClass) &&
+      (stmtClass != StmtClass::IfStmtClass) &&
+      (stmtClass != StmtClass::ForStmtClass) &&
+      (stmtClass != StmtClass::WhileStmtClass) &&
+      (stmtClass != StmtClass::DoStmtClass)) {
+
+    if (stmtClass == StmtClass::ParenExprClass) {
+      return IsSingleStmt(parent);
+    }
+    return false;
+  }
+  return true;
+}
+
 
 /*
  * GJB8114: 5.1.2.6
@@ -213,6 +236,21 @@ void GJB8114StmtRule::CheckBitwiseOpInLogicStmt(const clang::IfStmt *stmt) {
   }
 }
 
+/*
+ * GJB8114: 5.6.1.5
+ * Using ++ or -- in arithmetic statement or function parameters is forbidden
+ */
+void GJB8114StmtRule::CheckIncOrDecUnaryInStmt(const clang::UnaryOperator *stmt) {
 
+  if (!stmt->isPostfix() && !stmt->isPrefix()) return;
+
+  if (!IsSingleStmt(stmt)) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB8114, G5_6_1_5, stmt);
+    std::string ref_msg = "Using ++ or -- in arithmetic statement or function parameters is forbidden";
+    issue->SetRefMsg(ref_msg);
+  }
+}
 }
 }

@@ -23,7 +23,10 @@ public:
 
 private:
 
+  // Check if stmt contains bitwise operator
   bool HasBitwiseSubStmt(const clang::Stmt *stmt);
+
+  bool HasPrefixOrPostfixSubStmt(const clang::Stmt *stmt);
 
   /*
    * GJB8114: 5.2.1.1
@@ -58,10 +61,16 @@ private:
   void CheckBranchNestedTooMuch(const clang::IfStmt *stmt);
 
   /*
- * GJB8114: 5.6.1.4
- * Bitwise operator within logic statement is forbidden
- */
+   * GJB8114: 5.6.1.4
+   * Bitwise operator within logic statement is forbidden
+   */
   void CheckBitwiseOpInLogicStmt(const clang::IfStmt *stmt);
+
+  /*
+   * GJB8114: 5.6.1.5
+   * Using ++ or -- in arithmetic statement or function parameters is forbidden
+   */
+  void CheckIncOrDecUnaryInStmt(const clang::UnaryOperator *stmt);
 
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
@@ -86,8 +95,15 @@ public:
     CheckUsingNullWithPointer(stmt);
   }
 
+  void VisitUnaryOperator(const clang::UnaryOperator *stmt) {
+    CheckIncOrDecUnaryInStmt(stmt);
+  }
+
   void VisitSwitchStmt(const clang::SwitchStmt *stmt) {
     CheckDifferentHierarchySwitchCase(stmt);
+  }
+
+  void VisitCallExpr(const clang::CallExpr *stmt) {
   }
 
 }; // GJB8114StmtRule
