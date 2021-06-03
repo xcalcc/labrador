@@ -67,5 +67,6 @@ Rule		Kind		Implementation
 5.5.1.2                 GJB5369: 5.4.2.1 -> CheckSetjumpAndLongjump
 5.5.2.1     Stmt        GJB5369: 4.5.1.2 -> CheckGotoStmt
 5.6.1.1     Diag        HandleDiagnostic
+5.6.1.2     Diag        HandleDiagnostic
 
 
