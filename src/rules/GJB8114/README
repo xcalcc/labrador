@@ -61,5 +61,6 @@ Rule		Kind		Implementation
 5.4.1.6                 GJB5369: 4.3.1.4 -> CheckSwitchWithoutDefaultStmt
 5.4.1.7                 GJB5369: 4.3.1.7 -> CheckCaseEndWithBreak
 5.4.1.8     Stmt        CheckDifferentHierarchySwitchCase
+5.4.2.1     Stmt        CheckBranchNestedTooMuch
 
 

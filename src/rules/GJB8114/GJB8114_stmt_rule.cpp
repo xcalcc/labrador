@@ -138,6 +138,48 @@ void GJB8114StmtRule::CheckDifferentHierarchySwitchCase(const clang::SwitchStmt 
   }
 }
 
+/*
+ * GJB8114: 5.4.2.1
+ * Branches nested more than 7 level is forbidden
+ */
+void GJB8114StmtRule::CheckBranchNestedTooMuch(const clang::IfStmt *stmt) {
+  int i = 1;
+  XcalIssue *issue = nullptr;
+  auto thenBlock = stmt->getThen();
+  auto ctx = XcalCheckerManager::GetAstContext();
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  // Record all IfStmt predecessors, break when meet function decl.
+  if (thenBlock != nullptr) {
+    auto parents = ctx->getParents(*thenBlock);
+
+    const clang::Decl *parentDecl;
+    const clang::Stmt *parentStmt;
+    do {
+      parentDecl = parents[0].get<clang::Decl>();
+      if (parentDecl == nullptr) {
+        parentStmt = parents[0].get<clang::Stmt>();
+        if (parentStmt != nullptr) {
+          parents = ctx->getParents(*parentStmt);
+          if (clang::dyn_cast<clang::IfStmt>(parentStmt)) i++;
+        }
+      }
+
+      // break if it nested too deeply
+      if (i > 7) {
+        break;
+      }
+
+    } while (parentDecl == nullptr);
+
+    if (i > 7) {
+      issue = report->ReportIssue(GJB8114, G5_4_2_1, stmt);
+      std::string ref_msg = "Branches nested more than 7 level is forbidden";
+      issue->SetRefMsg(ref_msg);
+    }
+  }
+}
+
 
 }
 }

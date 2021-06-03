@@ -49,7 +49,17 @@ private:
    */
   void CheckDifferentHierarchySwitchCase(const clang::SwitchStmt *stmt);
 
+  /*
+   * GJB8114: 5.4.2.1
+   * Branches nested more than 7 level is forbidden
+   */
+  void CheckBranchNestedTooMuch(const clang::IfStmt *stmt);
+
 public:
+  void VisitIfStmt(const clang::IfStmt *stmt) {
+    CheckBranchNestedTooMuch(stmt);
+  }
+
   void VisitForStmt(const clang::ForStmt *stmt) {
     CheckLoopBodyWithBrace(stmt->getBody());
   }
