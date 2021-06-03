@@ -13,6 +13,7 @@
 #include "GJB8114_enum.inc"
 #include "GJB8114_stmt_rule.h"
 
+#include <clang/AST/ParentMapContext.h>
 
 namespace xsca {
 namespace rule {
@@ -110,7 +111,33 @@ void GJB8114StmtRule::CheckUsingNullWithPointer(const clang::BinaryOperator *stm
       issue->SetRefMsg(ref_msg);
     }
   }
+}
+
+/*
+ * GJB8114: 5.4.1.8
+ * Cases of switch should have the same hierarchy range
+ */
+void GJB8114StmtRule::CheckDifferentHierarchySwitchCase(const clang::SwitchStmt *stmt) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  auto switchCase = stmt->getSwitchCaseList();
+  auto ctx = XcalCheckerManager::GetAstContext();
+  if (switchCase != nullptr) {
+    auto caseParents = ctx->getParents(*switchCase)[0].get<clang::Stmt>();
+    do {
+      auto currentParent = ctx->getParents(*switchCase)[0].get<clang::Stmt>();
+      if (caseParents != currentParent) {
+        if (issue == nullptr) {
+          issue = report->ReportIssue(GJB8114, G5_4_1_8, stmt);
+          std::string ref_msg = "Cases of switch should have the same hierarchy range";
+          issue->SetRefMsg(ref_msg);
+        }
+        issue->AddStmt(switchCase);
+      }
+    } while ((switchCase = switchCase->getNextSwitchCase()) != nullptr);
   }
+}
+
 
 }
 }

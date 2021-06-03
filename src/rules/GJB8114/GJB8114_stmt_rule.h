@@ -43,6 +43,12 @@ private:
    */
   void CheckUsingNullWithPointer(const clang::BinaryOperator *stmt);
 
+  /*
+   * GJB8114: 5.4.1.8
+   * Cases of switch should have the same hierarchy range
+   */
+  void CheckDifferentHierarchySwitchCase(const clang::SwitchStmt *stmt);
+
 public:
   void VisitForStmt(const clang::ForStmt *stmt) {
     CheckLoopBodyWithBrace(stmt->getBody());
@@ -59,6 +65,10 @@ public:
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
     CheckAssignToPointerParam(stmt);
     CheckUsingNullWithPointer(stmt);
+  }
+
+  void VisitSwitchStmt(const clang::SwitchStmt *stmt) {
+    CheckDifferentHierarchySwitchCase(stmt);
   }
 
 }; // GJB8114StmtRule
