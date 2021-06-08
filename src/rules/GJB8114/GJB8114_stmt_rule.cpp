@@ -252,5 +252,24 @@ void GJB8114StmtRule::CheckIncOrDecUnaryInStmt(const clang::UnaryOperator *stmt)
     issue->SetRefMsg(ref_msg);
   }
 }
+
+
+/*
+ * GJB8114: 5.6.1.10
+ * Performing logic-not on ingeter literal is forbidden
+ */
+void GJB8114StmtRule::CheckNotOperatorOnConstant(const clang::UnaryOperator *stmt) {
+  if (stmt->getOpcode() != clang::UnaryOperatorKind::UO_LNot) return;
+  auto substmt = stmt->getSubExpr();
+  if (substmt->getStmtClass() == clang::Stmt::StmtClass::IntegerLiteralClass) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB8114, G5_6_1_10, stmt);
+    std::string ref_msg = "Performing logic-not on ingeter literal is forbidden";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+
 }
 }

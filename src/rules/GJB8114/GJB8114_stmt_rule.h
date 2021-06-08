@@ -72,6 +72,12 @@ private:
    */
   void CheckIncOrDecUnaryInStmt(const clang::UnaryOperator *stmt);
 
+  /*
+   * GJB8114: 5.6.1.10
+   * Performing logic-not on ingeter literal is forbidden
+   */
+  void CheckNotOperatorOnConstant(const clang::UnaryOperator *stmt);
+
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckBranchNestedTooMuch(stmt);
@@ -97,6 +103,7 @@ public:
 
   void VisitUnaryOperator(const clang::UnaryOperator *stmt) {
     CheckIncOrDecUnaryInStmt(stmt);
+    CheckNotOperatorOnConstant(stmt);
   }
 
   void VisitSwitchStmt(const clang::SwitchStmt *stmt) {
