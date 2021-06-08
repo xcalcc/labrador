@@ -270,6 +270,29 @@ void GJB8114StmtRule::CheckNotOperatorOnConstant(const clang::UnaryOperator *stm
   }
 }
 
+/*
+ * GJB8114: 5.6.1.11
+ * Enum value used by non-enum variable is forbidden
+ */
+void GJB8114StmtRule::CheckUsingEnumByOtherTypeVar(const clang::BinaryOperator *stmt) {
+  if (!stmt->isAssignmentOp() && !stmt->isCompoundAssignmentOp()) return;
+
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+
+  if (lhs->getType()->isEnumeralType()) return;
+  if (auto declRef = clang::dyn_cast<clang::DeclRefExpr>(rhs)) {
+    auto decl = declRef->getDecl();
+    if (clang::dyn_cast<clang::EnumConstantDecl>(decl)) {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+      issue = report->ReportIssue(GJB8114, G5_6_1_11, stmt);
+      std::string ref_msg = "Enum value used by non-enum variable is forbidden";
+      issue->SetRefMsg(ref_msg);
+    }
+  }
+}
+
 
 }
 }

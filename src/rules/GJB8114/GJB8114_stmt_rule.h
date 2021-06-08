@@ -78,6 +78,12 @@ private:
    */
   void CheckNotOperatorOnConstant(const clang::UnaryOperator *stmt);
 
+  /*
+   * GJB8114: 5.6.1.11
+   * Enum value used by non-enum variable is forbidden
+   */
+  void CheckUsingEnumByOtherTypeVar(const clang::BinaryOperator *stmt);
+
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckBranchNestedTooMuch(stmt);
@@ -99,6 +105,7 @@ public:
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
     CheckAssignToPointerParam(stmt);
     CheckUsingNullWithPointer(stmt);
+    CheckUsingEnumByOtherTypeVar(stmt);
   }
 
   void VisitUnaryOperator(const clang::UnaryOperator *stmt) {
