@@ -76,6 +76,7 @@ Rule		Kind		Implementation
 5.6.1.8                 Have no idea 😢
 5.6.1.9                 Have no idea 😢
 5.6.1.10    Stmt        CheckNotOperatorOnConstant
-5.6.1.11
+5.6.1.11    Stmt        CheckUsingEnumByOtherTypeVar
+5.6.1.12    Diag        HandleDiagnostic
 
 
