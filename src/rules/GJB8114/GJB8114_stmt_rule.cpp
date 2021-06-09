@@ -307,6 +307,23 @@ void GJB8114StmtRule::CheckUsingGetsFunction(const clang::CallExpr *stmt) {
   }
 }
 
+/*
+ * GJB8114: 5.6.2.2
+ * Be careful with the division of integer and integer
+ */
+void GJB8114StmtRule::CheckIntegerDivision(const clang::BinaryOperator *stmt) {
+  if (stmt->getOpcode() != clang::BinaryOperatorKind::BO_Div) return;
+  auto lhsType = stmt->getLHS()->getType();
+  auto rhsType = stmt->getRHS()->getType();
+  if (lhsType->isIntegerType() && rhsType->isIntegerType()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB8114, G5_6_1_18, stmt);
+    std::string ref_msg = "Be careful with the division of integer and integer";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }

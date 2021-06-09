@@ -90,6 +90,12 @@ private:
    */
   void CheckUsingGetsFunction(const clang::CallExpr *stmt);
 
+  /*
+   * GJB8114: 5.6.2.2
+   * Be careful with the division of integer and integer
+   */
+  void CheckIntegerDivision(const clang::BinaryOperator *stmt);
+
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckBranchNestedTooMuch(stmt);
@@ -112,6 +118,7 @@ public:
     CheckAssignToPointerParam(stmt);
     CheckUsingNullWithPointer(stmt);
     CheckUsingEnumByOtherTypeVar(stmt);
+    CheckIntegerDivision(stmt);
   }
 
   void VisitUnaryOperator(const clang::UnaryOperator *stmt) {
