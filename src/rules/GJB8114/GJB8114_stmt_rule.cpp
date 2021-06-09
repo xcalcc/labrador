@@ -295,6 +295,7 @@ void GJB8114StmtRule::CheckUsingEnumByOtherTypeVar(const clang::BinaryOperator *
 /*
  * GJB8114: 5.6.1.18
  * Using gets function is forbidden
+ * TODO: need to refine
  */
 void GJB8114StmtRule::CheckUsingGetsFunction(const clang::CallExpr *stmt) {
   auto conf_mgr = XcalCheckerManager::GetConfigureManager();
@@ -323,6 +324,22 @@ void GJB8114StmtRule::CheckIntegerDivision(const clang::BinaryOperator *stmt) {
     std::string ref_msg = "Be careful with the division of integer and integer";
     issue->SetRefMsg(ref_msg);
   }
+}
+
+/*
+ * GJB8114: 5.6.2.4
+ * Avoid using strcpy function
+ */
+void GJB8114StmtRule::CheckUsingStrcpy(const clang::CallExpr *stmt) {
+  // TODO: need to refine
+}
+
+/*
+ * GJB8114: 5.6.2.5
+ * Avoid using strcat function
+ */
+void GJB8114StmtRule::CheckUsingStrcat(const clang::CallExpr *stmt) {
+  // TODO: need to refine
 }
 
 

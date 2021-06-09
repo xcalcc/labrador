@@ -96,6 +96,18 @@ private:
    */
   void CheckIntegerDivision(const clang::BinaryOperator *stmt);
 
+  /*
+   * GJB8114: 5.6.2.4
+   * Avoid using strcpy function
+   */
+  void CheckUsingStrcpy(const clang::CallExpr *stmt);
+
+  /*
+   * GJB8114: 5.6.2.5
+   * Avoid using strcat function
+   */
+  void CheckUsingStrcat(const clang::CallExpr *stmt);
+
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckBranchNestedTooMuch(stmt);

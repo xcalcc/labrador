@@ -34,6 +34,7 @@ private:
     CXX_IDENTIFIERS = 0,
     C_CXX_IDENTIFIERS = 1,
     JUMP_FUNCTIONS = 2,
+    DANGER_FUNCTIONS = 3,
     ALL,
   };
 

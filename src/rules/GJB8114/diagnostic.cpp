@@ -12,28 +12,33 @@ void GJB8114Diagnostic::HandleDiagnostic(clang::DiagnosticsEngine::Level diagnos
   clang::SmallString<100> diagnosticMessage;
   diagnosticInfo.FormatDiagnostic(diagnosticMessage);
   clang::SourceLocation location = diagnosticInfo.getLocation();
+  auto msg = diagnosticMessage.c_str();
 
   switch (diagnosticInfo.getID()) {
     case 1016:  // macro redefine TODO: replace the hardcode with clang::diag::blablabla
-      AddIssue(G5_1_1_5, diagnosticMessage.c_str(), location);
+      AddIssue(G5_1_1_5, msg, location);
     case 5589:  // GJB8114 5.1.1.19
-      AddIssue(G5_1_1_19, diagnosticMessage.c_str(), location);
+      AddIssue(G5_1_1_19, msg, location);
     case 4868:
-      AddIssue(G5_3_1_2, diagnosticMessage.c_str(), location);
+      AddIssue(G5_3_1_2, msg, location);
     case 5949:
-      AddIssue(G5_3_1_3, diagnosticMessage.c_str(), location);
+      AddIssue(G5_3_1_3, msg, location);
     case 5382:  // GJB8114 5.4.1.4
-      AddIssue(G5_4_1_4, diagnosticMessage.c_str(), location);
+      AddIssue(G5_4_1_4, msg, location);
     case 5669:  // GJB8114 5.6.1.2
-      AddIssue(G5_6_1_2, diagnosticMessage.c_str(), location);
+      AddIssue(G5_6_1_2, msg, location);
     case 5672:  // GJB8114 5.6.1.1
-      AddIssue(G5_6_1_1, diagnosticMessage.c_str(), location);
+      AddIssue(G5_6_1_1, msg, location);
     case 5973:  // GJB8114 5.6.1.6
-      AddIssue(G5_6_1_6, diagnosticMessage.c_str(), location);
+      AddIssue(G5_6_1_6, msg, location);
     case 5975: // GJB8114 5.6.1.7
-      AddIssue(G5_6_1_7, diagnosticMessage.c_str(), location);
+      AddIssue(G5_6_1_7, msg, location);
     case 5945: // GJB8114 5.6.1.12
-      AddIssue(G5_6_1_12, diagnosticMessage.c_str(), location);
+      AddIssue(G5_6_1_12, msg, location);
+    case 5932: // GJB8114 5.7.1.1
+      AddIssue(G5_7_1_1, msg, location);
+    case 4206:
+      AddIssue(G5_7_1_3, msg, location);
     default: {
       printf("%d\n", diagnosticInfo.getID());
       break;
