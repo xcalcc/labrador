@@ -297,8 +297,9 @@ void GJB8114StmtRule::CheckUsingEnumByOtherTypeVar(const clang::BinaryOperator *
  * Using gets function is forbidden
  */
 void GJB8114StmtRule::CheckUsingGetsFunction(const clang::CallExpr *stmt) {
+  auto conf_mgr = XcalCheckerManager::GetConfigureManager();
   auto funcName = stmt->getCalleeDecl()->getAsFunction()->getNameAsString();
-  if (funcName == "gets") {
+  if (conf_mgr->IsDangerFunction(funcName)) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(GJB8114, G5_6_1_18, stmt);

@@ -23,9 +23,7 @@ private:
   std::vector<std::string> _cxx_identifiers;
   std::vector<std::string> _c_cxx_identifiers;
   std::vector<std::string> _jump_functions;
-
-  // TODO: move this to file
-  std::vector<std::string> _danger_functions = {"exit", "abort"};
+  std::vector<std::string> _danger_functions;
 
 
   ConfigureManager(const ConfigureManager &) = delete;
@@ -50,6 +48,8 @@ public:
     LoadFile("cxx_identifier.conf", _cxx_identifiers );
     LoadFile("c_cxx_identifier.conf", _c_cxx_identifiers);
     LoadFile("jump_function.conf", _jump_functions);
+    LoadFile("danger_function.conf", _danger_functions);
+
   }
 
   void LoadFile(const std::string &conf_name, std::vector<std::string> &tokens) {
