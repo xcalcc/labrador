@@ -78,5 +78,11 @@ Rule		Kind		Implementation
 5.6.1.10    Stmt        CheckNotOperatorOnConstant
 5.6.1.11    Stmt        CheckUsingEnumByOtherTypeVar
 5.6.1.12    Diag        HandleDiagnostic
+5.6.1.13                GJB5369: 4.6.2.2 -> CheckSizeofOnExpr
+5.6.1.14                Have no idea 😢
+5.6.1.15                Have no idea 😢
+5.6.1.16                Have no idea 😢
+5.6.1.17                Have no idea 😢
+5.6.1.18    Stmt        CheckUsingGetsFunction
 
 

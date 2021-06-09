@@ -84,6 +84,12 @@ private:
    */
   void CheckUsingEnumByOtherTypeVar(const clang::BinaryOperator *stmt);
 
+  /*
+   * GJB8114: 5.6.1.18
+   * Using gets function is forbidden
+   */
+  void CheckUsingGetsFunction(const clang::CallExpr *stmt);
+
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckBranchNestedTooMuch(stmt);
@@ -118,6 +124,7 @@ public:
   }
 
   void VisitCallExpr(const clang::CallExpr *stmt) {
+    CheckUsingGetsFunction(stmt);
   }
 
 }; // GJB8114StmtRule

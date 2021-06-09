@@ -40,7 +40,6 @@ bool GJB8114StmtRule::HasBitwiseSubStmt(const clang::Stmt *stmt) {
 }
 
 bool IsSingleStmt(const clang::Stmt *stmt) {
-  stmt->dumpColor();
   using StmtClass = clang::Stmt::StmtClass;
   auto ctx = XcalCheckerManager::GetAstContext();
   auto parents = ctx->getParents(*stmt);
@@ -290,6 +289,21 @@ void GJB8114StmtRule::CheckUsingEnumByOtherTypeVar(const clang::BinaryOperator *
       std::string ref_msg = "Enum value used by non-enum variable is forbidden";
       issue->SetRefMsg(ref_msg);
     }
+  }
+}
+
+/*
+ * GJB8114: 5.6.1.18
+ * Using gets function is forbidden
+ */
+void GJB8114StmtRule::CheckUsingGetsFunction(const clang::CallExpr *stmt) {
+  auto funcName = stmt->getCalleeDecl()->getAsFunction()->getNameAsString();
+  if (funcName == "gets") {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB8114, G5_6_1_18, stmt);
+    std::string ref_msg = "Using gets function is forbidden";
+    issue->SetRefMsg(ref_msg);
   }
 }
 
