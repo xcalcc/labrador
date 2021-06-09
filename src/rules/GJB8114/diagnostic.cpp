@@ -37,8 +37,12 @@ void GJB8114Diagnostic::HandleDiagnostic(clang::DiagnosticsEngine::Level diagnos
       AddIssue(G5_6_1_12, msg, location);
     case 5932: // GJB8114 5.7.1.1
       AddIssue(G5_7_1_1, msg, location);
-    case 4206:
+    case 4206: // GJB8114 5.7.1.3
       AddIssue(G5_7_1_3, msg, location);
+    case 2726: // GJB8114 5.7.1.5
+      AddIssue(G5_7_1_5, msg, location);
+    case 5591: // GJB8114 5.7.1.7
+      AddIssue(G5_7_1_7, msg, location);
     default: {
       printf("%d\n", diagnosticInfo.getID());
       break;
