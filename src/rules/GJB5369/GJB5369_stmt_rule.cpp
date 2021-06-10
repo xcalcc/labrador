@@ -1204,9 +1204,19 @@ void GJB5369StmtRule::CheckReturnStmt(const clang::ReturnStmt *stmt) {
 void GJB5369StmtRule::CheckReturnType(const clang::ReturnStmt *stmt) {
   auto decl_return_type = _current_function_decl->getReturnType();
   if (decl_return_type->isVoidType()) return;
-  auto ret_type = stmt->getRetValue()->IgnoreParenImpCasts()->getType();
+  auto ret_value = stmt->getRetValue();
 
-  if (decl_return_type->getTypeClass() == ret_type->getTypeClass()) {
+  bool need_report = false;
+  clang::QualType ret_type;
+
+  // check if return value is null
+  if (ret_value == nullptr) {
+    need_report = true;
+  } else {
+    ret_type = ret_value->IgnoreParenImpCasts()->getType();
+  }
+
+  if (!need_report && (decl_return_type->getTypeClass() == ret_type->getTypeClass())) {
     if (decl_return_type->isBuiltinType() && ret_type->isBuiltinType()) {
       auto decl_return_kind = GetBuiltinTypeKind(decl_return_type);
       auto ret_kind = GetBuiltinTypeKind(ret_type);

@@ -97,5 +97,7 @@ Rule		Kind		Implementation
 5.7.1.4                 // TODO: compiler can't parse this partten
 5.7.1.5     Diag        HandleDiagnostic
 5.7.1.6     Diag        HandleDiagnostic
-5.7.1.7
+5.7.1.7     Diag        HandleDiagnostic
+5.7.1.8     Diag        HandleDiagnostic
+
 
