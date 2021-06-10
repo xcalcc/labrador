@@ -39,11 +39,20 @@ bool GJB8114StmtRule::HasBitwiseSubStmt(const clang::Stmt *stmt) {
   return has_assignment;
 }
 
+// check if this statement is single statement
 bool IsSingleStmt(const clang::Stmt *stmt) {
   using StmtClass = clang::Stmt::StmtClass;
   auto ctx = XcalCheckerManager::GetAstContext();
   auto parents = ctx->getParents(*stmt);
   auto parent = parents[0].get<clang::Stmt>();
+
+  if (parent == nullptr) {
+    auto parent = parents[0].get<clang::Decl>();
+    if (clang::dyn_cast<clang::FunctionDecl>(parent)) {
+      return true;
+    }
+    return false;
+  };
 
   auto stmtClass = parent->getStmtClass();
   if ((stmtClass != StmtClass::CompoundStmtClass) &&
@@ -58,6 +67,22 @@ bool IsSingleStmt(const clang::Stmt *stmt) {
     return false;
   }
   return true;
+}
+
+// get parent statement
+const clang::Stmt *GetParentStmt(const clang::Stmt *stmt) {
+  using StmtClass = clang::Stmt::StmtClass;
+  auto ctx = XcalCheckerManager::GetAstContext();
+  auto parents = ctx->getParents(*stmt);
+  auto parent = parents[0].get<clang::Stmt>();
+
+  if (parent == nullptr) return nullptr;
+  auto stmtClass = parent->getStmtClass();
+
+  if (stmtClass == StmtClass::ParenExprClass) {
+    return GetParentStmt(parent);
+  }
+  return parent;
 }
 
 
@@ -340,6 +365,42 @@ void GJB8114StmtRule::CheckUsingStrcpy(const clang::CallExpr *stmt) {
  */
 void GJB8114StmtRule::CheckUsingStrcat(const clang::CallExpr *stmt) {
   // TODO: need to refine
+}
+
+/*
+ * GJB8114: 5.7.1.11
+ * void is required as the function which has return value is called but the return value is not used
+ */
+void GJB8114StmtRule::CheckUnusedFunctionCast(const clang::CallExpr *stmt) {
+  auto decl = stmt->getCalleeDecl()->getAsFunction();
+  auto ret_type = decl->getReturnType();
+
+  if (ret_type->isVoidType()) return;
+
+  bool need_report = false;
+  if (IsSingleStmt(stmt)) {
+    need_report = true;
+  } else {
+    auto parent = GetParentStmt(stmt);
+
+    // Return null if parent is declaration. This means it has been used as init value
+    if (parent == nullptr) return;
+
+    if (auto cast = clang::dyn_cast<clang::CStyleCastExpr>(parent)) {
+      if (!cast->getType()->isVoidType()) {
+        TRACE0();
+        need_report = true;
+      }
+    }
+  }
+
+  if (need_report) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB8114, G5_7_1_11, stmt);
+    std::string ref_msg = "void is required as the function which has return value is called but the return value is not used";
+    issue->SetRefMsg(ref_msg);
+  }
 }
 
 

@@ -108,6 +108,12 @@ private:
    */
   void CheckUsingStrcat(const clang::CallExpr *stmt);
 
+  /*
+ * GJB8114: 5.7.1.11
+ * void is required as the function which has return value is called but the return value is not used
+ */
+  void CheckUnusedFunctionCast(const clang::CallExpr *stmt);
+
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckBranchNestedTooMuch(stmt);
@@ -144,6 +150,7 @@ public:
 
   void VisitCallExpr(const clang::CallExpr *stmt) {
     CheckUsingGetsFunction(stmt);
+    CheckUnusedFunctionCast(stmt);
   }
 
 }; // GJB8114StmtRule
