@@ -271,7 +271,7 @@ void GJB8114DeclRule::CheckVoidPointer(const clang::FunctionDecl *decl) {
   XcalReport *report = XcalCheckerManager::GetReport();
   for (const auto &it : decl->parameters()) {
     if (!it->getType()->isPointerType()) continue;
-    if(it->getType()->getPointeeType()->isVoidType()) {
+    if (it->getType()->getPointeeType()->isVoidType()) {
       if (issue == nullptr) {
         issue = report->ReportIssue(GJB8114, G5_3_2_2, decl);
         std::string ref_msg = "Using void pointer carefully: ";
@@ -281,6 +281,35 @@ void GJB8114DeclRule::CheckVoidPointer(const clang::FunctionDecl *decl) {
       issue->AddDecl(&(*it));
     }
   }
+}
+
+/*
+ * GJB8114: 5.7.1.13
+ * static function must be used
+ */
+void GJB8114DeclRule::CheckUnusedStaticFunction() {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+
+  top_scope->TraverseAll<IdentifierManager::IdentifierKind::FUNCTION,
+      const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+      [&issue, &report](const std::string &name, const clang::Decl *decl, IdentifierManager *id_mgr) -> void {
+        auto func = clang::dyn_cast<clang::FunctionDecl>(decl);
+        if (!func->isStatic()) return;
+
+        if (!func->isUsed()) {
+          if (issue == nullptr) {
+            issue = report->ReportIssue(GJB8114, G5_7_1_13, decl);
+            std::string ref_msg = "static function must be used";
+            issue->SetRefMsg(ref_msg);
+          } else {
+            issue->AddDecl(decl);
+          }
+        }
+      }, true);
 }
 
 }

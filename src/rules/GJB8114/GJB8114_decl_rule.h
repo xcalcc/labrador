@@ -79,8 +79,16 @@ private:
 
   void CheckVoidPointer(const clang::FunctionDecl *decl);
 
+  /*
+   * GJB8114: 5.7.1.13
+   * static function must be used
+   */
+  void CheckUnusedStaticFunction();
+
 public:
-  void Finalize() {}
+  void Finalize() {
+    CheckUnusedStaticFunction();
+  }
 
   void VisitRecord(const clang::RecordDecl *decl) {
     CheckAnonymousRecord(decl);
