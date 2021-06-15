@@ -1,6 +1,6 @@
 /*
- * GJB8114: 5.7.1.11
- * Void is not required as the functon which is void type is called
+ * GJB8114: 5.7.1.12
+ * Void is not required as the function which is void type is called
  */
 
 void func(int para) {

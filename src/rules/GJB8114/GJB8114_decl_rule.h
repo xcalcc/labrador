@@ -85,6 +85,12 @@ private:
    */
   void CheckUnusedStaticFunction();
 
+  /*
+   * GJB8114: 5.7.2.1
+   * Avoid using too much parameters in function
+   */
+  void CheckTooManyParams(const clang::FunctionDecl *decl);
+
 public:
   void Finalize() {
     CheckUnusedStaticFunction();
@@ -112,6 +118,7 @@ public:
     CheckExternVariableInFunction(decl);
     CheckVariableDeclPosition(decl);
     CheckVoidPointer(decl);
+    CheckTooManyParams(decl);
   }
 
   void VisitVar(const clang::VarDecl *decl) {

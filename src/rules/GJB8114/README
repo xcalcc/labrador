@@ -101,6 +101,16 @@ Rule		Kind		Implementation
 5.7.1.8     Diag        HandleDiagnostic
 5.7.1.9     Diag        HandleDiagnostic
 5.7.1.10                GJB8114 4.9.1.4 -> CheckReturnType
-5.7.1.11                Have no idea 😢
-5.7.1.12
+5.7.1.11    Stmt        CheckUnusedFunctionCast
+5.7.1.12    Stmt        CheckNotRequiredFunctionCast
+5.7.1.13    Decl        CheckUnusedStaticFunction
+5.7.1.14                GJB5369 4.7.1.6 -> CheckMultiCallExprInSingleStmt
+5.7.1.15                GJB5369 4.1.1.8 -> CheckParameterTypeDecl
+5.7.1.16                Have no idea 😢
+5.7.2.1     Decl        CheckTooManyParams
+5.7.2.2                 GJB5369 4.7.2.1 -> CheckUnusedParameters
+5.7.2.3                 GJB5369 4.7.2.3 -> CheckExitAndAbortFunction
+5.7.2.4                 Have no idea 😢
+
+
 

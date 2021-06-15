@@ -312,5 +312,20 @@ void GJB8114DeclRule::CheckUnusedStaticFunction() {
       }, true);
 }
 
+/*
+ * GJB8114: 5.7.2.1
+ * Avoid using too much parameters in function
+ */
+void GJB8114DeclRule::CheckTooManyParams(const clang::FunctionDecl *decl) {
+  if (decl->param_size() > 10) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB8114, G5_7_2_1, decl);
+    std::string ref_msg = "Avoid using too much parameters(more than 10) in function";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+
 }
 }
