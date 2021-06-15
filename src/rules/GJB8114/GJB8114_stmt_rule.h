@@ -109,10 +109,16 @@ private:
   void CheckUsingStrcat(const clang::CallExpr *stmt);
 
   /*
- * GJB8114: 5.7.1.11
- * void is required as the function which has return value is called but the return value is not used
- */
+   * GJB8114: 5.7.1.11
+   * void is required as the function which has return value is called but the return value is not used
+   */
   void CheckUnusedFunctionCast(const clang::CallExpr *stmt);
+
+  /*
+   * GJB8114: 5.7.1.12
+   * Void is not required as the function which is void type is called
+   */
+  void CheckNotRequiredFunctionCast(const clang::CallExpr *stmt);
 
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
@@ -151,6 +157,7 @@ public:
   void VisitCallExpr(const clang::CallExpr *stmt) {
     CheckUsingGetsFunction(stmt);
     CheckUnusedFunctionCast(stmt);
+    CheckNotRequiredFunctionCast(stmt);
   }
 
 }; // GJB8114StmtRule

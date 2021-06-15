@@ -101,5 +101,6 @@ Rule		Kind		Implementation
 5.7.1.8     Diag        HandleDiagnostic
 5.7.1.9     Diag        HandleDiagnostic
 5.7.1.10                GJB8114 4.9.1.4 -> CheckReturnType
-5.7.1.11
+5.7.1.11                Have no idea 😢
+5.7.1.12
 

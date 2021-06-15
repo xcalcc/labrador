@@ -403,6 +403,28 @@ void GJB8114StmtRule::CheckUnusedFunctionCast(const clang::CallExpr *stmt) {
   }
 }
 
+/*
+ * GJB8114: 5.7.1.12
+ * Void is not required as the function which is void type is called
+ */
+void GJB8114StmtRule::CheckNotRequiredFunctionCast(const clang::CallExpr *stmt) {
+  if (!stmt->getType()->isVoidType()) return;
+
+  auto ctx = XcalCheckerManager::GetAstContext();
+  auto parents = ctx->getParents(*stmt);
+  auto parent = parents[0].get<clang::Stmt>();
+  if (parent == nullptr) return;
+
+  if (auto castStmt = clang::dyn_cast<clang::CStyleCastExpr>(parent)) {
+    if (!castStmt->getType()->isVoidType()) return;
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB8114, G5_7_1_11, stmt);
+    std::string ref_msg = "void is required as the function which has return value is called but the return value is not used";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }
