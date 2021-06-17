@@ -123,9 +123,14 @@ private:
   /*
    * GJB8114: 5.8.1.5
    * Suffix of number must use upper case letters
+   *
+   * GJB8114: 5.8.2.4
+   * Using suffix with number is recommended
    */
   template<typename TYPE>
   void CheckLiteralSuffix(const TYPE *stmt) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
     auto src_mgr = XcalCheckerManager::GetSourceManager();
 
     char ch;
@@ -135,18 +140,21 @@ private:
       if (ch == '.') continue;
       if (std::isdigit(ch)) {
         continue;
-      }
-      if (std::isalpha(ch)) {
+      } else if (std::isalpha(ch)) {
         if (std::isupper(ch)) return;
-        XcalIssue *issue = nullptr;
-        XcalReport *report = XcalCheckerManager::GetReport();
         issue = report->ReportIssue(GJB8114, G5_8_1_5, stmt);
         std::string ref_msg = "Suffix of number must use upper case letters";
+        issue->SetRefMsg(ref_msg);
+      } else {
+        issue = report->ReportIssue(GJB8114, G5_8_2_4, stmt);
+        std::string ref_msg = "Using suffix with number is recommended";
         issue->SetRefMsg(ref_msg);
       }
       break;
     } while (true);
   }
+
+  void CheckLiteralSuffix(const clang::BinaryOperator *stmt);
 
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
@@ -171,6 +179,7 @@ public:
     CheckUsingNullWithPointer(stmt);
     CheckUsingEnumByOtherTypeVar(stmt);
     CheckIntegerDivision(stmt);
+    CheckLiteralSuffix(stmt);
   }
 
   void VisitUnaryOperator(const clang::UnaryOperator *stmt) {
@@ -188,14 +197,7 @@ public:
     CheckNotRequiredFunctionCast(stmt);
   }
 
-  void VisitIntegerLiteral(const clang::IntegerLiteral *stmt) {
-    CheckLiteralSuffix<clang::IntegerLiteral>(stmt);
-  }
 
-  void VisitFloatingLiteral(const clang::FloatingLiteral *stmt) {
-    TRACE0();
-    CheckLiteralSuffix<clang::FloatingLiteral>(stmt);
-  }
 
 }; // GJB8114StmtRule
 }

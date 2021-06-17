@@ -326,6 +326,42 @@ void GJB8114DeclRule::CheckTooManyParams(const clang::FunctionDecl *decl) {
   }
 }
 
+/*
+ * GJB8114: 5.8.1.5
+ * Suffix of number must use upper case letters
+ *
+ * GJB8114: 5.8.2.4
+ * Using suffix with number is recommended
+ */
+void GJB8114DeclRule::CheckLiteralSuffixInit(const clang::VarDecl *decl) {
+  if (!decl->hasInit()) return;
+  auto stmt = decl->getInit();
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+
+  char ch;
+  auto data = src_mgr->getCharacterData(stmt->getBeginLoc());
+  do {
+    ch = *data++;
+    if (ch == '.') continue;
+    if (std::isdigit(ch)) {
+      continue;
+    } else if (std::isalpha(ch)) {
+      if (std::isupper(ch)) return;
+      issue = report->ReportIssue(GJB8114, G5_8_1_5, stmt);
+      std::string ref_msg = "Suffix of number must use upper case letters";
+      issue->SetRefMsg(ref_msg);
+    } else {
+      issue = report->ReportIssue(GJB8114, G5_8_2_4, stmt);
+      std::string ref_msg = "Using suffix with number is recommended";
+      issue->SetRefMsg(ref_msg);
+    }
+    break;
+  } while (true);
+}
+
 
 }
 }

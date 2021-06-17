@@ -116,6 +116,7 @@ Rule		Kind		Implementation
 5.8.1.2                 Have no idea 😢  // TODO: check in xvsa
 5.8.1.3                 Have no idea 😢  // TODO: check in xvsa
 5.8.1.4                 Have no idea 😢  // TODO: need to check comment
-5.8.1.5
-
+5.8.1.5                 CheckLiteralSuffix
+5.8.2.1                 GJB5369: 4.8.2.6 -> CheckNullStmt
+5.8.2.2                 Have no idea 😢  // TODO: check in xvsa
 

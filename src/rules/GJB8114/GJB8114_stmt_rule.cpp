@@ -425,7 +425,29 @@ void GJB8114StmtRule::CheckNotRequiredFunctionCast(const clang::CallExpr *stmt) 
   }
 }
 
+/*
+ * GJB8114: 5.8.1.5
+ * Suffix of number must use upper case letters
+ *
+ * GJB8114: 5.8.2.4
+ * Using suffix with number is recommended
+ */
+void GJB8114StmtRule::CheckLiteralSuffix(const clang::BinaryOperator *stmt) {
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
 
+  if (auto float_literal = clang::dyn_cast<clang::FloatingLiteral>(lhs)) {
+    CheckLiteralSuffix<clang::FloatingLiteral>(float_literal);
+  } else if (auto int_literal = clang::dyn_cast<clang::IntegerLiteral>(lhs)) {
+    CheckLiteralSuffix<clang::IntegerLiteral>(int_literal);
+  }
+
+  if (auto float_literal = clang::dyn_cast<clang::FloatingLiteral>(rhs)) {
+    CheckLiteralSuffix<clang::FloatingLiteral>(float_literal);
+  } else if (auto int_literal = clang::dyn_cast<clang::IntegerLiteral>(rhs)) {
+    CheckLiteralSuffix<clang::IntegerLiteral>(int_literal);
+  }
+}
 
 
 }

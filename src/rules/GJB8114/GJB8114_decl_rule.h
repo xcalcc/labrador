@@ -91,6 +91,16 @@ private:
    */
   void CheckTooManyParams(const clang::FunctionDecl *decl);
 
+  /*
+   * GJB8114: 5.8.1.5
+   * Suffix of number must use upper case letters
+   *
+   * GJB8114: 5.8.2.4
+   * Using suffix with number is recommended
+   */
+  void CheckLiteralSuffixInit(const clang::VarDecl *decl);
+
+
 public:
   void Finalize() {
     CheckUnusedStaticFunction();
@@ -125,6 +135,7 @@ public:
     CheckExternVariableInFunction(decl);
     CheckPointerInitWithNull(decl);
     CheckVoidPointer(decl);
+    CheckLiteralSuffixInit(decl);
   }
 
 }; // GJB8114DeclRule
