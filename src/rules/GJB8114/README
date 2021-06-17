@@ -111,6 +111,11 @@ Rule		Kind		Implementation
 5.7.2.2                 GJB5369 4.7.2.1 -> CheckUnusedParameters
 5.7.2.3                 GJB5369 4.7.2.3 -> CheckExitAndAbortFunction
 5.7.2.4                 Have no idea 😢
-
+5.7.2.5                 Have no idea 😢
+5.8.1.1                 Have no idea 😢  // TODO: check in xvsa
+5.8.1.2                 Have no idea 😢  // TODO: check in xvsa
+5.8.1.3                 Have no idea 😢  // TODO: check in xvsa
+5.8.1.4                 Have no idea 😢  // TODO: need to check comment
+5.8.1.5
 
 

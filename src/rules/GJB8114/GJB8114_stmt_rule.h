@@ -120,6 +120,34 @@ private:
    */
   void CheckNotRequiredFunctionCast(const clang::CallExpr *stmt);
 
+  /*
+   * GJB8114: 5.8.1.5
+   * Suffix of number must use upper case letters
+   */
+  template<typename TYPE>
+  void CheckLiteralSuffix(const TYPE *stmt) {
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+
+    char ch;
+    auto data = src_mgr->getCharacterData(stmt->getBeginLoc());
+    do {
+      ch = *data++;
+      if (ch == '.') continue;
+      if (std::isdigit(ch)) {
+        continue;
+      }
+      if (std::isalpha(ch)) {
+        if (std::isupper(ch)) return;
+        XcalIssue *issue = nullptr;
+        XcalReport *report = XcalCheckerManager::GetReport();
+        issue = report->ReportIssue(GJB8114, G5_8_1_5, stmt);
+        std::string ref_msg = "Suffix of number must use upper case letters";
+        issue->SetRefMsg(ref_msg);
+      }
+      break;
+    } while (true);
+  }
+
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckBranchNestedTooMuch(stmt);
@@ -158,6 +186,15 @@ public:
     CheckUsingGetsFunction(stmt);
     CheckUnusedFunctionCast(stmt);
     CheckNotRequiredFunctionCast(stmt);
+  }
+
+  void VisitIntegerLiteral(const clang::IntegerLiteral *stmt) {
+    CheckLiteralSuffix<clang::IntegerLiteral>(stmt);
+  }
+
+  void VisitFloatingLiteral(const clang::FloatingLiteral *stmt) {
+    TRACE0();
+    CheckLiteralSuffix<clang::FloatingLiteral>(stmt);
   }
 
 }; // GJB8114StmtRule

@@ -426,5 +426,7 @@ void GJB8114StmtRule::CheckNotRequiredFunctionCast(const clang::CallExpr *stmt) 
 }
 
 
+
+
 }
 }
