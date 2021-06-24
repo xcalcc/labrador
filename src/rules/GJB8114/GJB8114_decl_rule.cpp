@@ -95,12 +95,14 @@ void GJB8114DeclRule::CheckUniformityOfBitFields(const clang::RecordDecl *decl) 
   XcalReport *report = XcalCheckerManager::GetReport();
 
   bool need_report = false;
-  if (decl->field_empty()) return;
-  unsigned length = decl->field_begin()->getBitWidthValue(*ctx);
+  unsigned length = 0;
   for (const auto &it : decl->fields()) {
     if (!it->isBitField()) continue;
     unsigned width = it->getBitWidthValue(*ctx);
-    if (length != width) {
+    if (length == 0) {
+      length = width;
+    }
+    else if (length != width) {
       need_report = true;
     } else {
       auto f_type = it->getType();
@@ -120,7 +122,6 @@ void GJB8114DeclRule::CheckUniformityOfBitFields(const clang::RecordDecl *decl) 
       issue->AddDecl(it);
       need_report = false;
     }
-
   }
 }
 

@@ -44,6 +44,8 @@ bool IsSingleStmt(const clang::Stmt *stmt) {
   using StmtClass = clang::Stmt::StmtClass;
   auto ctx = XcalCheckerManager::GetAstContext();
   auto parents = ctx->getParents(*stmt);
+  if (parents.size() == 0)
+    return true;
   auto parent = parents[0].get<clang::Stmt>();
 
   if (parent == nullptr) {
@@ -188,7 +190,7 @@ void GJB8114StmtRule::CheckDifferentHierarchySwitchCase(const clang::SwitchStmt 
   XcalReport *report = XcalCheckerManager::GetReport();
   auto switchCase = stmt->getSwitchCaseList();
   auto ctx = XcalCheckerManager::GetAstContext();
-  if (switchCase != nullptr) {
+  if (switchCase != nullptr && ctx->getParents(*switchCase).size() > 0) {
     auto caseParents = ctx->getParents(*switchCase)[0].get<clang::Stmt>();
     do {
       auto currentParent = ctx->getParents(*switchCase)[0].get<clang::Stmt>();
@@ -218,6 +220,8 @@ void GJB8114StmtRule::CheckBranchNestedTooMuch(const clang::IfStmt *stmt) {
   // Record all IfStmt predecessors, break when meet function decl.
   if (thenBlock != nullptr) {
     auto parents = ctx->getParents(*thenBlock);
+    if (parents.size() == 0)
+      return;
 
     const clang::Decl *parentDecl;
     const clang::Stmt *parentStmt;
@@ -323,6 +327,9 @@ void GJB8114StmtRule::CheckUsingEnumByOtherTypeVar(const clang::BinaryOperator *
  * TODO: need to refine
  */
 void GJB8114StmtRule::CheckUsingGetsFunction(const clang::CallExpr *stmt) {
+  if (stmt->getCalleeDecl() == nullptr ||
+      stmt->getCalleeDecl()->getAsFunction() == nullptr)
+    return;
   auto conf_mgr = XcalCheckerManager::GetConfigureManager();
   auto funcName = stmt->getCalleeDecl()->getAsFunction()->getNameAsString();
   if (conf_mgr->IsDangerFunction(funcName)) {
@@ -372,10 +379,15 @@ void GJB8114StmtRule::CheckUsingStrcat(const clang::CallExpr *stmt) {
  * void is required as the function which has return value is called but the return value is not used
  */
 void GJB8114StmtRule::CheckUnusedFunctionCast(const clang::CallExpr *stmt) {
+  if (stmt->getCalleeDecl() == nullptr)
+    return;
   auto decl = stmt->getCalleeDecl()->getAsFunction();
+  if (decl == nullptr)
+    return;
   auto ret_type = decl->getReturnType();
 
-  if (ret_type->isVoidType()) return;
+  if (ret_type->isVoidType())
+    return;
 
   bool need_report = false;
   if (IsSingleStmt(stmt)) {
@@ -384,7 +396,8 @@ void GJB8114StmtRule::CheckUnusedFunctionCast(const clang::CallExpr *stmt) {
     auto parent = GetParentStmt(stmt);
 
     // Return null if parent is declaration. This means it has been used as init value
-    if (parent == nullptr) return;
+    if (parent == nullptr)
+      return;
 
     if (auto cast = clang::dyn_cast<clang::CStyleCastExpr>(parent)) {
       if (!cast->getType()->isVoidType()) {
@@ -408,15 +421,20 @@ void GJB8114StmtRule::CheckUnusedFunctionCast(const clang::CallExpr *stmt) {
  * Void is not required as the function which is void type is called
  */
 void GJB8114StmtRule::CheckNotRequiredFunctionCast(const clang::CallExpr *stmt) {
-  if (!stmt->getType()->isVoidType()) return;
+  if (!stmt->getType()->isVoidType())
+    return;
 
   auto ctx = XcalCheckerManager::GetAstContext();
   auto parents = ctx->getParents(*stmt);
+  if (parents.size() == 0)
+    return;
   auto parent = parents[0].get<clang::Stmt>();
-  if (parent == nullptr) return;
+  if (parent == nullptr)
+    return;
 
   if (auto castStmt = clang::dyn_cast<clang::CStyleCastExpr>(parent)) {
-    if (!castStmt->getType()->isVoidType()) return;
+    if (!castStmt->getType()->isVoidType())
+      return;
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(GJB8114, G5_7_1_11, stmt);

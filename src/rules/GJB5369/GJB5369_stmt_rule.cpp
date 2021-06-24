@@ -600,6 +600,8 @@ void GJB5369StmtRule::CheckGotoStmt(const clang::GotoStmt *stmt) {
  */
 void GJB5369StmtRule::CheckSetjumpAndLongjump(const clang::CallExpr *stmt) {
   auto callee = stmt->getCalleeDecl();
+  if (callee == nullptr)
+    return;
   auto func_decl = callee->getAsFunction();
   auto conf_mgr = XcalCheckerManager::GetConfigureManager();
 
@@ -688,8 +690,8 @@ void GJB5369StmtRule::CheckDifferentTypeAssign(const clang::BinaryOperator *stmt
   auto rhs_type = rhs->getType();
 
   if (lhs_type->isBuiltinType() && rhs_type->isBuiltinType()) {
-    auto lhs_kind = clang::dyn_cast<clang::BuiltinType>(lhs_type)->getKind();
-    auto rhs_kind = clang::dyn_cast<clang::BuiltinType>(rhs_type)->getKind();
+    auto lhs_kind = lhs_type->getAs<clang::BuiltinType>()->getKind();
+    auto rhs_kind = rhs_type->getAs<clang::BuiltinType>()->getKind();
     if (lhs_kind != rhs_kind) {
       XcalIssue *issue = nullptr;
       XcalReport *report = XcalCheckerManager::GetReport();
@@ -934,10 +936,9 @@ void GJB5369StmtRule::CheckDifferentTypeArithm(const clang::BinaryOperator *stmt
   auto lhs_type = lhs->getType();
   auto rhs_type = rhs->getType();
 
-
   if (lhs_type->isBuiltinType() && rhs_type->isBuiltinType()) {
-    auto lhs_kind = clang::dyn_cast<clang::BuiltinType>(lhs_type)->getKind();
-    auto rhs_kind = clang::dyn_cast<clang::BuiltinType>(rhs_type)->getKind();
+    auto lhs_kind = lhs_type->getAs<clang::BuiltinType>()->getKind();
+    auto rhs_kind = rhs_type->getAs<clang::BuiltinType>()->getKind();
     if (lhs_kind != rhs_kind) {
       XcalIssue *issue = nullptr;
       XcalReport *report = XcalCheckerManager::GetReport();
@@ -1033,8 +1034,8 @@ void GJB5369StmtRule::CheckParamTypeMismatch(const clang::CallExpr *stmt) {
     auto formal_param_type = it->getType();
     if (formal_param_type->isBuiltinType()) {
       auto real_param_type = stmt->getArg(param_index)->IgnoreParenImpCasts()->getType();
-      auto real_param_kind = clang::dyn_cast<clang::BuiltinType>(real_param_type)->getKind();
-      auto formal_param_kind = clang::dyn_cast<clang::BuiltinType>(formal_param_type)->getKind();
+      auto real_param_kind = real_param_type->getAs<clang::BuiltinType>()->getKind();
+      auto formal_param_kind = formal_param_type->getAs<clang::BuiltinType>()->getKind();
       if (real_param_kind != formal_param_kind) {
         if (issue == nullptr) {
           issue = report->ReportIssue(GJB5369, G4_7_1_9, stmt);

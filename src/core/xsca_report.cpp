@@ -71,6 +71,7 @@ XcalReport::PrintVtxtIssue(const XcalIssue *issue)
   clang::SourceLocation loc = issue->GetLocation();
   clang::PresumedLoc ploc = _source_mgr->getPresumedLoc(loc);
   const clang::FileEntry *fe = _source_mgr->getFileEntryForID(ploc.getFileID());
+  unsigned fid = fe ? fe->getUID() : ploc.getFileID().getHashValue();
 
   char key[1024];
   snprintf(key, sizeof(key), "%s@%s@%s:%d",
@@ -79,7 +80,7 @@ XcalReport::PrintVtxtIssue(const XcalIssue *issue)
 
   fprintf(_vtxt_file, "[\"A10\"],[%s],[%s],[%d:%d],[SML],[D],[%s],[1,0,0],",
                       key, ploc.getFilename(),
-                      fe->getUID() + 1, ploc.getLine(), issue->RuleName());
+                      fid + 1, ploc.getLine(), issue->RuleName());
   fprintf(_vtxt_file, "[%s],[],[", issue->DeclName());
 
   std::vector<XcalPathInfo>::const_iterator end = issue->PathInfo().end();
@@ -96,8 +97,9 @@ XcalReport::PrintVtxtIssue(const XcalIssue *issue)
     // output path
     ploc = _source_mgr->getPresumedLoc(it->Start());
     fe = _source_mgr->getFileEntryForID(ploc.getFileID());
+    fid = fe ? fe->getUID() : ploc.getFileID().getHashValue();
     fprintf(_vtxt_file, "%d:%d:%d:%d",
-                         fe->getUID() + 1, ploc.getLine(), ploc.getColumn(), it->Kind());
+                         fid + 1, ploc.getLine(), ploc.getColumn(), it->Kind());
   }
 
   fprintf(_vtxt_file, "]\n");

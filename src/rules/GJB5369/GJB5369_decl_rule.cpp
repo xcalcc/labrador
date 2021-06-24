@@ -98,7 +98,7 @@ bool GJB5369DeclRule::IsEmptyParamList(const clang::FunctionDecl *decl,
     } else if (tokens.empty()) {
       return true;
     } else {
-      DBG_ASSERT(0, "Unknown fault.");
+      //DBG_ASSERT(0, "Unknown fault.");
     }
   }
   return false;
