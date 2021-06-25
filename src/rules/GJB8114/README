@@ -119,4 +119,9 @@ Rule		Kind		Implementation
 5.8.1.5                 CheckLiteralSuffix
 5.8.2.1                 GJB5369: 4.8.2.6 -> CheckNullStmt
 5.8.2.2                 Have no idea 😢  // TODO: check in xvsa
-
+5.8.2.3                 Have no idea 😢  // TODO: check in xvsa
+5.8.2.4     Stmt        CheckLiteralSuffixInit
+5.9.1.1                 GJB5369: 4.11.1.2 -> CheckLoopVariable
+5.9.1.2                 GJB5369: 4.11.1.1 -> CheckLoopVariable
+5.9.1.3                 Have no idea 😢  // TODO: check in xvsa
+5.9.1.4     Stmt        CheckInfiniteForLoop

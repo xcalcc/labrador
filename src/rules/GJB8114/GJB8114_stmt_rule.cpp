@@ -467,6 +467,21 @@ void GJB8114StmtRule::CheckLiteralSuffix(const clang::BinaryOperator *stmt) {
   }
 }
 
+/*
+ * GJB8114: 5.9.1.4
+ * Infinite loop must use while(1)
+ */
+void GJB8114StmtRule::CheckInfiniteForLoop(const clang::ForStmt *stmt) {
+  auto cond = stmt->getCond();
+  if (cond == nullptr) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB8114, G5_9_1_4, stmt);
+    std::string ref_msg = "Infinite loop must use while(1)";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }

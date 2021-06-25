@@ -192,6 +192,12 @@ private:
 
   void CheckLiteralSuffix(const clang::BinaryOperator *stmt);
 
+  /*
+   * GJB8114: 5.9.1.4
+   * Infinite loop must use while(1)
+   */
+  void CheckInfiniteForLoop(const clang::ForStmt *stmt);
+
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckBranchNestedTooMuch(stmt);
@@ -200,6 +206,7 @@ public:
 
   void VisitForStmt(const clang::ForStmt *stmt) {
     CheckLoopBodyWithBrace(stmt->getBody());
+    CheckInfiniteForLoop(stmt);
   }
 
   void VisitWhileStmt(const clang::WhileStmt *stmt) {
