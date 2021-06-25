@@ -198,6 +198,12 @@ private:
    */
   void CheckInfiniteForLoop(const clang::ForStmt *stmt);
 
+  /*
+   * GJB8114: 5.10.1.1
+   * Explicit cast is required when assigning float value to int variable
+   */
+  void CheckFloatAssignToInt(const clang::BinaryOperator *stmt);
+
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckBranchNestedTooMuch(stmt);
@@ -223,6 +229,7 @@ public:
     CheckUsingEnumByOtherTypeVar(stmt);
     CheckIntegerDivision(stmt);
     CheckLiteralSuffix(stmt);
+    CheckFloatAssignToInt(stmt);
   }
 
   void VisitUnaryOperator(const clang::UnaryOperator *stmt) {

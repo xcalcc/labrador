@@ -482,6 +482,30 @@ void GJB8114StmtRule::CheckInfiniteForLoop(const clang::ForStmt *stmt) {
   }
 }
 
+/*
+ * GJB8114: 5.10.1.1
+ * Explicit cast is required when assigning float value to int variable
+ */
+void GJB8114StmtRule::CheckFloatAssignToInt(const clang::BinaryOperator *stmt) {
+  if (!stmt->isAssignmentOp()) return;
+
+  auto lhs = stmt->getLHS();
+  auto rhs = stmt->getRHS()->IgnoreImpCasts();
+  auto lhs_type = lhs->getType();
+  auto rhs_type = rhs->getType();
+
+  if (lhs_type->isBuiltinType() && rhs_type->isBuiltinType()) {
+    if (lhs_type->isIntegerType() && rhs_type->isFloatingType()) {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+
+      issue = report->ReportIssue(GJB8114, G5_10_1_1, stmt);
+      std::string ref_msg = "Explicit cast is required when assigning float value to int variable";
+      issue->SetRefMsg(ref_msg);
+    }
+  }
+}
+
 
 }
 }
