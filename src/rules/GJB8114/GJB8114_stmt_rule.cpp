@@ -455,15 +455,15 @@ void GJB8114StmtRule::CheckLiteralSuffix(const clang::BinaryOperator *stmt) {
   auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
 
   if (auto float_literal = clang::dyn_cast<clang::FloatingLiteral>(lhs)) {
-    CheckLiteralSuffix<clang::FloatingLiteral>(float_literal);
+    CheckLiteralSuffix(float_literal);
   } else if (auto int_literal = clang::dyn_cast<clang::IntegerLiteral>(lhs)) {
-    CheckLiteralSuffix<clang::IntegerLiteral>(int_literal);
+    CheckLiteralSuffix(int_literal);
   }
 
   if (auto float_literal = clang::dyn_cast<clang::FloatingLiteral>(rhs)) {
-    CheckLiteralSuffix<clang::FloatingLiteral>(float_literal);
+    CheckLiteralSuffix(float_literal);
   } else if (auto int_literal = clang::dyn_cast<clang::IntegerLiteral>(rhs)) {
-    CheckLiteralSuffix<clang::IntegerLiteral>(int_literal);
+    CheckLiteralSuffix(int_literal);
   }
 }
 

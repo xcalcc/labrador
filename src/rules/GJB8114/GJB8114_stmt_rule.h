@@ -127,30 +127,66 @@ private:
    * GJB8114: 5.8.2.4
    * Using suffix with number is recommended
    */
-  template<typename TYPE>
-  void CheckLiteralSuffix(const TYPE *stmt) {
+  void CheckLiteralSuffix(const clang::FloatingLiteral *stmt) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     auto src_mgr = XcalCheckerManager::GetSourceManager();
 
-    char ch;
     auto data = src_mgr->getCharacterData(stmt->getBeginLoc());
+    int res = CheckLiteralSuffic(data);
+    switch (res) {
+      case 1: {
+        issue = report->ReportIssue(GJB8114, G5_8_1_5, stmt);
+        std::string ref_msg = "Suffix of number must use upper case letters";
+        issue->SetRefMsg(ref_msg);
+        break;
+      }
+      case 2: {
+        issue = report->ReportIssue(GJB8114, G5_8_2_4, stmt);
+        std::string ref_msg = "Using suffix with number is recommended";
+        issue->SetRefMsg(ref_msg);
+      }
+      default: break;
+    }
+  }
+
+  void CheckLiteralSuffix(const clang::IntegerLiteral *stmt) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+
+    auto data = src_mgr->getCharacterData(stmt->getBeginLoc());
+    int res = CheckLiteralSuffic(data);
+    switch (res) {
+      case 1: {
+        issue = report->ReportIssue(GJB8114, G5_8_1_5, stmt);
+        std::string ref_msg = "Suffix of number must use upper case letters";
+        issue->SetRefMsg(ref_msg);
+        break;
+      }
+      case 2: {
+        issue = report->ReportIssue(GJB8114, G5_8_2_4, stmt);
+        std::string ref_msg = "Using suffix with number is recommended";
+        issue->SetRefMsg(ref_msg);
+      }
+      default: break;
+    }
+  }
+
+  // return 0 if normal, return 1 if G5815, return 2 if G5824
+  int CheckLiteralSuffic(const char *data) {
+    char ch;
     do {
       ch = *data++;
       if (ch == '.') continue;
       if (std::isdigit(ch)) {
         continue;
       } else if (std::isalpha(ch)) {
-        if (std::isupper(ch)) return;
-        issue = report->ReportIssue(GJB8114, G5_8_1_5, stmt);
-        std::string ref_msg = "Suffix of number must use upper case letters";
-        issue->SetRefMsg(ref_msg);
+        if (std::isupper(ch)) return 0;
+        return 1;
       } else {
-        issue = report->ReportIssue(GJB8114, G5_8_2_4, stmt);
-        std::string ref_msg = "Using suffix with number is recommended";
-        issue->SetRefMsg(ref_msg);
+        return 2;
       }
-      break;
     } while (true);
   }
 
