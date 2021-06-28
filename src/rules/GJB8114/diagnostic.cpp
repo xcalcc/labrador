@@ -60,6 +60,9 @@ void GJB8114Diagnostic::HandleDiagnostic(clang::DiagnosticsEngine::Level diagnos
     case 4585: // GJB8114 5.7.1.8
       AddIssue(G5_7_1_8, msg, location);
       break;
+    case 4621:  // GJB8114 5.10.1.4
+      AddIssue(G5_10_1_4, msg, location);
+      break;
     case 5591:
       AddIssue(G5_7_1_9, msg, location);
       break;

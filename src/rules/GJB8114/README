@@ -131,3 +131,4 @@ Rule		Kind		Implementation
 5.10.1.1    Stmt        CheckFloatAssignToInt
 5.10.1.2    Stmt        CheckTruncWithoutCastInAssign
 5.10.1.3    Stmt        CheckDoubleToFloatWithoutCast
+5.10.1.4    Diag        HandleDiagnostic
