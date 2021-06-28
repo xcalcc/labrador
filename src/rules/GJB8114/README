@@ -138,3 +138,5 @@ Rule		Kind		Implementation
 5.10.2.2    Stmt        CheckDoubleToFloat
 5.10.2.3    Stmt        CheckIntToShorter
 5.10.2.4    Stmt        CheckAssignPointerAndNonPointerWithoutCast
+5.11.1.1                GJB5369: 4.13.1.4
+5.11.1.2    Decl        CheckOmitInitValueDependOnSystem

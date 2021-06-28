@@ -100,10 +100,17 @@ private:
    */
   void CheckLiteralSuffixInit(const clang::VarDecl *decl);
 
+  /*
+   * GJB8114: 5.11.1.2
+   * Omitting init value which depends on the system is forbidden
+   */
+  void CheckOmitInitValueDependOnSystem();
+
 
 public:
   void Finalize() {
     CheckUnusedStaticFunction();
+    CheckOmitInitValueDependOnSystem();
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {

@@ -236,7 +236,6 @@ private:
    */
   void CheckIntToShorter(const clang::CastExpr *stmt);
 
-
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckBranchNestedTooMuch(stmt);

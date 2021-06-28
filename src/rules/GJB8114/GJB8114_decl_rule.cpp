@@ -101,8 +101,7 @@ void GJB8114DeclRule::CheckUniformityOfBitFields(const clang::RecordDecl *decl) 
     unsigned width = it->getBitWidthValue(*ctx);
     if (length == 0) {
       length = width;
-    }
-    else if (length != width) {
+    } else if (length != width) {
       need_report = true;
     } else {
       auto f_type = it->getType();
@@ -361,6 +360,37 @@ void GJB8114DeclRule::CheckLiteralSuffixInit(const clang::VarDecl *decl) {
     }
     break;
   } while (true);
+}
+
+/*
+ * GJB8114: 5.11.1.2
+ * Omitting init value which depends on the system is forbidden
+ */
+void GJB8114DeclRule::CheckOmitInitValueDependOnSystem() {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+
+  // check static local variable
+  top_scope->TraverseAll<IdentifierManager::IdentifierKind::VAR,
+      const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+      [&issue, &report](const std::string &name, const clang::Decl *decl, IdentifierManager *id_mgr) {
+        auto varDecl = clang::dyn_cast<clang::VarDecl>(decl);
+        if (varDecl->isStaticLocal() || varDecl->hasGlobalStorage()) {
+          if (!varDecl->hasInit()) {
+            if (issue == nullptr) {
+              issue = report->ReportIssue(GJB8114, G5_11_1_2, decl);
+              std::string ref_msg = "Omitting init value which depends on the system is forbidden";
+              issue->SetRefMsg(ref_msg);
+            } else {
+              issue->AddDecl(decl);
+            }
+          }
+        }
+      }, true);
+
 }
 
 
