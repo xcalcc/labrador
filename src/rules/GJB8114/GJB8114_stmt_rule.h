@@ -216,6 +216,12 @@ private:
    */
   void CheckDoubleToFloatWithoutCast(const clang::BinaryOperator *stmt);
 
+  /*
+   * GJB8114: 5.10.1.5
+   * Explicit cast is required by assignments between pointer type value and non-pointer type value
+   */
+  void CheckAssignPointerAndNonPointerWithoutCast(const clang::BinaryOperator *stmt);
+
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckBranchNestedTooMuch(stmt);
@@ -244,6 +250,7 @@ public:
     CheckFloatAssignToInt(stmt);
     CheckTruncWithoutCastInAssign(stmt);
     CheckDoubleToFloatWithoutCast(stmt);
+    CheckAssignPointerAndNonPointerWithoutCast(stmt);
   }
 
   void VisitUnaryOperator(const clang::UnaryOperator *stmt) {

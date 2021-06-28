@@ -579,6 +579,26 @@ void GJB8114StmtRule::CheckDoubleToFloatWithoutCast(const clang::BinaryOperator 
   }
 }
 
+/*
+ * GJB8114: 5.10.1.5
+ * Explicit cast is required by assignments between pointer type value and non-pointer type value
+ */
+void GJB8114StmtRule::CheckAssignPointerAndNonPointerWithoutCast(const clang::BinaryOperator *stmt) {
+  if (!stmt->isAssignmentOp()) return;
+
+  auto lhsType = stmt->getLHS()->IgnoreParenImpCasts()->getType();
+  auto rhsType = stmt->getRHS()->IgnoreParenImpCasts()->getType();
+
+  if (lhsType->isPointerType() != rhsType->isPointerType()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB8114, G5_10_1_5, stmt);
+    std::string ref_msg = "Explicit cast is required by assignments between pointer type value and non-pointer type value";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }

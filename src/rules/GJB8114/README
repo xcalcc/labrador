@@ -132,3 +132,4 @@ Rule		Kind		Implementation
 5.10.1.2    Stmt        CheckTruncWithoutCastInAssign
 5.10.1.3    Stmt        CheckDoubleToFloatWithoutCast
 5.10.1.4    Diag        HandleDiagnostic
+5.10.1.5    Stmt        CheckAssignPointerAndNonPointerWithoutCast
