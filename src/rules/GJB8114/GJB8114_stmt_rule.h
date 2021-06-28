@@ -224,6 +224,14 @@ private:
    */
   void CheckAssignPointerAndNonPointerWithoutCast(const clang::BinaryOperator *stmt);
 
+  /*
+   * GJB8114: 5.10.2.2
+   * Convert double to float carefully
+   */
+  void CheckDoubleToFloat(const clang::ImplicitCastExpr *stmt);
+  void CheckDoubleToFloat(const clang::CStyleCastExpr *stmt);
+
+
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckBranchNestedTooMuch(stmt);
@@ -270,6 +278,13 @@ public:
     CheckNotRequiredFunctionCast(stmt);
   }
 
+  void VisitImplicitCastExpr(const clang::ImplicitCastExpr *stmt) {
+    CheckDoubleToFloat(stmt);
+  }
+
+  void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {
+    CheckDoubleToFloat(stmt);
+  }
 
 
 }; // GJB8114StmtRule

@@ -603,6 +603,44 @@ void GJB8114StmtRule::CheckAssignPointerAndNonPointerWithoutCast(const clang::Bi
   }
 }
 
+/*
+ * GJB8114: 5.10.2.2
+ * Convert double to float carefully
+ */
+void GJB8114StmtRule::CheckDoubleToFloat(const clang::ImplicitCastExpr *stmt) {
+  if (auto stmtBT = clang::dyn_cast<clang::BuiltinType>(stmt->getType())) {
+    if (stmtBT->getKind() == clang::BuiltinType::Kind::Float) {
+      if (auto subStmtBT = clang::dyn_cast<clang::BuiltinType>(stmt->getSubExpr()->getType())) {
+        if (subStmtBT->getKind() == clang::BuiltinType::Double) {
+          XcalIssue *issue = nullptr;
+          XcalReport *report = XcalCheckerManager::GetReport();
+
+          issue = report->ReportIssue(GJB8114, G5_10_2_2, stmt);
+          std::string ref_msg = "Convert double to float carefully";
+          issue->SetRefMsg(ref_msg);
+        }
+      }
+    }
+  }
+}
+
+void GJB8114StmtRule::CheckDoubleToFloat(const clang::CStyleCastExpr *stmt) {
+  if (auto stmtBT = clang::dyn_cast<clang::BuiltinType>(stmt->getType())) {
+    if (stmtBT->getKind() == clang::BuiltinType::Kind::Float) {
+      if (auto subStmtBT = clang::dyn_cast<clang::BuiltinType>(stmt->getSubExpr()->getType())) {
+        if (subStmtBT->getKind() == clang::BuiltinType::Double) {
+          XcalIssue *issue = nullptr;
+          XcalReport *report = XcalCheckerManager::GetReport();
+
+          issue = report->ReportIssue(GJB8114, G5_10_2_2, stmt);
+          std::string ref_msg = "Convert double to float carefully";
+          issue->SetRefMsg(ref_msg);
+        }
+      }
+    }
+  }
+}
+
 
 }
 }
