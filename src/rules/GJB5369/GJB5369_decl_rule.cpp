@@ -1084,7 +1084,6 @@ void GJB5369DeclRule::CheckNestedStruct(const clang::VarDecl *decl) {
   auto src_mgr = XcalCheckerManager::GetSourceManager();
 
   for (const auto &it : record_decl->fields()) {
-    TRACE0();
     if (!it->getType()->isRecordType()) {
       init_start++;
       continue;

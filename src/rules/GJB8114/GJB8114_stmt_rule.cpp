@@ -531,6 +531,8 @@ void GJB8114StmtRule::CheckTruncWithoutCastInAssign(const clang::BinaryOperator 
       auto lhsBT = clang::dyn_cast<clang::BuiltinType>(lhsType);
       auto rhsBT = clang::dyn_cast<clang::BuiltinType>(rhsType);
 
+      if (lhsBT == nullptr || rhsBT == nullptr) return;
+
       // convert signed type to unsigned type to compare size
       auto resolve = [&](const clang::BuiltinType *type) -> clang::BuiltinType::Kind {
         if (type->isUnsignedInteger()) {
@@ -638,6 +640,9 @@ void GJB8114StmtRule::CheckDoubleToFloat(const clang::CastExpr *stmt) {
 void GJB8114StmtRule::CheckIntToShorter(const clang::CastExpr *stmt) {
   if (auto subStmtBT = clang::dyn_cast<clang::BuiltinType>(stmt->getSubExpr()->IgnoreParenImpCasts()->getType())) {
     auto stmtBT = clang::dyn_cast<clang::BuiltinType>(stmt->getType());
+    // check if stmt is builtin type
+    if (stmtBT == nullptr) return;
+
     if (subStmtBT->isInteger() && stmtBT->isInteger()) {
       // convert signed type to unsigned type to compare size
       auto resolve = [&](const clang::BuiltinType *type) -> clang::BuiltinType::Kind {

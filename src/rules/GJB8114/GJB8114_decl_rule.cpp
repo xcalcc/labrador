@@ -393,6 +393,34 @@ void GJB8114DeclRule::CheckOmitInitValueDependOnSystem() {
 
 }
 
+/*
+ * GJB8114: 5.11.2.1
+ * Init the variable at its declaration
+ */
+void GJB8114DeclRule::CheckInitWithDecl() {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+
+  // check static local variable
+  top_scope->TraverseAll<IdentifierManager::IdentifierKind::VAR,
+      const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+      [&issue, &report](const std::string &name, const clang::Decl *decl, IdentifierManager *id_mgr) {
+        auto varDecl = clang::dyn_cast<clang::VarDecl>(decl);
+        if (!varDecl->hasInit()) {
+          if (issue == nullptr) {
+            issue = report->ReportIssue(GJB8114, G5_11_2_1, decl);
+            std::string ref_msg = "Init the variable at its declaration";
+            issue->SetRefMsg(ref_msg);
+          } else {
+            issue->AddDecl(decl);
+          }
+        }
+      }, true);
+}
+
 
 }
 }

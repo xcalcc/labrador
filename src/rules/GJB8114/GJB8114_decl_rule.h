@@ -106,11 +106,18 @@ private:
    */
   void CheckOmitInitValueDependOnSystem();
 
+  /*
+   * GJB8114: 5.11.2.1
+   * Init the variable at its declaration
+   */
+  void CheckInitWithDecl();
+
 
 public:
   void Finalize() {
     CheckUnusedStaticFunction();
     CheckOmitInitValueDependOnSystem();
+    CheckInitWithDecl();
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {
