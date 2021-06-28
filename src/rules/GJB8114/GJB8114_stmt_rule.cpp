@@ -602,6 +602,10 @@ void GJB8114StmtRule::CheckAssignPointerAndNonPointerWithoutCast(const clang::Bi
     issue = report->ReportIssue(GJB8114, G5_10_1_5, stmt);
     std::string ref_msg = "Explicit cast is required by assignments between pointer type value and non-pointer type value";
     issue->SetRefMsg(ref_msg);
+
+    issue = report->ReportIssue(GJB8114, G5_10_2_4, stmt);
+    ref_msg = "Assignments between pointer type value and non-pointer type value should be deliberated";
+    issue->SetRefMsg(ref_msg);
   }
 }
 
