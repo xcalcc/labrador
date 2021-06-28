@@ -201,6 +201,8 @@ private:
   /*
    * GJB8114: 5.10.1.1
    * Explicit cast is required when assigning float value to int variable
+   * GJB8114: 5.10.2.1
+   * Rounding need to be taken in account when convert float to integer
    */
   void CheckFloatAssignToInt(const clang::BinaryOperator *stmt);
 

@@ -502,6 +502,10 @@ void GJB8114StmtRule::CheckFloatAssignToInt(const clang::BinaryOperator *stmt) {
       issue = report->ReportIssue(GJB8114, G5_10_1_1, stmt);
       std::string ref_msg = "Explicit cast is required when assigning float value to int variable";
       issue->SetRefMsg(ref_msg);
+
+      issue = report->ReportIssue(GJB8114, G5_10_1_5, stmt);
+      ref_msg = "Rounding need to be taken in account when convert float to integer";
+      issue->SetRefMsg(ref_msg);
     }
   }
 }
