@@ -549,6 +549,36 @@ void GJB8114StmtRule::CheckTruncWithoutCastInAssign(const clang::BinaryOperator 
 
 }
 
+/*
+ * GJB8114: 5.10.1.3
+ * Explicit cast is required when assigning double value to float variable
+ */
+void GJB8114StmtRule::CheckDoubleToFloatWithoutCast(const clang::BinaryOperator *stmt) {
+  if (!stmt->isAssignmentOp()) return;
+
+  auto lhsType = stmt->getLHS()->IgnoreParenImpCasts()->getType();
+  auto rhsType = stmt->getRHS()->IgnoreParenImpCasts()->getType();
+
+  if (auto lhsBT = clang::dyn_cast<clang::BuiltinType>(lhsType)) {
+    if (lhsBT->getKind() != clang::BuiltinType::Float) return;
+  } else {
+    return;
+  }
+
+  if (auto rhsBT = clang::dyn_cast<clang::BuiltinType>(rhsType)) {
+    if (rhsBT->getKind() == clang::BuiltinType::Double) {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+
+      issue = report->ReportIssue(GJB8114, G5_10_1_3, stmt);
+      std::string ref_msg = "Explicit cast is required when assigning double value to float variable";
+      issue->SetRefMsg(ref_msg);
+    }
+  } else {
+    return;
+  }
+}
+
 
 }
 }

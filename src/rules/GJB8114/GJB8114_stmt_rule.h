@@ -210,6 +210,12 @@ private:
    */
   void CheckTruncWithoutCastInAssign(const clang::BinaryOperator *stmt);
 
+  /*
+   * GJB8114: 5.10.1.3
+   * Explicit cast is required when assigning double value to float variable
+   */
+  void CheckDoubleToFloatWithoutCast(const clang::BinaryOperator *stmt);
+
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckBranchNestedTooMuch(stmt);
@@ -237,6 +243,7 @@ public:
     CheckLiteralSuffix(stmt);
     CheckFloatAssignToInt(stmt);
     CheckTruncWithoutCastInAssign(stmt);
+    CheckDoubleToFloatWithoutCast(stmt);
   }
 
   void VisitUnaryOperator(const clang::UnaryOperator *stmt) {
