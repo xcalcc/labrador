@@ -485,6 +485,8 @@ void GJB8114StmtRule::CheckInfiniteForLoop(const clang::ForStmt *stmt) {
 /*
  * GJB8114: 5.10.1.1
  * Explicit cast is required when assigning float value to int variable
+ * GJB8114: 5.10.2.1
+ * Rounding need to be taken in account when convert float to integer
  */
 void GJB8114StmtRule::CheckFloatAssignToInt(const clang::BinaryOperator *stmt) {
   if (!stmt->isAssignmentOp()) return;
@@ -607,10 +609,10 @@ void GJB8114StmtRule::CheckAssignPointerAndNonPointerWithoutCast(const clang::Bi
  * GJB8114: 5.10.2.2
  * Convert double to float carefully
  */
-void GJB8114StmtRule::CheckDoubleToFloat(const clang::ImplicitCastExpr *stmt) {
+void GJB8114StmtRule::CheckDoubleToFloat(const clang::CastExpr *stmt) {
   if (auto stmtBT = clang::dyn_cast<clang::BuiltinType>(stmt->getType())) {
     if (stmtBT->getKind() == clang::BuiltinType::Kind::Float) {
-      if (auto subStmtBT = clang::dyn_cast<clang::BuiltinType>(stmt->getSubExpr()->getType())) {
+      if (auto subStmtBT = clang::dyn_cast<clang::BuiltinType>(stmt->getSubExpr()->IgnoreParenImpCasts()->getType())) {
         if (subStmtBT->getKind() == clang::BuiltinType::Double) {
           XcalIssue *issue = nullptr;
           XcalReport *report = XcalCheckerManager::GetReport();
@@ -624,22 +626,38 @@ void GJB8114StmtRule::CheckDoubleToFloat(const clang::ImplicitCastExpr *stmt) {
   }
 }
 
-void GJB8114StmtRule::CheckDoubleToFloat(const clang::CStyleCastExpr *stmt) {
-  if (auto stmtBT = clang::dyn_cast<clang::BuiltinType>(stmt->getType())) {
-    if (stmtBT->getKind() == clang::BuiltinType::Kind::Float) {
-      if (auto subStmtBT = clang::dyn_cast<clang::BuiltinType>(stmt->getSubExpr()->getType())) {
-        if (subStmtBT->getKind() == clang::BuiltinType::Double) {
-          XcalIssue *issue = nullptr;
-          XcalReport *report = XcalCheckerManager::GetReport();
 
-          issue = report->ReportIssue(GJB8114, G5_10_2_2, stmt);
-          std::string ref_msg = "Convert double to float carefully";
-          issue->SetRefMsg(ref_msg);
+/*
+ * GJB8114: 5.10.2.3
+ * Convert int to shorter int carefully
+ */
+void GJB8114StmtRule::CheckIntToShorter(const clang::CastExpr *stmt) {
+  if (auto subStmtBT = clang::dyn_cast<clang::BuiltinType>(stmt->getSubExpr()->IgnoreParenImpCasts()->getType())) {
+    auto stmtBT = clang::dyn_cast<clang::BuiltinType>(stmt->getType());
+    if (subStmtBT->isInteger() && stmtBT->isInteger()) {
+      // convert signed type to unsigned type to compare size
+      auto resolve = [&](const clang::BuiltinType *type) -> clang::BuiltinType::Kind {
+        if (type->isUnsignedInteger()) {
+          return static_cast<clang::BuiltinType::Kind>(type->getKind() - clang::BuiltinType::Kind::Bool);
         }
+        return type->getKind();
+      };
+
+      auto stmtKind = resolve(stmtBT);
+      auto subStmtKind = resolve(subStmtBT);
+
+      if (stmtKind < subStmtKind) {
+        XcalIssue *issue = nullptr;
+        XcalReport *report = XcalCheckerManager::GetReport();
+
+        issue = report->ReportIssue(GJB8114, G5_10_2_3, stmt);
+        std::string ref_msg = "Convert int to shorter int carefully";
+        issue->SetRefMsg(ref_msg);
       }
     }
   }
 }
+
 
 
 }

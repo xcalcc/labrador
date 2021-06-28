@@ -134,3 +134,6 @@ Rule		Kind		Implementation
 5.10.1.4    Diag        HandleDiagnostic
 5.10.1.5    Stmt        CheckAssignPointerAndNonPointerWithoutCast
 5.10.1.6                GJB5369: 4.12.2.2 -> CheckUnnessaryCast
+5.10.2.1    Stmt        CheckFloatAssignToInt
+5.10.2.2    Stmt        CheckDoubleToFloat
+5.10.2.3    Stmt        CheckIntToShorter

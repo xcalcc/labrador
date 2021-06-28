@@ -228,8 +228,13 @@ private:
    * GJB8114: 5.10.2.2
    * Convert double to float carefully
    */
-  void CheckDoubleToFloat(const clang::ImplicitCastExpr *stmt);
-  void CheckDoubleToFloat(const clang::CStyleCastExpr *stmt);
+  void CheckDoubleToFloat(const clang::CastExpr *stmt);
+
+  /*
+   * GJB8114: 5.10.2.3
+   * Convert int to shorter int carefully
+   */
+  void CheckIntToShorter(const clang::CastExpr *stmt);
 
 
 public:
@@ -280,10 +285,12 @@ public:
 
   void VisitImplicitCastExpr(const clang::ImplicitCastExpr *stmt) {
     CheckDoubleToFloat(stmt);
+    CheckIntToShorter(stmt);
   }
 
   void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {
     CheckDoubleToFloat(stmt);
+    CheckIntToShorter(stmt);
   }
 
 
