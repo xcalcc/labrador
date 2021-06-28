@@ -506,6 +506,49 @@ void GJB8114StmtRule::CheckFloatAssignToInt(const clang::BinaryOperator *stmt) {
   }
 }
 
+/*
+ * GJB8114: 5.10.1.2
+ * Explicit cast is required when assigning int value to shorter int variable
+ */
+void GJB8114StmtRule::CheckTruncWithoutCastInAssign(const clang::BinaryOperator *stmt) {
+  if (!stmt->isAssignmentOp()) return;
+
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+
+  auto lhsType = lhs->getType();
+  auto rhsType = rhs->getType();
+  if (!lhsType->isIntegerType() || !rhsType->isIntegerType()) return;
+  if (auto declExpr = clang::dyn_cast<clang::DeclRefExpr>(lhs)) {
+    auto rhsDecl = declExpr->getDecl();
+    if (auto varDecl = clang::dyn_cast<clang::VarDecl>(rhsDecl)) {
+      auto lhsBT = clang::dyn_cast<clang::BuiltinType>(lhsType);
+      auto rhsBT = clang::dyn_cast<clang::BuiltinType>(rhsType);
+
+      // convert signed type to unsigned type to compare size
+      auto resolve = [&](const clang::BuiltinType *type) -> clang::BuiltinType::Kind {
+        if (type->isUnsignedInteger()) {
+          return static_cast<clang::BuiltinType::Kind>(type->getKind() - clang::BuiltinType::Kind::Bool);
+        }
+        return type->getKind();
+      };
+
+      auto lhsKind = resolve(lhsBT);
+      auto rhsKind = resolve(rhsBT);
+
+      if (lhsKind < rhsKind) {
+        XcalIssue *issue = nullptr;
+        XcalReport *report = XcalCheckerManager::GetReport();
+
+        issue = report->ReportIssue(GJB8114, G5_10_1_2, stmt);
+        std::string ref_msg = "Explicit cast is required when assigning int value to shorter int variable";
+        issue->SetRefMsg(ref_msg);
+      }
+    }
+  }
+
+}
+
 
 }
 }

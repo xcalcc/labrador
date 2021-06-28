@@ -204,6 +204,12 @@ private:
    */
   void CheckFloatAssignToInt(const clang::BinaryOperator *stmt);
 
+  /*
+   * GJB8114: 5.10.1.1
+   * Explicit cast is required when assigning int value to shorter int variable
+   */
+  void CheckTruncWithoutCastInAssign(const clang::BinaryOperator *stmt);
+
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckBranchNestedTooMuch(stmt);
@@ -230,6 +236,7 @@ public:
     CheckIntegerDivision(stmt);
     CheckLiteralSuffix(stmt);
     CheckFloatAssignToInt(stmt);
+    CheckTruncWithoutCastInAssign(stmt);
   }
 
   void VisitUnaryOperator(const clang::UnaryOperator *stmt) {

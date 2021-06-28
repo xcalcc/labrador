@@ -127,4 +127,4 @@ Rule		Kind		Implementation
 5.9.1.4     Stmt        CheckInfiniteForLoop
 5.9.2.1                 GJB5369: 4.11.2.1 -> CheckInfiniteLoop
 5.9.2.2
-5.9.2.3
+5.9.2.3     Stmt        CheckFloatAssignToInt
