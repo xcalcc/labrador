@@ -667,6 +667,25 @@ void GJB8114StmtRule::CheckIntToShorter(const clang::CastExpr *stmt) {
   }
 }
 
+/*
+ * GJB8114: 5.12.1.1
+ * Comparing logic values is forbidden
+ */
+void GJB8114StmtRule::CheckComparedLogicValue(const clang::BinaryOperator *stmt) {
+  if (!stmt->isComparisonOp()) return;
+
+  auto lhsType = stmt->getLHS()->IgnoreParenImpCasts()->getType();
+  auto rhsType = stmt->getRHS()->IgnoreParenImpCasts()->getType();
+
+  if (lhsType->isBooleanType() || rhsType->isBooleanType()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB8114, G5_12_1_1, stmt);
+    std::string ref_msg = "Comparing logic values is forbidden";
+    issue->SetRefMsg(ref_msg);
+  }
+}
 
 
 }

@@ -236,6 +236,12 @@ private:
    */
   void CheckIntToShorter(const clang::CastExpr *stmt);
 
+  /*
+   * GJB8114: 5.12.1.1
+   * Comparing logic values is forbidden
+   */
+  void CheckComparedLogicValue(const clang::BinaryOperator *stmt);
+
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckBranchNestedTooMuch(stmt);
@@ -265,6 +271,7 @@ public:
     CheckTruncWithoutCastInAssign(stmt);
     CheckDoubleToFloatWithoutCast(stmt);
     CheckAssignPointerAndNonPointerWithoutCast(stmt);
+    CheckComparedLogicValue(stmt);
   }
 
   void VisitUnaryOperator(const clang::UnaryOperator *stmt) {

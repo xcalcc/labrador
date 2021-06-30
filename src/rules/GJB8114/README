@@ -142,3 +142,6 @@ Rule		Kind		Implementation
 5.11.1.2    Decl        CheckOmitInitValueDependOnSystem
 5.11.1.3                GJB5369: 4.13.1.3 -> CheckNestedStruct
 5.11.1.4                GJB5369: 4.13.1.2 -> CheckEnumDeclInit
+5.11.2.1    Decl        CheckInitWithDecl
+5.11.2.2                Have no idea 😢
+5.12.1.1    Stmt        CheckComparedLogicValue
