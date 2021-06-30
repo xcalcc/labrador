@@ -740,6 +740,40 @@ void GJB8114StmtRule::CheckCompareUnsignedWithSigned(const clang::BinaryOperator
   }
 }
 
+/*
+ * GJB8114: 5.12.2.1
+ * Constant value should stay at left side of the compare operator
+ */
+void GJB8114StmtRule::CheckCompareConstantWithVariable(const clang::BinaryOperator *stmt) {
+  if (!stmt->isComparisonOp()) return;
+
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+
+  auto isLiteral = [&](const clang::Stmt *stmt) -> bool {
+    if (clang::dyn_cast<clang::IntegerLiteral>(stmt) ||
+        clang::dyn_cast<clang::FloatingLiteral>(stmt) ||
+        clang::dyn_cast<clang::CXXBoolLiteralExpr>(stmt) ||
+        clang::dyn_cast<clang::CXXNullPtrLiteralExpr>(stmt) ||
+        clang::dyn_cast<clang::CharacterLiteral>(stmt) ||
+        clang::dyn_cast<clang::FixedPointLiteral>(stmt) ||
+        clang::dyn_cast<clang::StringLiteral>(stmt)) {
+      return true;
+    }
+    return false;
+  };
+
+  if (isLiteral(lhs)) return;
+  if (isLiteral(rhs)) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB8114, G5_12_2_1, stmt);
+    std::string ref_msg = "Constant value should stay at left side of the compare operator";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }

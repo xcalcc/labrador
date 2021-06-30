@@ -254,6 +254,12 @@ private:
    */
   void CheckCompareUnsignedWithSigned(const clang::BinaryOperator *stmt);
 
+  /*
+   * GJB8114: 5.12.2.1
+   * Constant value should stay at left side of the compare operator
+   */
+  void CheckCompareConstantWithVariable(const clang::BinaryOperator *stmt);
+
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckBranchNestedTooMuch(stmt);
@@ -286,6 +292,7 @@ public:
     CheckComparedLogicValue(stmt);
     CheckCompareUnsignedWithZero(stmt);
     CheckCompareUnsignedWithSigned(stmt);
+    CheckCompareConstantWithVariable(stmt);
   }
 
   void VisitUnaryOperator(const clang::UnaryOperator *stmt) {

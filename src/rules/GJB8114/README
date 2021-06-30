@@ -148,3 +148,5 @@ Rule		Kind		Implementation
 5.12.1.2                GJB5369: 4.4.2.1 -> CheckPointerCompareStmt
 5.12.1.3                GJB5369: 4.14.1.1 -> CheckComparingRealNumber
 5.12.1.4    Stmt        CheckCompareUnsignedWithZero
+5.12.1.5    Stmt        CheckCompareUnsignedWithSigned
+5.12.2.1    Stmt        CheckCompareConstantWithVariable
