@@ -718,6 +718,28 @@ void GJB8114StmtRule::CheckCompareUnsignedWithZero(const clang::BinaryOperator *
   }
 }
 
+/*
+ * GJB8114: 5.12.1.5
+ * Comparing unsigned number with signed number is forbidden
+ */
+void GJB8114StmtRule::CheckCompareUnsignedWithSigned(const clang::BinaryOperator *stmt) {
+  if (!stmt->isComparisonOp()) return;
+
+  auto lhsType = stmt->getLHS()->IgnoreParenImpCasts()->getType();
+  auto rhsType = stmt->getRHS()->IgnoreParenImpCasts()->getType();
+
+  if (lhsType->isIntegerType() && rhsType->isIntegerType()) {
+    if (lhsType->isUnsignedIntegerType() != rhsType->isUnsignedIntegerType()) {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+
+      issue = report->ReportIssue(GJB8114, G5_12_1_5, stmt);
+      std::string ref_msg = "Comparing unsigned number with signed number is forbidden";
+      issue->SetRefMsg(ref_msg);
+    }
+  }
+}
+
 
 }
 }

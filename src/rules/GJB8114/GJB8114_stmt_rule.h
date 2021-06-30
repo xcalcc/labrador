@@ -248,6 +248,12 @@ private:
    */
   void CheckCompareUnsignedWithZero(const clang::BinaryOperator *stmt);
 
+  /*
+   * GJB8114: 5.12.1.5
+   * Comparing unsigned number with signed number is forbidden
+   */
+  void CheckCompareUnsignedWithSigned(const clang::BinaryOperator *stmt);
+
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckBranchNestedTooMuch(stmt);
@@ -279,6 +285,7 @@ public:
     CheckAssignPointerAndNonPointerWithoutCast(stmt);
     CheckComparedLogicValue(stmt);
     CheckCompareUnsignedWithZero(stmt);
+    CheckCompareUnsignedWithSigned(stmt);
   }
 
   void VisitUnaryOperator(const clang::UnaryOperator *stmt) {
