@@ -61,6 +61,18 @@ public:
     scope_mgr->CurrentScope()->AddIdentifier<clang::VarDecl>(decl);
   }
 
+  void VisitRecord(const clang::RecordDecl *decl) {
+    auto scope_mgr = XcalCheckerManager::GetScopeManager();
+    // Add CXXRecord to current lexical scope.
+    scope_mgr->CurrentScope()->AddIdentifier<clang::TypeDecl>(
+        clang::dyn_cast<clang::TypeDecl>(decl));
+
+    // Add field to current lexical scope.
+    for (const auto &it : decl->fields()) {
+      scope_mgr->CurrentScope()->AddIdentifier<clang::FieldDecl>(it);
+    }
+  }
+
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
     auto scope_mgr = XcalCheckerManager::GetScopeManager();
     // Add CXXRecord to current lexical scope.

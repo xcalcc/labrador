@@ -118,6 +118,11 @@ private:
    */
   void CheckVariableConflictWithFunction();
 
+  /*
+   * GJB8114: 5.13.1.4
+   * Variable names conflicting with identifiers in forbidden
+   */
+  void CheckVariableConflictWithIdentifiers();
 
 public:
   void Finalize() {
@@ -125,6 +130,7 @@ public:
     CheckOmitInitValueDependOnSystem();
     CheckInitWithDecl();
     CheckVariableConflictWithFunction();
+    CheckVariableConflictWithIdentifiers();
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {

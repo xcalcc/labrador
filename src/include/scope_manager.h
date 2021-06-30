@@ -147,6 +147,10 @@ public:
   template<bool _RECURSIVE>
   bool HasVariableName(const std::string &var_name) const;
 
+  /* Check if the identifier is in the type map. */
+  template<bool _RECURSIVE>
+  bool HasRecordName(const std::string &var_name) const;
+
   /* Get variable name and decl pair */
   template<bool _RECURSIVE>
   void GetVariables(const std::string &var_name, std::vector<const clang::VarDecl *> &) const;
@@ -332,6 +336,11 @@ public:
     return _identifiers->HasVariableName<_RECURSIVE>(var_name);
   }
 
+  template<bool _RECURSIVE>
+  bool HasRecordName(const std::string &var_name) const {
+    return _identifiers->HasRecordName<_RECURSIVE>(var_name);
+  }
+
   /* Check if source location in the function define range. */
   bool InFunctionRange(clang::SourceLocation Loc) const;
 
@@ -498,6 +507,21 @@ IdentifierManager::HasVariableName(const std::string &var_name) const {
   }
   return res;
 }  // IdentifierManager::HasVariableName
+
+// IdentifierManager::HasRecordName
+// implement because it depends on the definition of ScopeManager
+template<bool _RECURSIVE> inline bool
+IdentifierManager::HasRecordName(const std::string &var_name) const {
+  bool res = _id_to_type.count(var_name) > 0;
+  if (_RECURSIVE && !res) {
+    for (const auto &it : _scope->Children()) {
+      res = it->HasRecordName<_RECURSIVE>(var_name);
+      if (res)
+        break;
+    }
+  }
+  return res;
+}  // IdentifierManager::HasRecordName
 
 /* Get variables' name and decl pairs
  * return all VarDecls if var_name == ""

@@ -153,3 +153,4 @@ Rule		Kind		Implementation
 5.13.1.1                GJB5369: 4.15.1.2 -> CheckLocalVarCollideWithGlobal
 5.13.1.2                GJB5369: 4.15.1.3 -> CheckLocalVarCollideWithGlobal
 5.13.1.3    Decl        CheckVariableConflictWithFunction
+5.13.1.4    Decl        CheckVariableConflictWithIdentifiers

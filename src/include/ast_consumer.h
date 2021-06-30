@@ -22,14 +22,14 @@
 namespace xsca {
 
 // class XcalAstConsumer
-template<typename _DeclVisitor>
+template<typename DeclVisitor>
 class XcalAstConsumer : public clang::ASTConsumer {
 private:
-  _DeclVisitor            &_decl_visitor;
+  DeclVisitor            &_decl_visitor;
   clang::CompilerInstance *_CI;
 
 public:
-  XcalAstConsumer(_DeclVisitor &decl_handler,
+  XcalAstConsumer(DeclVisitor &decl_handler,
                   clang::CompilerInstance *CI)
       : _decl_visitor(decl_handler), _CI(CI) {}
 
@@ -50,6 +50,7 @@ private:
          it != end; ++it) {
       _decl_visitor.Visit(*it);
     }
+    _decl_visitor.Finalize();
   }
 
   void HandleInlineFunctionDefinition(clang::FunctionDecl *D) override {

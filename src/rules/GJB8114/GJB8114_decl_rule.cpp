@@ -448,6 +448,33 @@ void GJB8114DeclRule::CheckVariableConflictWithFunction() {
       }, true);
 }
 
+/*
+ * GJB8114: 5.13.1.4
+ * Variable names conflicting with identifiers in forbidden
+ */
+void GJB8114DeclRule::CheckVariableConflictWithIdentifiers() {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+
+  top_scope->TraverseAll<IdentifierManager::IdentifierKind::VAR,
+      const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+      [&issue, &report, &top_scope](const std::string &name, const clang::Decl *decl, IdentifierManager *id_mgr) {
+        auto varDecl = clang::dyn_cast<clang::VarDecl>(decl);
+        if (top_scope->HasRecordName<true>(varDecl->getNameAsString())) {
+          if (issue == nullptr) {
+            issue = report->ReportIssue(GJB8114, G5_13_1_4, decl);
+            std::string ref_msg = "Variable names conflicting with identifiers in forbidden";
+            issue->SetRefMsg(ref_msg);
+          } else {
+            issue->AddDecl(decl);
+          }
+        }
+      }, true);
+}
+
 
 }
 }
