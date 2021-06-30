@@ -155,6 +155,10 @@ public:
   template<bool _RECURSIVE>
   bool HasValueName(const std::string &var_name) const;
 
+  /* Check if the identifier is in the typedef map. */
+  template<bool _RECURSIVE>
+  bool HasTypeDef(const std::string &var_name) const;
+
   /* Get variable name and decl pair */
   template<bool _RECURSIVE>
   void GetVariables(const std::string &var_name, std::vector<const clang::VarDecl *> &) const;
@@ -350,6 +354,11 @@ public:
     return _identifiers->HasValueName<_RECURSIVE>(var_name);
   }
 
+  template<bool _RECURSIVE>
+  bool HasTypeDef(const std::string &var_name) const {
+    return _identifiers->HasTypeDef<_RECURSIVE>(var_name);
+  }
+
   /* Check if source location in the function define range. */
   bool InFunctionRange(clang::SourceLocation Loc) const;
 
@@ -540,6 +549,21 @@ IdentifierManager::HasValueName(const std::string &var_name) const {
   if (_RECURSIVE && !res) {
     for (const auto &it : _scope->Children()) {
       res = it->HasValueName<_RECURSIVE>(var_name);
+      if (res)
+        break;
+    }
+  }
+  return res;
+}  // IdentifierManager::HasValueName
+
+// IdentifierManager::HasValueName
+// implement because it depends on the definition of ScopeManager
+template<bool _RECURSIVE> inline bool
+IdentifierManager::HasTypeDef(const std::string &var_name) const {
+  bool res = _id_to_typedef.count(var_name) > 0;
+  if (_RECURSIVE && !res) {
+    for (const auto &it : _scope->Children()) {
+      res = it->HasTypeDef<_RECURSIVE>(var_name);
       if (res)
         break;
     }

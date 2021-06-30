@@ -130,6 +130,12 @@ private:
    */
   void CheckVariableConflictWithEnumElem();
 
+  /*
+   * GJB8114: 5.13.1.6
+   * Variable names conflict with typedef value is forbidden
+   */
+  void CheckVariableConflictWithTypeDef();
+
 public:
   void Finalize() {
     CheckUnusedStaticFunction();
@@ -138,6 +144,7 @@ public:
     CheckVariableConflictWithFunction();
     CheckVariableConflictWithIdentifiers();
     CheckVariableConflictWithEnumElem();
+    CheckVariableConflictWithTypeDef();
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {
