@@ -260,6 +260,12 @@ private:
    */
   void CheckCompareConstantWithVariable(const clang::BinaryOperator *stmt);
 
+  /*
+   * GJB8114: 5.13.1.15
+   * Assigning negative value to unsigned variables is forbidden
+   */
+  void CheckAssignNegToUnsignedVar(const clang::BinaryOperator *stmt);
+
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckBranchNestedTooMuch(stmt);
@@ -293,6 +299,7 @@ public:
     CheckCompareUnsignedWithZero(stmt);
     CheckCompareUnsignedWithSigned(stmt);
     CheckCompareConstantWithVariable(stmt);
+    CheckAssignNegToUnsignedVar(stmt);
   }
 
   void VisitUnaryOperator(const clang::UnaryOperator *stmt) {

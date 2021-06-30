@@ -774,6 +774,33 @@ void GJB8114StmtRule::CheckCompareConstantWithVariable(const clang::BinaryOperat
   }
 }
 
+/*
+ * GJB8114: 5.13.1.15
+ * Assigning negative value to unsigend variables is forbidden
+ */
+void GJB8114StmtRule::CheckAssignNegToUnsignedVar(const clang::BinaryOperator *stmt) {
+  if (!stmt->isAssignmentOp()) return;
+
+  auto lhsType = stmt->getLHS()->IgnoreParenImpCasts()->getType();
+  if (!lhsType->isUnsignedIntegerType()) return;
+
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+
+  if (auto unary = clang::dyn_cast<clang::UnaryOperator>(rhs)) {
+    if (unary->getOpcode() == clang::UnaryOperator::Opcode::UO_Minus) {
+      if (clang::dyn_cast<clang::IntegerLiteral>(unary->getSubExpr())) {
+        XcalIssue *issue = nullptr;
+        XcalReport *report = XcalCheckerManager::GetReport();
+
+        issue = report->ReportIssue(GJB8114, G5_13_1_15, stmt);
+        std::string ref_msg = "Assigning negative value to unsigend variables is forbidden";
+        issue->SetRefMsg(ref_msg);
+      }
+    }
+
+  }
+}
+
 
 }
 }

@@ -155,3 +155,12 @@ Rule		Kind		Implementation
 5.13.1.3    Decl        CheckVariableConflictWithFunction
 5.13.1.4    Decl        CheckVariableConflictWithIdentifiers
 5.13.1.5    Decl        CheckVariableConflictWithEnumElem
+5.13.1.6    Decl        CheckVariableConflictWithTypeDef
+5.13.1.7                GJB5369: 4.15.1.5 -> CheckVariableRedefine
+5.13.1.8                Have no idea 😢
+5.13.1.9                Have no idea 😢
+5.13.1.10               Have no idea 😢
+5.13.1.11               GJB5369: 4.8.1.1 -> CheckIandOUsedAsVariable
+5.13.1.12               Have no idea 😢
+5.13.1.13               GJB5369: 4.15.1.6 -> CheckVolatileTypeVar
+5.13.1.14               Have no idea 😢
