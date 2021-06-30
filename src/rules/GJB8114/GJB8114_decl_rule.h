@@ -112,12 +112,19 @@ private:
    */
   void CheckInitWithDecl();
 
+  /*
+   * GJB8114: 5.13.1.3
+   * Variable names conflicting with function names is forbidden
+   */
+  void CheckVariableConflictWithFunction();
+
 
 public:
   void Finalize() {
     CheckUnusedStaticFunction();
     CheckOmitInitValueDependOnSystem();
     CheckInitWithDecl();
+    CheckVariableConflictWithFunction();
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {
