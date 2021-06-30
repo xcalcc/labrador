@@ -687,6 +687,37 @@ void GJB8114StmtRule::CheckComparedLogicValue(const clang::BinaryOperator *stmt)
   }
 }
 
+/*
+ * GJB8114: 5.12.1.4
+ * Comparing(bigger or less) unsigned integers with zero is forbidden
+ */
+void GJB8114StmtRule::CheckCompareUnsignedWithZero(const clang::BinaryOperator *stmt) {
+  if (!stmt->isComparisonOp()) return;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+
+  bool need_report = false;
+  if (lhs->getType()->isUnsignedIntegerType()) {
+    if (auto zero = clang::dyn_cast<clang::IntegerLiteral>(rhs)) {
+      need_report = true;
+    }
+  } else if (rhs->getType()->isUnsignedIntegerType()) {
+    if (auto zero = clang::dyn_cast<clang::IntegerLiteral>(lhs)) {
+      need_report = true;
+    }
+  }
+
+  if (need_report) {
+    issue = report->ReportIssue(GJB8114, G5_12_1_4, stmt);
+    std::string ref_msg = "Comparing(bigger or less) unsigned integers with zero is forbidden";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }

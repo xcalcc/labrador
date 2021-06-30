@@ -242,6 +242,12 @@ private:
    */
   void CheckComparedLogicValue(const clang::BinaryOperator *stmt);
 
+  /*
+   * GJB8114: 5.12.1.4
+   * Comparing(bigger or less) unsigned integers with zero is forbidden
+   */
+  void CheckCompareUnsignedWithZero(const clang::BinaryOperator *stmt);
+
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckBranchNestedTooMuch(stmt);
@@ -272,6 +278,7 @@ public:
     CheckDoubleToFloatWithoutCast(stmt);
     CheckAssignPointerAndNonPointerWithoutCast(stmt);
     CheckComparedLogicValue(stmt);
+    CheckCompareUnsignedWithZero(stmt);
   }
 
   void VisitUnaryOperator(const clang::UnaryOperator *stmt) {
