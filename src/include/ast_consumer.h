@@ -50,7 +50,6 @@ private:
          it != end; ++it) {
       _decl_visitor.Visit(*it);
     }
-    _decl_visitor.Finalize();
   }
 
   void HandleInlineFunctionDefinition(clang::FunctionDecl *D) override {

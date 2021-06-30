@@ -101,9 +101,9 @@ public:
   }
 
   void AddIdentifier(const clang::ValueDecl *decl) {
-    DBG_ASSERT(decl != nullptr, "LabelDecl is null");
-    std::string label_name = decl->getNameAsString();
-    _id_to_value.emplace(std::make_pair(label_name, decl));
+    DBG_ASSERT(decl != nullptr, "ValueDecl is null");
+    std::string value_name = decl->getNameAsString();
+    _id_to_value.emplace(std::make_pair(value_name, decl));
   }
 
   void AddIdentifier(const clang::FieldDecl *decl) {
@@ -150,6 +150,10 @@ public:
   /* Check if the identifier is in the type map. */
   template<bool _RECURSIVE>
   bool HasRecordName(const std::string &var_name) const;
+
+  /* Check if the identifier is in the value map. */
+  template<bool _RECURSIVE>
+  bool HasValueName(const std::string &var_name) const;
 
   /* Get variable name and decl pair */
   template<bool _RECURSIVE>
@@ -341,6 +345,11 @@ public:
     return _identifiers->HasRecordName<_RECURSIVE>(var_name);
   }
 
+  template<bool _RECURSIVE>
+  bool HasValueName(const std::string &var_name) const {
+    return _identifiers->HasValueName<_RECURSIVE>(var_name);
+  }
+
   /* Check if source location in the function define range. */
   bool InFunctionRange(clang::SourceLocation Loc) const;
 
@@ -522,6 +531,21 @@ IdentifierManager::HasRecordName(const std::string &var_name) const {
   }
   return res;
 }  // IdentifierManager::HasRecordName
+
+// IdentifierManager::HasValueName
+// implement because it depends on the definition of ScopeManager
+template<bool _RECURSIVE> inline bool
+IdentifierManager::HasValueName(const std::string &var_name) const {
+  bool res = _id_to_value.count(var_name) > 0;
+  if (_RECURSIVE && !res) {
+    for (const auto &it : _scope->Children()) {
+      res = it->HasValueName<_RECURSIVE>(var_name);
+      if (res)
+        break;
+    }
+  }
+  return res;
+}  // IdentifierManager::HasValueName
 
 /* Get variables' name and decl pairs
  * return all VarDecls if var_name == ""

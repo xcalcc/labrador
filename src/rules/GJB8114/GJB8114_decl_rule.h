@@ -124,6 +124,12 @@ private:
    */
   void CheckVariableConflictWithIdentifiers();
 
+  /*
+   * GJB8114: 5.13.1.5
+   * Variable names conflicting with enum elements is forbidden
+   */
+  void CheckVariableConflictWithEnumElem();
+
 public:
   void Finalize() {
     CheckUnusedStaticFunction();
@@ -131,6 +137,7 @@ public:
     CheckInitWithDecl();
     CheckVariableConflictWithFunction();
     CheckVariableConflictWithIdentifiers();
+    CheckVariableConflictWithEnumElem();
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {
