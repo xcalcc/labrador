@@ -164,3 +164,7 @@ Rule		Kind		Implementation
 5.13.1.12               Have no idea 😢
 5.13.1.13               GJB5369: 4.15.1.6 -> CheckVolatileTypeVar
 5.13.1.14               Have no idea 😢
+5.13.1.15               CheckAssignNegToUnsignedVar
+5.13.1.16               Have no idea 😢
+5.13.2.1                Have no idea 😢
+5.13.2.2                GJB5369: 4.8.2.7 -> CheckRegisterVariable

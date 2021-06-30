@@ -792,7 +792,7 @@ void GJB8114StmtRule::CheckCompareConstantWithVariable(const clang::BinaryOperat
 
 /*
  * GJB8114: 5.13.1.15
- * Assigning negative value to unsigend variables is forbidden
+ * Assigning negative value to unsigned variables is forbidden
  */
 void GJB8114StmtRule::CheckAssignNegToUnsignedVar(const clang::BinaryOperator *stmt) {
   if (!stmt->isAssignmentOp()) return;
