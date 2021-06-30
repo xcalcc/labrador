@@ -700,14 +700,30 @@ void GJB8114StmtRule::CheckCompareUnsignedWithZero(const clang::BinaryOperator *
   auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
   auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
 
+  auto isZero = [&](const clang::IntegerLiteral *literal) -> bool {
+    int value;
+    clang::Expr::EvalResult eval_result;
+    auto ctx = XcalCheckerManager::GetAstContext();
+
+    // try to fold the const expr
+    if (literal->EvaluateAsInt(eval_result, *ctx)) {
+      value = eval_result.Val.getInt().getZExtValue();
+    } else {
+      value = literal->getValue().getZExtValue();
+    }
+    if (value == 0) return true;
+    return false;
+  };
+
   bool need_report = false;
   if (lhs->getType()->isUnsignedIntegerType()) {
-    if (auto zero = clang::dyn_cast<clang::IntegerLiteral>(rhs)) {
-      need_report = true;
+    if (auto literal = clang::dyn_cast<clang::IntegerLiteral>(rhs)) {
+
+      if (isZero(literal)) need_report = true;
     }
   } else if (rhs->getType()->isUnsignedIntegerType()) {
-    if (auto zero = clang::dyn_cast<clang::IntegerLiteral>(lhs)) {
-      need_report = true;
+    if (auto literal = clang::dyn_cast<clang::IntegerLiteral>(lhs)) {
+      if (isZero(literal)) need_report = true;
     }
   }
 
