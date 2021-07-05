@@ -266,6 +266,12 @@ private:
    */
   void CheckAssignNegToUnsignedVar(const clang::BinaryOperator *stmt);
 
+ /*
+  * GJB8114: 6.1.1.2
+  * Virtual base class converting to derived class should use dynamic_cast
+  */
+  void CheckVirtualBaseClassCastToDerivedClass(const clang::CXXReinterpretCastExpr *stmt);
+
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckBranchNestedTooMuch(stmt);
@@ -325,6 +331,10 @@ public:
   void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {
     CheckDoubleToFloat(stmt);
     CheckIntToShorter(stmt);
+  }
+
+  void VisitCXXReinterpretCastExpr(const clang::CXXReinterpretCastExpr *stmt) {
+    CheckVirtualBaseClassCastToDerivedClass(stmt);
   }
 
 

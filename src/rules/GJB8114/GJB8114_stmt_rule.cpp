@@ -815,6 +815,59 @@ void GJB8114StmtRule::CheckAssignNegToUnsignedVar(const clang::BinaryOperator *s
   }
 }
 
+/*
+ * GJB8114: 6.1.1.2
+ * Virtual base class converting to derived class should use dynamic_cast
+ */
+void GJB8114StmtRule::CheckVirtualBaseClassCastToDerivedClass(const clang::CXXReinterpretCastExpr *stmt) {
+  auto sub_expr = stmt->getSubExpr()->IgnoreParenImpCasts();
+  auto cast_type = stmt->getType();
+
+
+  // handle reference
+  if (auto unaryInst = clang::dyn_cast<clang::UnaryOperator>(sub_expr)) {
+    if (unaryInst->getOpcode() != clang::UnaryOperator::Opcode::UO_Deref) return;
+    sub_expr = unaryInst->getSubExpr()->IgnoreParenImpCasts();
+  }
+
+  if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(sub_expr)) {
+
+    // check sub expr is Record type
+    auto decl = decl_ref->getDecl();
+    auto sub_type = decl->getType();
+
+    // get pointee type
+    if (sub_type->isPointerType()) {
+      auto ptr_type = clang::dyn_cast<clang::PointerType>(sub_type);
+      sub_type = ptr_type->getPointeeType();
+      if (!sub_type->isRecordType()) return;
+    }
+
+    auto cxx_record = clang::dyn_cast<clang::RecordType>(sub_type)->getAsCXXRecordDecl();
+    if (cxx_record) {
+
+      // get pointee type
+      if (cast_type->isPointerType()) {
+        auto ptr_type = clang::dyn_cast<clang::PointerType>(cast_type);
+        cast_type = ptr_type->getPointeeType();
+        if (!cast_type->isRecordType()) return;
+      }
+
+      // check if virtual base class trying to cast to its derived class
+      auto record_type = clang::dyn_cast<clang::RecordType>(cast_type);
+      auto record_decl = record_type->getAsCXXRecordDecl();
+      if (!record_decl->isVirtuallyDerivedFrom(cxx_record)) return;
+
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+
+      issue = report->ReportIssue(GJB8114, G6_1_1_2, stmt);
+      std::string ref_msg = "Virtual base class converting to derived class should use dynamic_cast";
+      issue->SetRefMsg(ref_msg);
+    }
+  }
+}
+
 
 }
 }

@@ -551,8 +551,6 @@ void GJB8114DeclRule::CheckVariableConflictWithTypeDef() {
  * Copy construct function is a must for classes which has dynamic allocated memory members
  */
 void GJB8114DeclRule::CheckCopyConstructor(const clang::CXXRecordDecl *decl) {
-  auto name = decl->getNameAsString();
-
   if (!decl->hasDefinition()) return;
   if (decl->hasTrivialCopyConstructor()) return;
 

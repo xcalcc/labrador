@@ -168,3 +168,5 @@ Rule		Kind		Implementation
 5.13.1.16               Have no idea 😢
 5.13.2.1                Have no idea 😢
 5.13.2.2                GJB5369: 4.8.2.7 -> CheckRegisterVariable
+6.1.1.1     Decl        CheckCopyConstructor
+6.1.1.2     Stmt        CheckVirtualBaseClassCastToDerivedClass
