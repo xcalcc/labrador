@@ -39,8 +39,6 @@ protected:
   // print issue into stdout
   void PrintStdoutIssue(const XcalIssue *issue);
 
-  // check if source is std library
-  bool IsStdLibrary(clang::SourceLocation location);
 
 public:
   // cconstructor
@@ -78,6 +76,9 @@ public:
       }
     }
   }
+
+  // check if source is std library
+  static bool IsStdLibrary(clang::SourceLocation location);
 
   XcalIssue *ReportIssue(const char *std, const char *rule, const clang::Decl *decl) {
     auto issue = std::make_unique<XcalIssue>(std, rule, decl);

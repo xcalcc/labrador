@@ -147,8 +147,6 @@ void GJB8114StmtRule::CheckUsingNullWithPointer(const clang::BinaryOperator *stm
   if (!lhs->getType()->isPointerType()) return;
 
   if (auto literal = clang::dyn_cast<clang::IntegerLiteral>(rhs)) {
-    rhs->dumpColor();
-
     int value;
     clang::Expr::EvalResult eval_result;
     auto ctx = XcalCheckerManager::GetAstContext();

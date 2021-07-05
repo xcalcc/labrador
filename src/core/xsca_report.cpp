@@ -135,7 +135,7 @@ XcalReport::PrintStdoutIssue(const XcalIssue *issue)
 bool XcalReport::IsStdLibrary(clang::SourceLocation location) {
   auto src_mgr = XcalCheckerManager::GetSourceManager();
   if (src_mgr->isInSystemHeader(location) ||
-      src_mgr->isInSystemMacro(location)   ||
+      src_mgr->isInSystemMacro(location)  ||
       src_mgr->isWrittenInBuiltinFile(location)) {
     return true;
   }

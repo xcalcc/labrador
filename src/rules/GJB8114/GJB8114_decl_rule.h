@@ -10,7 +10,7 @@
 // implement Decl related rules for GJB8114
 //
 
-
+#include "xsca_report.h"
 #include "scope_manager.h"
 #include "decl_null_handler.h"
 //#include <clang/AST/Decl.h>
@@ -24,6 +24,9 @@ public:
   ~GJB8114DeclRule() {}
 
 private:
+
+  // check if function has new expr
+  bool HasNewExpr(const clang::Stmt *decl);
 
   /*
    * GJB8114: 5.1.1.8
@@ -136,6 +139,12 @@ private:
    */
   void CheckVariableConflictWithTypeDef();
 
+  /*
+   * GJB8114: 6.1.1.1
+   * Copy construct function is a must for classes which has dynamic allocated memory members
+   */
+  void CheckCopyConstructor(const clang::CXXRecordDecl *decl);
+
 public:
   void Finalize() {
     CheckUnusedStaticFunction();
@@ -159,6 +168,7 @@ public:
     CheckAnonymousStructInRecord(decl);
     CheckUniformityOfBitFields(decl);
     CheckNestedStructure(decl);
+    CheckCopyConstructor(decl);
   }
 
   void VisitEnum(const clang::EnumDecl *decl) {
@@ -178,6 +188,7 @@ public:
     CheckVoidPointer(decl);
     CheckLiteralSuffixInit(decl);
   }
+
 
 }; // GJB8114DeclRule
 

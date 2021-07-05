@@ -21,6 +21,22 @@
 namespace xsca {
 namespace rule {
 
+// check if function has new expr
+bool GJB8114DeclRule::HasNewExpr(const clang::Stmt *stmt) {
+
+  bool res = false;
+  for (const auto &it : stmt->children()) {
+    // return true if this statement is new expr
+    if (it->getStmtClass() == clang::Stmt::StmtClass::CXXNewExprClass) return true;
+
+    if (it->child_begin() == it->child_end()) continue;
+    for (const auto &sub : stmt->children()) {
+      res |= HasNewExpr(sub);
+    }
+  }
+  return res;
+}
+
 /*
  * GJB8114: 5.1.1.8
  * identifier is a must in declaration of struct, enum and union
@@ -55,6 +71,7 @@ void GJB8114DeclRule::CheckAnonymousStructInRecord(const clang::RecordDecl *decl
   XcalIssue *issue = nullptr;
   std::unordered_map<std::string, clang::RecordDecl *> records;
   XcalReport *report = XcalCheckerManager::GetReport();
+
   for (const auto &it : decl->decls()) {
     if (auto record = clang::dyn_cast<clang::RecordDecl>(it)) {
       auto name = record->getNameAsString();
@@ -528,6 +545,37 @@ void GJB8114DeclRule::CheckVariableConflictWithTypeDef() {
         }
       }, true);
 }
+
+/*
+ * GJB8114: 6.1.1.1
+ * Copy construct function is a must for classes which has dynamic allocated memory members
+ */
+void GJB8114DeclRule::CheckCopyConstructor(const clang::CXXRecordDecl *decl) {
+  auto name = decl->getNameAsString();
+
+  if (!decl->hasDefinition()) return;
+  if (decl->hasTrivialCopyConstructor()) return;
+
+  bool hasNewExpr = false;
+  for (const auto &it : decl->methods()) {
+    if (it->getDeclKind() == clang::Decl::Kind::CXXConstructor) {
+      if (!it->doesThisDeclarationHaveABody()) continue;
+      auto body = clang::dyn_cast<clang::CompoundStmt>(it->getBody());
+      if (body) {
+        hasNewExpr |= HasNewExpr(body);
+        if (hasNewExpr) break;
+      }
+    }
+  }
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(GJB8114, G6_1_1_1, decl);
+  std::string ref_msg = "Copy construct function is a must for classes which has dynamic allocated memory members";
+  issue->SetRefMsg(ref_msg);
+
+}
+
 
 
 }
