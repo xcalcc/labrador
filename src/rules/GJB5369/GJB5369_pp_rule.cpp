@@ -49,15 +49,21 @@ void GJB5369PPRule::CheckMultipleSharp(const clang::MacroDirective *MD) {
     }
   }
 
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
   if (tokens.size() >= 2) {
-    REPORT("GJB5396:4.1.1.11: Using '#' and '##' in the same macro is "
-           "forbidden: %s\n",
-           macro_loc.printToString(*src_mgr).c_str());
+    issue = report->ReportIssue(GJB5369, G4_1_1_11, macro_loc);
+    std::string ref_msg = "Using '#' and '##' in the same macro is forbidden: ";
+    ref_msg += macro_loc.printToString(*src_mgr);
+    issue->SetRefMsg(ref_msg);
   }
 
   if (!tokens.empty()) {
-    REPORT("GJB5396:4.15.2.2: Using ## and # carefully in macro : %s\n",
-           macro_loc.printToString(*src_mgr).c_str());
+    issue = report->ReportIssue(GJB5369, G4_15_2_2, macro_loc);
+    std::string ref_msg = "Using ## and # carefully in macro: ";
+    ref_msg += macro_loc.printToString(*src_mgr);
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -79,10 +85,11 @@ void GJB5369PPRule::CheckUnFunctionLike(const clang::MacroDirective *MD) {
     // check if the marco is start with '{'
     auto begin = macro_info->tokens_begin();
     if (!begin->is(clang::tok::TokenKind::l_brace)) {
-      REPORT(
-          "GJB5396:4.1.1.12: Macro which is unlike a function is forbidden: "
-          "%s\n",
-          macro_loc.printToString(*src_mgr).c_str());
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+      issue = report->ReportIssue(GJB5369, G4_1_1_12, macro_loc);
+      std::string ref_msg = "Macro which is unlike a function is forbidden:" + macro_loc.printToString(*src_mgr);
+      issue->SetRefMsg(ref_msg);
       return;
     }
 
@@ -99,10 +106,11 @@ void GJB5369PPRule::CheckUnFunctionLike(const clang::MacroDirective *MD) {
     }
 
     if (match != 0) {
-      REPORT(
-          "GJB5396:4.1.1.12: Macro which is unlike a function is forbidden: "
-          "%s\n",
-          macro_loc.printToString(*src_mgr).c_str());
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+      issue = report->ReportIssue(GJB5369, G4_1_1_12, macro_loc);
+      std::string ref_msg = "Macro which is unlike a function is forbidden: " + macro_loc.printToString(*src_mgr);
+      issue->SetRefMsg(ref_msg);
     }
   }
 }
@@ -128,9 +136,11 @@ void GJB5369PPRule::CheckMacroKeywords(const clang::MacroDirective *MD) {
       const std::string token = token_name->getName().str();
       auto isKeyword = conf_mgr->FindCAndCXXKeyword(token);
       if (isKeyword) {
-        REPORT("GJB5396:4.1.1.13: keywords in macro is forbidden: %s -> "
-               "%s\n",
-               token.c_str(), macro_loc.printToString(*src_mgr).c_str());
+        XcalIssue *issue = nullptr;
+        XcalReport *report = XcalCheckerManager::GetReport();
+        issue = report->ReportIssue(GJB5369, G4_1_1_13, macro_loc);
+        std::string ref_msg = "Keywords in macro is forbidden: " + macro_loc.printToString(*src_mgr);
+        issue->SetRefMsg(ref_msg);
       }
     }
   }
@@ -165,9 +175,11 @@ void GJB5369PPRule::CheckReservedWordRedefine(const clang::MacroDirective *MD) {
   }
 
   if (conf_mgr->FindCAndCXXKeyword(token)) {
-    REPORT("GJB5396:4.1.1.14: Redefining reserved words is forbidden: %s -> "
-           "%s\n",
-           token.c_str(), macro_loc.printToString(*src_mgr).c_str());
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB5369, G4_1_1_14, macro_loc);
+    std::string ref_msg = "Redefining reserved words is forbidden: " + macro_loc.printToString(*src_mgr);
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -180,9 +192,13 @@ void GJB5369PPRule::CheckUnterminatedIf(clang::SourceLocation &Loc, clang::Sourc
   auto src_mgr = XcalCheckerManager::GetSourceManager();
   auto res = src_mgr->isWrittenInSameFile(Loc, IfLoc);
   if (!res) {
-    REPORT("GJB5396:4.1.1.18: with \"#if\" but no \"#endif\" in the same "
-           "file is forbidden:line: If: %s -> EndIf %s\n",
-           IfLoc.printToString(*src_mgr).c_str(), Loc.printToString(*src_mgr).c_str());
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB5369, G4_1_1_18, Loc);
+    std::string ref_msg = "With \"#if\" but no \"#endif\" in the same file is forbidden:line: If: ";
+    ref_msg += IfLoc.printToString(*src_mgr) + " -> Endif ";
+    ref_msg += Loc.printToString(*src_mgr);
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -190,22 +206,24 @@ void GJB5369PPRule::CheckUnterminatedIf(clang::SourceLocation &Loc, clang::Sourc
  * GJB5369: 4.1.1.20
  * Using absolute path in the "#include <...>" is forbidden
  */
-void GJB5369PPRule::CheckAbsolutePathInclude(llvm::StringRef IncludedFilename) {
+void GJB5369PPRule::CheckAbsolutePathInclude(clang::SourceLocation Loc, llvm::StringRef IncludedFilename) {
   auto filename = IncludedFilename.str();
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
 
   // unix
   if (filename[0] == '/') {
-    REPORT("GJB5396:4.1.1.20: Using absolute path in the \"#include <...>\" "
-           "is forbidden: %s\n",
-           filename.c_str());
+    issue = report->ReportIssue(GJB5369, G4_1_1_20, Loc);
+    std::string ref_msg = "Using absolute path in the \"#include <...>\" is forbidden: " + filename;
+    issue->SetRefMsg(ref_msg);
   }
 
   if ((filename.find(":\\") != std::string::npos) ||
       (filename.find(":\\") != std::string::npos) ||
       (filename.find(":/") != std::string::npos)) {
-    REPORT("GJB5396:4.1.1.20: Using absolute path in the \"#include <...>\" "
-           "is forbidden: %s\n",
-           filename.c_str());
+    issue = report->ReportIssue(GJB5369, G4_1_1_20, Loc);
+    std::string ref_msg = "Using absolute path in the \"#include <...>\" is forbidden: " + filename;
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -237,8 +255,11 @@ void GJB5369PPRule::CheckAbsolutePathInclude(llvm::StringRef IncludedFilename) {
 void GJB5369PPRule::CheckProgram(clang::SourceLocation Loc,
                                  clang::PragmaIntroducerKind &Introducer) {
   auto src_mgr = XcalCheckerManager::GetSourceManager();
-  REPORT("GJB5369: 4.1.2.7: using \"#pragma\" carefully: %s\n",
-         Loc.printToString(*src_mgr).c_str());
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(GJB5369, G4_1_2_7, Loc);
+  std::string ref_msg = "Using \"#pragma\" carefully: %s\n" + Loc.printToString(*src_mgr);
+  issue->SetRefMsg(ref_msg);
 }
 
 /*
@@ -282,9 +303,12 @@ void GJB5369PPRule::CheckParamWithParentheses(const clang::MacroDirective *MD) {
           is_next_paren = true;
         }
         if (!is_previous_paren || !is_next_paren) {
-          REPORT("GJB5369: 4.2.1.6: the macro parameters should be "
-                 "enclosed in parentheses: %s\n",
-                 Loc.printToString(*src_mgr).c_str());
+          XcalIssue *issue = nullptr;
+          XcalReport *report = XcalCheckerManager::GetReport();
+          issue = report->ReportIssue(GJB5369, G4_2_1_6, Loc);
+          std::string ref_msg = "The macro parameters should be enclosed in parentheses: ";
+          ref_msg += Loc.printToString(*src_mgr);
+          issue->SetRefMsg(ref_msg);
         }
       }
     }
@@ -298,15 +322,17 @@ void GJB5369PPRule::CheckParamWithParentheses(const clang::MacroDirective *MD) {
  * GJB5369: 4.2.1.8
  * header file name contain ' \ /* is forbidden
  */
-void GJB5369PPRule::CheckIncludeName(llvm::StringRef IncludedFilename) {
+void GJB5369PPRule::CheckIncludeName(clang::SourceLocation Loc, llvm::StringRef IncludedFilename) {
   std::string filename = IncludedFilename.str();
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
   if (filename.find("'") != std::string::npos ||
       filename.find("\\") != std::string::npos ||
       filename.find("/") != std::string::npos ||
       filename.find("*") != std::string::npos) {
-    REPORT("GJB5369: header file name contain ' \\ /* is forbidden "
-           "is forbidden: %s\n",
-           filename.c_str());
+    issue = report->ReportIssue(GJB5369, G4_2_1_8, Loc);
+    std::string ref_msg = "Header file name contain ' \\ /* is forbidden is forbidden: " + filename;
+    issue->SetRefMsg(ref_msg);
   }
 }
 

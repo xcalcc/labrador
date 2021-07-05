@@ -65,7 +65,10 @@ XcalReport::PrintVtxtFileList()
 void
 XcalReport::PrintVtxtIssue(const XcalIssue *issue)
 {
-  DBG_ASSERT(_vtxt_file, "vtxt file not initializedd");
+  // omit this issue if need ignore
+  if (issue->IsIgnore()) return;
+
+  DBG_ASSERT(_vtxt_file, "vtxt file not initialized");
   DBG_ASSERT(_source_mgr, "source manager is null");
 
   clang::SourceLocation loc = issue->GetLocation();
@@ -110,6 +113,9 @@ XcalReport::PrintVtxtIssue(const XcalIssue *issue)
 void
 XcalReport::PrintStdoutIssue(const XcalIssue *issue)
 {
+  // omit this issue if need ignore
+  if (issue->IsIgnore()) return;
+
   DBG_ASSERT(_source_mgr, "source manager is null");
 
   clang::SourceLocation loc = issue->GetLocation();
@@ -122,6 +128,18 @@ XcalReport::PrintStdoutIssue(const XcalIssue *issue)
     printf(": %s", refmsg);
   }
   printf("\n");
+}
+
+// XcalReport::IsStdLibrary
+// Check if source is std library
+bool XcalReport::IsStdLibrary(clang::SourceLocation location) {
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  if (src_mgr->isInSystemHeader(location) ||
+      src_mgr->isInSystemMacro(location)   ||
+      src_mgr->isWrittenInBuiltinFile(location)) {
+    return true;
+  }
+  return false;
 }
 
 }  // namespace xsca

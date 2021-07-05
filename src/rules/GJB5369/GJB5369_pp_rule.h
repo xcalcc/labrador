@@ -59,7 +59,7 @@ private:
    * GJB5369: 4.1.1.20
    * Using absolute path in the "#include <...>" is forbidden
    */
-  void CheckAbsolutePathInclude(llvm::StringRef IncludedFilename);
+  void CheckAbsolutePathInclude(clang::SourceLocation Loc, llvm::StringRef IncludedFilename);
 
 #if 0
   /*
@@ -99,7 +99,7 @@ private:
    * GJB5369: 4.2.1.8
    * header file name contain ' \ /* is forbidden
    */
-  void CheckIncludeName(llvm::StringRef IncludedFilename);
+  void CheckIncludeName(clang::SourceLocation, llvm::StringRef IncludedFilename);
 
 public:
   void MacroDefined(const clang::Token &MacroNameTok,
@@ -121,8 +121,8 @@ public:
                           const clang::FileEntry *IncludedFile, llvm::StringRef SearchPath,
                           llvm::StringRef RelativePath, const clang::Module *Imported,
                           clang::SrcMgr::CharacteristicKind FileType) {
-    CheckAbsolutePathInclude(IncludedFilename);
-    CheckIncludeName(IncludedFilename);
+    CheckAbsolutePathInclude(DirectiveLoc, IncludedFilename);
+    CheckIncludeName(DirectiveLoc, IncludedFilename);
   }
 
   void PragmaDirective(clang::SourceLocation Loc,

@@ -60,11 +60,13 @@ class XcalIssue {
   friend class XcalReport;
 
 private:
-  const char               *_std_name;   // std name, say "GJB5369", "MISRA"
-  const char               *_rule_name;  // rule name, say "4.1.1.1", "Rule 1.1"
-  std::string               _decl_name;  // decl name for function, variable, type
-  std::string               _ref_msg;    // message for reference
-  std::vector<XcalPathInfo> _path_info;  // path info for this path
+  const char               *_std_name;    // std name, say "GJB5369", "MISRA"
+  const char               *_rule_name;   // rule name, say "4.1.1.1", "Rule 1.1"
+  std::string               _decl_name;   // decl name for function, variable, type
+  std::string               _ref_msg;     // message for reference
+  std::vector<XcalPathInfo> _path_info;   // path info for this path
+
+  bool                      _need_ignore; // ignore if it is std library
 
 public:
   XcalIssue(const char *std, const char *rule)
@@ -98,6 +100,10 @@ public:
     _ref_msg = msg;
   }
 
+  void SetIgnore(bool ignore) {
+    _need_ignore = ignore;
+  }
+
   void AddDecl(const clang::Decl *decl) {
     _path_info.push_back(XcalPathInfo(decl));
   }
@@ -121,6 +127,10 @@ public:
 
   const char *RefMessage() const {
     return _ref_msg.c_str();
+  }
+
+  bool IsIgnore() const {
+    return _need_ignore;
   }
 
   const std::vector<XcalPathInfo>& PathInfo() const {

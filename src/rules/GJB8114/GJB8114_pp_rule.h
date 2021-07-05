@@ -39,7 +39,7 @@ private:
    * GJB8114: 5.1.1.22
    * Head file being re-included is forbidden
    */
-  void CheckReIncludeHeadFile(llvm::StringRef IncludedFilename);
+  void CheckReIncludeHeadFile(clang::SourceLocation Loc, llvm::StringRef IncludedFilename);
 
 public:
 
@@ -54,7 +54,7 @@ public:
                           const clang::FileEntry *IncludedFile, llvm::StringRef SearchPath,
                           llvm::StringRef RelativePath, const clang::Module *Imported,
                           clang::SrcMgr::CharacteristicKind FileType) {
-    CheckReIncludeHeadFile(IncludedFilename);
+    CheckReIncludeHeadFile(DirectiveLoc, IncludedFilename);
   }
 
 }; // GJB8114PPRule

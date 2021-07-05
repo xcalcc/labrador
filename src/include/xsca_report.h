@@ -39,6 +39,9 @@ protected:
   // print issue into stdout
   void PrintStdoutIssue(const XcalIssue *issue);
 
+  // check if source is std library
+  bool IsStdLibrary(clang::SourceLocation location);
+
 public:
   // cconstructor
   XcalReport() : _source_mgr(NULL), _vtxt_file(NULL),
@@ -78,6 +81,10 @@ public:
 
   XcalIssue *ReportIssue(const char *std, const char *rule, const clang::Decl *decl) {
     auto issue = std::make_unique<XcalIssue>(std, rule, decl);
+
+    // ignore this issue if it is std source
+    if (IsStdLibrary(decl->getLocation())) issue->SetIgnore(true);
+
     XcalIssue *issue_ptr = issue.get();
     _issue_vec.push_back(std::move(issue));
     return issue_ptr;
@@ -85,6 +92,10 @@ public:
 
   XcalIssue *ReportIssue(const char *std, const char *rule, const clang::Stmt *stmt) {
     auto issue = std::make_unique<XcalIssue>(std, rule, stmt);
+
+    // ignore this issue if it is std source
+    if (IsStdLibrary(stmt->getBeginLoc())) issue->SetIgnore(true);
+
     XcalIssue *issue_ptr = issue.get();
     _issue_vec.push_back(std::move(issue));
     return issue_ptr;
@@ -92,6 +103,10 @@ public:
 
   XcalIssue *ReportIssue(const char *std, const char *rule, const clang::SourceLocation location) {
     auto issue = std::make_unique<XcalIssue>(std, rule, location);
+
+    // ignore this issue if it is std source
+    if (IsStdLibrary(location)) issue->SetIgnore(true);
+
     XcalIssue *issue_ptr = issue.get();
     _issue_vec.push_back(std::move(issue));
     return issue_ptr;
