@@ -24,7 +24,6 @@ public:
   ~GJB8114DeclRule() {}
 
 private:
-
   // check if function has new expr
   bool HasNewExpr(const clang::Stmt *decl);
 

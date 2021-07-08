@@ -87,6 +87,11 @@ public:
         _decl_handler.VisitField(it);
       }
     }
+
+    // visit methods
+    for (const auto &method : decl->methods()) {
+      this->Visit(method);
+    }
   }
 
   void VisitEnum(const clang::EnumDecl *decl) {

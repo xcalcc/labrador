@@ -22,6 +22,7 @@ public:
   ~GJB8114StmtRule() {}
 
 private:
+  const clang::FunctionDecl *_current_function_decl;
 
   // Check if stmt contains bitwise operator
   bool HasBitwiseSubStmt(const clang::Stmt *stmt);
@@ -272,6 +273,12 @@ private:
   */
   void CheckVirtualBaseClassCastToDerivedClass(const clang::CXXReinterpretCastExpr *stmt);
 
+  /*
+ * GJB8114: 6.2.1.1
+ * Using global variables in construct function is forbidden
+ */
+  void CheckUsingGlobalVarInConstructor(const clang::DeclRefExpr *stmt);
+
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckBranchNestedTooMuch(stmt);
@@ -337,6 +344,19 @@ public:
     CheckVirtualBaseClassCastToDerivedClass(stmt);
   }
 
+  void VisitAtFunctionExit(const clang::Stmt *stmt) {
+    _current_function_decl = nullptr;
+  }
+
+  void VisitDeclRefExpr(const clang::DeclRefExpr *stmt) {
+    TRACE0();
+    CheckUsingGlobalVarInConstructor(stmt);
+  }
+
+public:
+  void SetCurrentFunctionDecl(const clang::FunctionDecl *decl) {
+    _current_function_decl = decl;
+  }
 
 }; // GJB8114StmtRule
 }

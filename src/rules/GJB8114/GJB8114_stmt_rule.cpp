@@ -868,6 +868,26 @@ void GJB8114StmtRule::CheckVirtualBaseClassCastToDerivedClass(const clang::CXXRe
   }
 }
 
+/*
+ * GJB8114: 6.2.1.1
+ * Using global variables in construct function is forbidden
+ */
+void GJB8114StmtRule::CheckUsingGlobalVarInConstructor(const clang::DeclRefExpr *stmt) {
+  auto decl = stmt->getDecl();
+  if (auto varDecl = clang::dyn_cast<clang::VarDecl>(decl)) {
+    if (varDecl->hasGlobalStorage()) {
+      if (clang::dyn_cast<clang::CXXConstructorDecl>(_current_function_decl)) {
+        XcalIssue *issue = nullptr;
+        XcalReport *report = XcalCheckerManager::GetReport();
+
+        issue = report->ReportIssue(GJB8114, G6_2_1_1, stmt);
+        std::string ref_msg = "Using global variables in construct function is forbidden";
+        issue->SetRefMsg(ref_msg);
+      }
+    }
+  }
+}
+
 
 }
 }
