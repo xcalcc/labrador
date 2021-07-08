@@ -582,35 +582,57 @@ void GJB8114DeclRule::CheckCopyConstructor(const clang::CXXRecordDecl *decl) {
  */
 void GJB8114DeclRule::CheckDiamondDerivativeWithoutVirtual(const clang::CXXRecordDecl *decl) {
   if (!decl->hasDefinition()) return;
-  if (decl->getNumBases() != 2) return;
 
   // base class of LHS and RHS
-  int i = 0;
-  clang::CXXRecordDecl *bases[2];
+  std::unordered_map<clang::CXXRecordDecl *, clang::CXXRecordDecl *> bases;
   for (const auto &it : decl->bases()) {
     auto record_type = clang::dyn_cast<clang::RecordType>(it.getType());
-    if (!record_type) return;
+    if (!record_type) continue;
     auto record_decl = record_type->getAsCXXRecordDecl();
-    if (!record_decl) return;
+    if (!record_decl) continue;
 
-    if (!record_decl->hasDefinition()) return;
-    if (record_decl->getNumBases() != 1) return;
+    if (!record_decl->hasDefinition()) continue;
+    if (record_decl->getNumBases() != 1) continue;
 
     auto base = record_decl->bases_begin()->getType()->getAsCXXRecordDecl();
     if (!base) return;
 
-    // return if this is virtually derived from base class
-    if (record_decl->isVirtuallyDerivedFrom(base)) return;
-    bases[i++] = base;
+    // continue if record is virtully derived from base class
+    if (record_decl->isVirtuallyDerivedFrom(base)) continue;
+    bases.insert({record_decl, base});
   }
 
-  if (bases[0] == bases[1]) {
-    XcalIssue *issue = nullptr;
-    XcalReport *report = XcalCheckerManager::GetReport();
-    issue = report->ReportIssue(GJB8114, G6_1_1_3, decl);
-    std::string ref_msg = "\"virtual\" is needed when inheriting from base class in derivative design of diamond structure.";
-    issue->SetRefMsg(ref_msg);
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  for (const auto &it : bases) {
+    auto count = std::count_if(bases.begin(), bases.end(), [&it](auto &pair) {
+      if (pair.second == it.second) return true;
+      return false;
+    });
+    if (count > 1) {
+      if (issue == nullptr) {
+        issue = report->ReportIssue(GJB8114, G6_1_1_3, decl);
+        std::string ref_msg = "\"virtual\" is needed when inheriting from base class in derivative design of diamond structure.";
+        issue->SetRefMsg(ref_msg);
+      }
+      issue->AddDecl(it.first);
+    }
   }
+
+}
+
+/*
+ * GJB8114: 6.1.1.4
+ * Overloaded assigment operator in abstract classes should be private or protect.
+ */
+void GJB8114DeclRule::CheckAssignOperatorOverload(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasDefinition()) return;
+  if (!decl->hasUserDeclaredCopyAssignment()) return;
+
+//  for (const auto method : decl->methods()) {
+//    if (method->isModulePrivate())
+//  }
 }
 
 

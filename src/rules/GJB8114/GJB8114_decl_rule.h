@@ -151,6 +151,12 @@ private:
    */
   void CheckDiamondDerivativeWithoutVirtual(const clang::CXXRecordDecl *decl);
 
+  /*
+   * GJB8114: 6.1.1.4
+   * Overloaded assigment operator in abstract classes should be private or protect.
+   */
+  void CheckAssignOperatorOverload(const clang::CXXRecordDecl *decl);
+
 public:
   void Finalize() {
     CheckUnusedStaticFunction();
@@ -176,6 +182,7 @@ public:
     CheckNestedStructure(decl);
     CheckCopyConstructor(decl);
     CheckDiamondDerivativeWithoutVirtual(decl);
+    CheckAssignOperatorOverload(decl);
   }
 
   void VisitEnum(const clang::EnumDecl *decl) {
