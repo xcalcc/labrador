@@ -174,6 +174,12 @@ private:
    */
   void CheckExplictConstructor(const clang::CXXRecordDecl *decl);
 
+  /*
+   * GJB8114: 6.2.1.3
+   * Construct functions which contains only one parameter should be note by "explicit"
+   */
+  void CheckExplicitConstructorWithSingleParam(const clang::FunctionDecl *decl);
+
 
 public:
   void Finalize() {
@@ -215,6 +221,7 @@ public:
     CheckVoidPointer(decl);
     CheckTooManyParams(decl);
     CheckInlineFunction(decl);
+    CheckExplicitConstructorWithSingleParam(decl);
   }
 
   void VisitVar(const clang::VarDecl *decl) {

@@ -165,6 +165,9 @@ void GJB5369DeclRule::CheckFunctionNameReuse() {
           auto begin = function_decl_range.first;
           auto end = function_decl_range.second;
           for (; begin != end; begin++) {
+            // not concern constructor
+            if (begin->second->getDeclKind() == clang::Decl::Kind::CXXConstructor) return;
+
             if (issue == nullptr) {
               issue = report->ReportIssue(GJB5369, G4_1_1_1, begin->second);
               std::string ref_msg = "Procedure name reused as other purpose is forbidden: ";
@@ -707,6 +710,8 @@ void GJB5369DeclRule::CheckUnionDecl(const clang::RecordDecl *decl) {
  * procedure must be enclosed in braces
  */
 void GJB5369DeclRule::CheckProcedureWithBraces(const clang::FunctionDecl *decl) {
+  if (decl->getDeclKind() == clang::Decl::Kind::CXXConstructor) return;
+
   auto src_mgr = XcalCheckerManager::GetSourceManager();
   auto func_loc = decl->getLocation();
   auto end_loc = decl->getEndLoc();
