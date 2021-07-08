@@ -586,7 +586,7 @@ void GJB8114DeclRule::CheckDiamondDerivativeWithoutVirtual(const clang::CXXRecor
 
   // base class of LHS and RHS
   int i = 0;
-  clang::CXXRecordDecl *bases[2];
+  clang::CXXRecordDecl *bases[2] = {};
   for (const auto &it : decl->bases()) {
     auto record_type = clang::dyn_cast<clang::RecordType>(it.getType());
     if (!record_type) return;
@@ -610,6 +610,19 @@ void GJB8114DeclRule::CheckDiamondDerivativeWithoutVirtual(const clang::CXXRecor
     issue = report->ReportIssue(GJB8114, G6_1_1_3, decl);
     std::string ref_msg = "\"virtual\" is needed when inheriting from base class in derivative design of diamond structure.";
     issue->SetRefMsg(ref_msg);
+  }
+}
+
+/*
+ * GJB8114: 6.1.1.4
+ * Overloaded assigment operator in abstract classes should be private or protect.
+ */
+void GJB8114DeclRule::CheckAssignOperatorOverload(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasDefinition()) return;
+  if (!decl->hasUserDeclaredCopyAssignment()) return;
+
+  for (const auto method : decl->methods()) {
+    if (method->isModulePrivate())
   }
 }
 
