@@ -157,6 +157,13 @@ private:
    */
   void CheckAssignOperatorOverload(const clang::CXXRecordDecl *decl);
 
+  /*
+   * GJB8114: 6.1.1.5
+   * Deriving from virtual base class should be carefully
+   */
+  void CheckDerivedFromAbstractClass(const clang::CXXRecordDecl *decl);
+
+
 public:
   void Finalize() {
     CheckUnusedStaticFunction();
@@ -183,6 +190,7 @@ public:
     CheckCopyConstructor(decl);
     CheckDiamondDerivativeWithoutVirtual(decl);
     CheckAssignOperatorOverload(decl);
+    CheckDerivedFromAbstractClass(decl);
   }
 
   void VisitEnum(const clang::EnumDecl *decl) {

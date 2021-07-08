@@ -645,6 +645,21 @@ void GJB8114DeclRule::CheckAssignOperatorOverload(const clang::CXXRecordDecl *de
   }
 }
 
+/*
+ * GJB8114: 6.1.1.5
+ * Deriving from virtual base class should be carefully
+ */
+void GJB8114DeclRule::CheckDerivedFromAbstractClass(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasDefinition()) return;
+  if (decl->getNumVBases() == 0) return;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(GJB8114, G6_1_1_5, decl);
+  std::string ref_msg = "Deriving from virtual base class should be carefully";
+  issue->SetRefMsg(ref_msg);
+}
+
 
 }
 }
