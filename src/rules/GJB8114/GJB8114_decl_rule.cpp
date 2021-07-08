@@ -630,9 +630,19 @@ void GJB8114DeclRule::CheckAssignOperatorOverload(const clang::CXXRecordDecl *de
   if (!decl->hasDefinition()) return;
   if (!decl->hasUserDeclaredCopyAssignment()) return;
 
-//  for (const auto method : decl->methods()) {
-//    if (method->isModulePrivate())
-//  }
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  for (const auto method : decl->methods()) {
+    if (!method->isCopyAssignmentOperator()) continue;
+    if (method->getAccess() == clang::AccessSpecifier::AS_public) {
+      if (issue == nullptr) {
+        issue = report->ReportIssue(GJB8114, G6_1_1_4, decl);
+        std::string ref_msg = "Overloaded assigment operator in abstract classes should be private or protect.";
+        issue->SetRefMsg(ref_msg);
+      }
+      issue->AddDecl(method);
+    }
+  }
 }
 
 
