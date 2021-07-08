@@ -32,6 +32,7 @@ bool GJB8114DeclRule::HasNewExpr(const clang::Stmt *stmt) {
     if (it->child_begin() == it->child_end()) continue;
     for (const auto &sub : stmt->children()) {
       res |= HasNewExpr(sub);
+      if (res) break;
     }
   }
   return res;
