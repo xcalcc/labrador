@@ -566,11 +566,13 @@ void GJB8114DeclRule::CheckCopyConstructor(const clang::CXXRecordDecl *decl) {
     }
   }
 
-  XcalIssue *issue = nullptr;
-  XcalReport *report = XcalCheckerManager::GetReport();
-  issue = report->ReportIssue(GJB8114, G6_1_1_1, decl);
-  std::string ref_msg = "Copy construct function is a must for classes which has dynamic allocated memory members";
-  issue->SetRefMsg(ref_msg);
+  if (hasNewExpr) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB8114, G6_1_1_1, decl);
+    std::string ref_msg = "Copy construct function is a must for classes which has dynamic allocated memory members";
+    issue->SetRefMsg(ref_msg);
+  }
 
 }
 
