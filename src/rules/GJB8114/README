@@ -171,4 +171,8 @@ Rule		Kind		Implementation
 6.1.1.1     Decl        CheckCopyConstructor
 6.1.1.2     Stmt        CheckVirtualBaseClassCastToDerivedClass
 6.1.1.3     Decl        CheckDiamondDerivativeWithoutVirtual
-6.1.1.4
+6.1.1.4     Decl        CheckAssignOperatorOverload
+6.1.2.1     Decl        CheckDerivedFromAbstractClass
+6.1.2.2     Decl        CheckInlineFunction
+6.2.1.1     Stmt        CheckUsingGlobalVarInConstructor
+6.2.1.2

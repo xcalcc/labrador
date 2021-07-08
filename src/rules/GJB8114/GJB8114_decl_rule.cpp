@@ -675,6 +675,21 @@ void GJB8114DeclRule::CheckInlineFunction(const clang::FunctionDecl *decl) {
   }
 }
 
+/*
+ * GJB8114: 6.2.1.2
+ * Default construct functions should be defined explicitly in class
+ */
+
+void GJB8114DeclRule::CheckExplictConstructor(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasUserDeclaredConstructor()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB8114, G6_2_1_2, decl);
+    std::string ref_msg = "Default construct functions should be defined explicitly in class";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }

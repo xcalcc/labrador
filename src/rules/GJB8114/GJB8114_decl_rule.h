@@ -168,6 +168,13 @@ private:
    */
   void CheckInlineFunction(const clang::FunctionDecl *decl);
 
+  /*
+   * GJB8114: 6.2.1.2
+   * Default construct functions should be defined explicitly in class
+   */
+  void CheckExplictConstructor(const clang::CXXRecordDecl *decl);
+
+
 public:
   void Finalize() {
     CheckUnusedStaticFunction();
@@ -195,6 +202,7 @@ public:
     CheckDiamondDerivativeWithoutVirtual(decl);
     CheckAssignOperatorOverload(decl);
     CheckDerivedFromAbstractClass(decl);
+    CheckExplictConstructor(decl);
   }
 
   void VisitEnum(const clang::EnumDecl *decl) {
