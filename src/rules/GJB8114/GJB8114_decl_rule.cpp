@@ -574,6 +574,42 @@ void GJB8114DeclRule::CheckCopyConstructor(const clang::CXXRecordDecl *decl) {
 
 }
 
+/*
+ * GJB8114: 6.1.1.3
+ * "virtual" is needed when inheriting from base class in derivative design of diamond structure.
+ */
+void GJB8114DeclRule::CheckDiamondDerivativeWithoutVirtual(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasDefinition()) return;
+  if (decl->getNumBases() != 2) return;
+
+  // base class of LHS and RHS
+  int i = 0;
+  clang::CXXRecordDecl *bases[2];
+  for (const auto &it : decl->bases()) {
+    auto record_type = clang::dyn_cast<clang::RecordType>(it.getType());
+    if (!record_type) return;
+    auto record_decl = record_type->getAsCXXRecordDecl();
+    if (!record_decl) return;
+
+    if (!record_decl->hasDefinition()) return;
+    if (record_decl->getNumBases() != 1) return;
+
+    auto base = record_decl->bases_begin()->getType()->getAsCXXRecordDecl();
+    if (!base) return;
+
+    // return if this is virtually derived from base class
+    if (record_decl->isVirtuallyDerivedFrom(base)) return;
+    bases[i++] = base;
+  }
+
+  if (bases[0] == bases[1]) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB8114, G6_1_1_3, decl);
+    std::string ref_msg = "\"virtual\" is needed when inheriting from base class in derivative design of diamond structure.";
+    issue->SetRefMsg(ref_msg);
+  }
+}
 
 
 }

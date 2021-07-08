@@ -22,6 +22,6 @@ int main(void) {
 
   D *pd1 = dynamic_cast<D*>(pb);      // compliance
   D &pd2 = dynamic_cast<D&>(*pb);     // compliance
-  D *pd3 = reinterpret_cast<D*>(pb);  // incompliance
+  D *pd3 = reinterp0ret_cast<D*>(pb);  // incompliance
   D &pd4 = reinterpret_cast<D&>(*pb); // incompliance
 }

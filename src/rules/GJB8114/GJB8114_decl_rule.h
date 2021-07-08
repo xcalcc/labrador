@@ -145,6 +145,12 @@ private:
    */
   void CheckCopyConstructor(const clang::CXXRecordDecl *decl);
 
+  /*
+   * GJB8114: 6.1.1.3
+   * "virtual" is needed when inheriting from base class in derivative design of diamond structure.
+   */
+  void CheckDiamondDerivativeWithoutVirtual(const clang::CXXRecordDecl *decl);
+
 public:
   void Finalize() {
     CheckUnusedStaticFunction();
@@ -169,6 +175,7 @@ public:
     CheckUniformityOfBitFields(decl);
     CheckNestedStructure(decl);
     CheckCopyConstructor(decl);
+    CheckDiamondDerivativeWithoutVirtual(decl);
   }
 
   void VisitEnum(const clang::EnumDecl *decl) {
