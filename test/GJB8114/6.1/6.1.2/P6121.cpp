@@ -1,5 +1,5 @@
 /*
- * GJB8114: 6.1.1.5
+ * GJB8114: 6.1.2.1
  * Deriving from virtual base class should be carefully
  */
 

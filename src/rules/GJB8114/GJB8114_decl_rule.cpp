@@ -646,7 +646,7 @@ void GJB8114DeclRule::CheckAssignOperatorOverload(const clang::CXXRecordDecl *de
 }
 
 /*
- * GJB8114: 6.1.1.5
+ * GJB8114: 6.1.2.1
  * Deriving from virtual base class should be carefully
  */
 void GJB8114DeclRule::CheckDerivedFromAbstractClass(const clang::CXXRecordDecl *decl) {
@@ -655,9 +655,23 @@ void GJB8114DeclRule::CheckDerivedFromAbstractClass(const clang::CXXRecordDecl *
 
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
-  issue = report->ReportIssue(GJB8114, G6_1_1_5, decl);
+  issue = report->ReportIssue(GJB8114, G6_1_2_1, decl);
   std::string ref_msg = "Deriving from virtual base class should be carefully";
   issue->SetRefMsg(ref_msg);
+}
+
+/*
+ * GJB8114: 6.1.2.2
+ * Using inline functions carefully
+ */
+void GJB8114DeclRule::CheckInlineFunction(const clang::FunctionDecl *decl) {
+  if (decl->isInlined()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB8114, G6_1_2_2, decl);
+    std::string ref_msg = "Using inline functions carefully";
+    issue->SetRefMsg(ref_msg);
+  }
 }
 
 

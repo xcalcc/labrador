@@ -158,11 +158,16 @@ private:
   void CheckAssignOperatorOverload(const clang::CXXRecordDecl *decl);
 
   /*
-   * GJB8114: 6.1.1.5
+   * GJB8114: 6.1.2.1
    * Deriving from virtual base class should be carefully
    */
   void CheckDerivedFromAbstractClass(const clang::CXXRecordDecl *decl);
 
+  /*
+   * GJB8114: 6.1.2.2
+   * Using inline functions carefully
+   */
+  void CheckInlineFunction(const clang::FunctionDecl *decl);
 
 public:
   void Finalize() {
@@ -202,6 +207,7 @@ public:
     CheckVariableDeclPosition(decl);
     CheckVoidPointer(decl);
     CheckTooManyParams(decl);
+    CheckInlineFunction(decl);
   }
 
   void VisitVar(const clang::VarDecl *decl) {
