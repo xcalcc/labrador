@@ -987,6 +987,30 @@ void GJB8114DeclRule::CheckDefaultParamChangedInDerivedClassVirtualMethod(const 
   }
 }
 
+/*
+ * GJB8114: 6.4.1.2
+ * Overridden virtual functions in derived class should be noted with virtual
+ */
+void GJB8114DeclRule::CheckOverriddenVirtualFunction(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasDefinition()) return;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  for (const auto &method : decl->methods()) {
+    if (method->isVirtualAsWritten()) continue;
+    for (const auto &it : method->overridden_methods()) {
+      if (it->isVirtual()) {
+        if (issue == nullptr) {
+          issue = report->ReportIssue(GJB8114, G6_4_1_2, decl);
+          std::string ref_msg = "Overridden virtual functions in derived class should be noted with virtual";
+          issue->SetRefMsg(ref_msg);
+          issue->AddDecl(method);
+        }
+      }
+    }
+  }
+}
+
 
 }
 }

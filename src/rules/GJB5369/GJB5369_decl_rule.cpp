@@ -954,7 +954,7 @@ void GJB5369DeclRule::CheckVoidTypeParameters(const clang::FunctionDecl *decl) {
  * parameters should be used in the function
  */
 void GJB5369DeclRule::CheckUnusedParameters(const clang::FunctionDecl *decl) {
-  if (!decl->isDefined()) return;
+  if (!decl->hasBody()) return;
 
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();

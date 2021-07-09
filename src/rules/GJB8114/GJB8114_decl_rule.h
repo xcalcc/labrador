@@ -204,6 +204,12 @@ private:
    */
   void CheckDefaultParamChangedInDerivedClassVirtualMethod(const clang::CXXRecordDecl *decl);
 
+  /*
+   * GJB8114: 6.4.1.2
+   * Overridden virtual functions in derived class should be noted with virtual
+   */
+  void CheckOverriddenVirtualFunction(const clang::CXXRecordDecl *decl);
+
 
 public:
   void Finalize() {
@@ -237,6 +243,7 @@ public:
     CheckDerivedClassContainConstructorOfBaseClass(decl);
     CheckVirtualDestructor(decl);
     CheckDefaultParamChangedInDerivedClassVirtualMethod(decl);
+    CheckOverriddenVirtualFunction(decl);
   }
 
   void VisitEnum(const clang::EnumDecl *decl) {
