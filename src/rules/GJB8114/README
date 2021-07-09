@@ -180,3 +180,5 @@ Rule		Kind		Implementation
 6.2.1.4     Decl        CheckInitFieldsInConstructor
 6.2.1.5     Decl        CheckDerivedClassContainConstructorOfBaseClass
 6.3.1.1     Decl        CheckVirtualDestructor
+6.3.1.2
+6.3.1.3

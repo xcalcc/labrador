@@ -198,6 +198,12 @@ private:
    */
   void CheckVirtualDestructor(const clang::CXXRecordDecl *decl);
 
+  /*
+   * GJB8114: 6.4.1.1
+   * Default parameters in virtual function of base shouldn't be changed by derived classes
+   */
+  void CheckDefaultParamChangedInDerivedClassVirtualMethod(const clang::CXXRecordDecl *decl);
+
 
 public:
   void Finalize() {
@@ -230,6 +236,7 @@ public:
     CheckInitFieldsInConstructor(decl);
     CheckDerivedClassContainConstructorOfBaseClass(decl);
     CheckVirtualDestructor(decl);
+    CheckDefaultParamChangedInDerivedClassVirtualMethod(decl);
   }
 
   void VisitEnum(const clang::EnumDecl *decl) {

@@ -15,6 +15,7 @@
 #include <clang/AST/Decl.h>
 #include <clang/AST/ExprCXX.h>
 #include <clang/AST/ASTContext.h>
+#include <llvm/ADT/APFloat.h>
 
 #include "GJB8114_enum.inc"
 #include "GJB8114_decl_rule.h"
@@ -863,6 +864,126 @@ void GJB8114DeclRule::CheckVirtualDestructor(const clang::CXXRecordDecl *decl) {
     std::string ref_msg = "Destruct functon of classes which contain the virtual functions should be virtual";
     issue->SetRefMsg(ref_msg);
     issue->AddDecl(sink);
+  }
+}
+
+/*
+ * GJB8114: 6.4.1.1
+ * Default parameters in virtual function of base shouldn't be changed by derived classes
+ */
+void GJB8114DeclRule::CheckDefaultParamChangedInDerivedClassVirtualMethod(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasDefinition()) return;
+  if (decl->getNumBases() == 0) return;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  auto ctx = XcalCheckerManager::GetAstContext();
+
+  bool need_report = false;
+  std::unordered_map<const clang::CXXMethodDecl *, const clang::CXXMethodDecl *> sinks;
+  for (const auto &method : decl->methods()) {
+    // get current method's parameters
+    if (method->param_empty()) continue;
+    std::vector<clang::Expr *> current_default_args;
+    for (const auto &it : method->parameters()) {
+      if (it->hasDefaultArg()) {
+        current_default_args.push_back(it->getDefaultArg());
+      }
+    }
+
+    // compare with its overridden methods
+    for (const auto &it : method->overridden_methods()) {
+      std::vector<clang::Expr *> tmp;
+      if (it->param_empty()) continue;
+
+      // collect parameters of overridden methods
+      for (const auto &param : it->parameters()) {
+        if (param->hasDefaultArg()) {
+          auto default_arg = param->getDefaultArg();
+          tmp.push_back(default_arg);
+        }
+      }
+
+      // diff two parameter vectors
+      // 1. check size
+      if (current_default_args.size() != tmp.size()) {
+        need_report = true;
+      }
+
+      // 2. compare each parameter
+      for (int i = 0; i < current_default_args.size(); i++) {
+        auto cur_param = current_default_args[i];
+        auto over_param = tmp[i];
+        if (cur_param->getStmtClass() != over_param->getStmtClass()) {
+          need_report = true;
+          sinks.insert({method, it});
+          break;
+        }
+
+        auto stmt_class = cur_param->getStmtClass();
+        if (stmt_class == clang::Stmt::StmtClass::CXXBoolLiteralExprClass) {
+          bool b1, b2;
+          if (cur_param->EvaluateAsBooleanCondition(b1, *ctx)) {
+            if (over_param->EvaluateAsBooleanCondition(b2, *ctx)) {
+              if (b1 != b2) {
+                need_report = true;
+                sinks.insert({method, it});
+                break;
+              }
+            }
+          }
+        } else if (stmt_class == clang::Stmt::StmtClass::IntegerLiteralClass) {
+          int i1, i2;
+          clang::Expr::EvalResult e1, e2;
+
+          // get as int
+          if (cur_param->EvaluateAsInt(e1, *ctx)) {
+            i1 = e1.Val.getInt().getExtValue();
+          } else {
+            continue;
+          }
+
+          if (over_param->EvaluateAsInt(e2, *ctx)) {
+            i2 = e2.Val.getInt().getExtValue();
+          } else {
+            continue;
+          }
+
+          // compare two result
+          if (i1 != i2) {
+            need_report = true;
+            sinks.insert({method, it});
+            break;
+          }
+        } else if (stmt_class == clang::Stmt::StmtClass::FloatingLiteralClass) {
+          llvm::APFloat e1(double(0)), e2(double(0));
+
+          if (cur_param->EvaluateAsFloat(e1, *ctx)) {
+            if (over_param->EvaluateAsFloat(e2, *ctx)) {
+              if (e1 != e2) {
+                need_report = true;
+                sinks.insert({method, it});
+                break;
+              }
+            }
+          }
+        } else {
+          // TODO:
+          TRACE0();
+        }
+
+      }
+    }
+  }
+
+  if (need_report) {
+    issue = report->ReportIssue(GJB8114, G6_4_1_1, decl);
+    std::string ref_msg = "Default parameters in virtual function of base shouldn't be changed by derived classes";
+    issue->SetRefMsg(ref_msg);
+    for (const auto &it : sinks) {
+      issue->AddDecl(it.first);
+      issue->AddDecl(it.second);
+    }
   }
 }
 
