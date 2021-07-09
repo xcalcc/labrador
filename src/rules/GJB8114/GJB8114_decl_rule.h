@@ -210,6 +210,12 @@ private:
    */
   void CheckOverriddenVirtualFunction(const clang::CXXRecordDecl *decl);
 
+  /*
+   * GJB8114: 6.4.1.3
+   * Non-pure virtual function being overridden as pure virtual function is forbidden
+   */
+  void CheckNonVirtualMethodOverriddenAsPure(const clang::CXXMethodDecl *decl);
+
 
 public:
   void Finalize() {
@@ -264,6 +270,10 @@ public:
     CheckPointerInitWithNull(decl);
     CheckVoidPointer(decl);
     CheckLiteralSuffixInit(decl);
+  }
+
+  void VisitCXXMethod(const clang::CXXMethodDecl *decl) {
+    CheckNonVirtualMethodOverriddenAsPure(decl);
   }
 
 

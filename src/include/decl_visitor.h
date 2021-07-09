@@ -75,6 +75,7 @@ public:
 
   void VisitCXXMethod(const clang::CXXMethodDecl *decl) {
     VisitFunction(clang::cast<clang::FunctionDecl>(decl));
+    _decl_handler.VisitCXXMethod(decl);
   }
 
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {

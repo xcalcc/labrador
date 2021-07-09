@@ -1011,6 +1011,25 @@ void GJB8114DeclRule::CheckOverriddenVirtualFunction(const clang::CXXRecordDecl 
   }
 }
 
+/*
+ * GJB8114: 6.4.1.3
+ * Non-pure virtual function being overridden as pure virtual function is forbidden
+ */
+void GJB8114DeclRule::CheckNonVirtualMethodOverriddenAsPure(const clang::CXXMethodDecl *decl) {
+  if (!decl->isPure()) return;
+
+  for (const auto &it : decl->overridden_methods()) {
+    if (!it->isPure()) {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+      issue = report->ReportIssue(GJB8114, G6_4_1_3, decl);
+      std::string ref_msg = "Non-pure virtual function being overridden as pure virtual function is forbidden";
+      issue->SetRefMsg(ref_msg);
+      issue->AddDecl(it);
+    }
+  }
+}
+
 
 }
 }
