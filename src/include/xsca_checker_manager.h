@@ -52,7 +52,7 @@ private:
 
   XcalCheckerManager()
     : _scope_mgr(std::make_unique<ScopeManager>()) ,
-      _conf_mgr(std::make_unique<ConfigureManager>(std::string("../conf/"))) {}
+      _conf_mgr(std::make_unique<ConfigureManager>("")) {}
   ~XcalCheckerManager() {}
 
   XcalCheckerManager(const XcalCheckerManager&)

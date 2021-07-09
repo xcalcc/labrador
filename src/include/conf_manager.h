@@ -15,6 +15,15 @@
 #include <utility>
 #include <vector>
 
+#ifdef linux
+#include <unistd.h>
+#include <limits.h>
+#elif __APPLE__
+#include <sys/param.h>
+#include <mach-o/dyld.h>
+#include <sys/syslimits.h>
+#endif
+
 namespace xsca {
 
 class ConfigureManager {
@@ -46,11 +55,51 @@ public:
   ~ConfigureManager() = default;
 
   void Initialize() {
-    LoadFile("cxx_identifier.conf", _cxx_identifiers );
+    InitPath();
+    LoadFile("cxx_identifier.conf", _cxx_identifiers);
     LoadFile("c_cxx_identifier.conf", _c_cxx_identifiers);
     LoadFile("jump_function.conf", _jump_functions);
     LoadFile("danger_function.conf", _danger_functions);
+  }
 
+#ifdef linux
+  std::string get_selfpath() {
+    char buff[PATH_MAX];
+    ssize_t len = ::readlink("/proc/self/exe", buff, sizeof(buff)-1);
+    if (len != -1) {
+      buff[len] = '\0';
+      return std::string(buff);
+    }
+    /* handle error condition */
+  }
+#elif __APPLE__
+  std::string get_selfpath() {
+    char buff[PATH_MAX];
+    char real_path[PATH_MAX];
+    const char *res;
+    uint32_t size = sizeof(buff);
+    ssize_t len = _NSGetExecutablePath(buff, &size);
+    res = realpath(buff, real_path);
+    if (res) {
+      return std::string(res);
+    }
+  }
+#endif
+
+  void InitPath() {
+    if (auto path = std::getenv("XSCA_HOME")) {
+      _conf_path = path;
+      if (_conf_path.back() != '/') _conf_path += '/';
+    } else {
+
+#if defined(linux) || __APPLE__
+      std::string exe = get_selfpath();
+      while(exe.back() != '/') {
+        exe.pop_back();
+      }
+      _conf_path = exe + "conf/";
+#endif
+    }
   }
 
   void LoadFile(const std::string &conf_name, std::vector<std::string> &tokens) {
