@@ -838,6 +838,34 @@ void GJB8114DeclRule::CheckDerivedClassContainConstructorOfBaseClass(const clang
   }
 }
 
+/*
+ * GJB8114: 6.3.1.1
+ * Destruct function of classes which contain the virtual functions should be virtual
+ */
+void GJB8114DeclRule::CheckVirtualDestructor(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasDefinition()) return;
+
+  bool has_virtual = false;
+  clang::CXXMethodDecl *sink;
+  for (const auto &method: decl->methods()) {
+    if (auto destructor = clang::dyn_cast<clang::CXXDestructorDecl>(method)) {
+      if (destructor->isVirtual()) return;
+      sink = destructor;
+    }
+
+    if (method->isVirtual()) has_virtual = true;
+  }
+
+  if (has_virtual) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB8114, G6_3_1_1, decl);
+    std::string ref_msg = "Destruct functon of classes which contain the virtual functions should be virtual";
+    issue->SetRefMsg(ref_msg);
+    issue->AddDecl(sink);
+  }
+}
+
 
 }
 }

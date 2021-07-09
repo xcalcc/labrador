@@ -192,6 +192,12 @@ private:
    */
   void CheckDerivedClassContainConstructorOfBaseClass(const clang::CXXRecordDecl *decl);
 
+  /*
+   * GJB8114: 6.3.1.1
+   * Destruct function of classes which contain the virtual functions should be virtual
+   */
+  void CheckVirtualDestructor(const clang::CXXRecordDecl *decl);
+
 
 public:
   void Finalize() {
@@ -223,6 +229,7 @@ public:
     CheckExplictConstructor(decl);
     CheckInitFieldsInConstructor(decl);
     CheckDerivedClassContainConstructorOfBaseClass(decl);
+    CheckVirtualDestructor(decl);
   }
 
   void VisitEnum(const clang::EnumDecl *decl) {
