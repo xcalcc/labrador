@@ -186,6 +186,12 @@ private:
    */
   void CheckInitFieldsInConstructor(const clang::CXXRecordDecl *decl);
 
+  /*
+   * GJB8114: 6.2.1.5
+   * Derived class should contain constructor of base class
+   */
+  void CheckDerivedClassContainConstructorOfBaseClass(const clang::CXXRecordDecl *decl);
+
 
 public:
   void Finalize() {
@@ -216,6 +222,7 @@ public:
     CheckDerivedFromAbstractClass(decl);
     CheckExplictConstructor(decl);
     CheckInitFieldsInConstructor(decl);
+    CheckDerivedClassContainConstructorOfBaseClass(decl);
   }
 
   void VisitEnum(const clang::EnumDecl *decl) {

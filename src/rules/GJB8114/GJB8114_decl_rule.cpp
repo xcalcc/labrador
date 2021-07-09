@@ -778,6 +778,16 @@ void GJB8114DeclRule::CheckInitFieldsInConstructor(const clang::CXXRecordDecl *d
   }
 }
 
+/*
+ * GJB8114: 6.2.1.5
+ * Derived class should contain constructor of base class
+ */
+void GJB8114DeclRule::CheckDerivedClassContainConstructorOfBaseClass(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasDefinition()) return;
+  if (decl->getNumBases())
+
+}
+
 
 }
 }
