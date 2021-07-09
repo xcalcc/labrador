@@ -349,7 +349,6 @@ public:
   }
 
   void VisitDeclRefExpr(const clang::DeclRefExpr *stmt) {
-    TRACE0();
     CheckUsingGlobalVarInConstructor(stmt);
   }
 

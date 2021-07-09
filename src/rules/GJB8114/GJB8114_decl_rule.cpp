@@ -11,6 +11,7 @@
 //
 
 #include <unordered_map>
+#include <unordered_set>
 #include <clang/AST/Decl.h>
 #include <clang/AST/ASTContext.h>
 
@@ -667,7 +668,7 @@ void GJB8114DeclRule::CheckDerivedFromAbstractClass(const clang::CXXRecordDecl *
  */
 void GJB8114DeclRule::CheckInlineFunction(const clang::FunctionDecl *decl) {
   if (decl->getDeclKind() == clang::Decl::Kind::CXXConstructor) return;
-  
+
   if (decl->isInlined()) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
@@ -683,6 +684,7 @@ void GJB8114DeclRule::CheckInlineFunction(const clang::FunctionDecl *decl) {
  */
 
 void GJB8114DeclRule::CheckExplictConstructor(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasDefinition()) return;
   if (!decl->hasUserDeclaredConstructor()) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
@@ -706,6 +708,73 @@ void GJB8114DeclRule::CheckExplicitConstructorWithSingleParam(const clang::Funct
     issue = report->ReportIssue(GJB8114, G6_2_1_3, decl);
     std::string ref_msg = "Construct functions which contains only one parameter should be note by \"explicit\"";
     issue->SetRefMsg(ref_msg);
+  }
+}
+
+/*
+ * GJB8114: 6.2.1.4
+ * All class members should be initialized in constructor
+ */
+void GJB8114DeclRule::CheckInitFieldsInConstructor(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasDefinition()) return;
+  if (decl->field_empty()) return;
+
+  std::unordered_set<clang::FieldDecl *> fields;
+  for (const auto &field : decl->fields()) {
+    fields.insert(field);
+  }
+
+  bool need_report = false;
+  std::vector<clang::CXXConstructorDecl *> sinks;
+  for (const auto &method : decl->methods()) {
+    if (auto constructor = clang::dyn_cast<clang::CXXConstructorDecl>(method)) {
+      auto tmp = fields;
+      for (const auto init : constructor->inits()) {
+        auto it = tmp.find(init->getMember());
+        if (it != tmp.end()) tmp.erase(it);
+      }
+
+      // break if all fields have been initialized
+      if (tmp.empty()) continue;
+
+      // check if initialized in function body
+      if (constructor->doesThisDeclarationHaveABody()) {
+        for (const auto &stmt : constructor->getBody()->children()) {
+          // return if it is not BinaryOperator
+          if (stmt->getStmtClass() != clang::Stmt::StmtClass::BinaryOperatorClass) continue;
+          auto binary_stmt = clang::dyn_cast<clang::BinaryOperator>(stmt);
+
+          // return if it is not assignment
+          if (!binary_stmt->isAssignmentOp() && !binary_stmt->isCompoundAssignmentOp()) continue;
+          auto lhs = binary_stmt->getLHS()->IgnoreParenImpCasts();
+
+          // check if lhs is field declaration
+          if (auto decl_reference = clang::dyn_cast<clang::DeclRefExpr>(lhs)) {
+            if (auto field_decl = clang::dyn_cast<clang::FieldDecl>(decl_reference->getDecl())) {
+              auto it = tmp.find(field_decl);
+              if (it != tmp.end()) tmp.erase(it);
+            }
+          }
+        }
+      }
+
+      if (!tmp.empty()) {
+        need_report = true;
+        sinks.push_back(constructor);
+      }
+    }
+
+  }
+
+  if (need_report) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB8114, G6_2_1_4, decl);
+    std::string ref_msg = "All class members should be initialized in constructor";
+    issue->SetRefMsg(ref_msg);
+    for (const auto &sink : sinks) {
+      issue->AddDecl(sink);
+    }
   }
 }
 

@@ -180,6 +180,12 @@ private:
    */
   void CheckExplicitConstructorWithSingleParam(const clang::FunctionDecl *decl);
 
+  /*
+   * GJB8114: 6.2.1.4
+   * All class members should be initialized in constructor
+   */
+  void CheckInitFieldsInConstructor(const clang::CXXRecordDecl *decl);
+
 
 public:
   void Finalize() {
@@ -209,6 +215,7 @@ public:
     CheckAssignOperatorOverload(decl);
     CheckDerivedFromAbstractClass(decl);
     CheckExplictConstructor(decl);
+    CheckInitFieldsInConstructor(decl);
   }
 
   void VisitEnum(const clang::EnumDecl *decl) {
