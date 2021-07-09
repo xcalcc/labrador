@@ -888,6 +888,40 @@ void GJB8114StmtRule::CheckUsingGlobalVarInConstructor(const clang::DeclRefExpr 
   }
 }
 
+/*
+ * GJB8114: 6.5.1.1
+ * Converting unrelated pointers to object pointers is forbidden
+ */
+void GJB8114StmtRule::CheckUnrelatedCastToObject(const clang::CXXReinterpretCastExpr *stmt) {
+  // check if record type
+  auto target_type = stmt->getType();
+  if (!target_type->isRecordType()) return;
+  auto target_record_type = clang::dyn_cast<clang::RecordType>(target_type);
+
+  // try to get class declaration
+  auto target_decl = target_record_type->getAsCXXRecordDecl();
+  if (target_decl == nullptr) return;
+
+  auto subType = stmt->getSubExpr()->IgnoreParenImpCasts()->getType();
+  if (subType->isRecordType()) {
+    auto record_type = clang::dyn_cast<clang::RecordType>(subType);
+    if (auto record_decl = record_type->getAsCXXRecordDecl()) {
+      if (record_decl->isDerivedFrom(target_decl) ||
+          target_decl->isDerivedFrom(record_decl) ||
+          target_decl == record_decl) {
+        return;
+      }
+    }
+  }
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  issue = report->ReportIssue(GJB8114, G6_5_1_1, stmt);
+  std::string ref_msg = "Converting unrelated pointers to object pointers is forbidden";
+  issue->SetRefMsg(ref_msg);
+}
+
 
 }
 }

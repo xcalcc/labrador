@@ -279,6 +279,13 @@ private:
  */
   void CheckUsingGlobalVarInConstructor(const clang::DeclRefExpr *stmt);
 
+  /*
+   * GJB8114: 6.5.1.1
+   * Converting unrelated pointers to object pointers is forbidden
+   */
+  void CheckUnrelatedCastToObject(const clang::CXXReinterpretCastExpr *stmt);
+
+
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckBranchNestedTooMuch(stmt);
