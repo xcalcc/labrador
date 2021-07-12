@@ -1014,6 +1014,7 @@ void GJB8114StmtRule::CheckMissingCatchStmt(const clang::CXXTryStmt *stmt) {
   for (const auto &it : stmt->children()) {
     if (it == stmt->getTryBlock()) continue;
     if (auto catch_case = clang::dyn_cast<clang::CXXCatchStmt>(it)) {
+      if (!catch_case->getExceptionDecl()) continue;
 
       auto catch_type = catch_case->getCaughtType();
       if (auto ref_type = clang::dyn_cast<clang::ReferenceType>(catch_type)) {
@@ -1048,6 +1049,8 @@ void GJB8114StmtRule::CheckMissingCatchStmt(const clang::CXXTryStmt *stmt) {
  * Exception objects should be catched as reference
  */
 void GJB8114StmtRule::CheckCatchTypeNotReference(const clang::CXXCatchStmt *stmt) {
+  if (!stmt->getExceptionDecl()) return;
+
   if (!stmt->getCaughtType()->isReferenceType()) {
 
     XcalIssue *issue = nullptr;
