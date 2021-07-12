@@ -318,6 +318,12 @@ private:
    */
   void CheckMissingCatchStmt(const clang::CXXTryStmt *stmt);
 
+  /*
+   * GJB8114: 6.8.1.3
+   * Exception objects should be catched as reference
+   */
+  void CheckCatchTypeNotReference(const clang::CXXCatchStmt *stmt);
+
 
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
@@ -400,6 +406,10 @@ public:
 
   void VisitCXXTryStmt(const clang::CXXTryStmt *stmt) {
     CheckMissingCatchStmt(stmt);
+  }
+
+  void VisitCXXCatchStmt(const clang::CXXCatchStmt *stmt) {
+    CheckCatchTypeNotReference(stmt);
   }
 
 public:

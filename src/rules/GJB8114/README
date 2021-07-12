@@ -194,3 +194,7 @@ Rule		Kind		Implementation
 6.7.1.2     Decl        CheckReturnNonConstPointerOrReferenceFromConstMethod
 6.7.1.3
 6.7.2.1     Decl        CheckLocationOfMethodsDefination
+6.7.2.2                 Have no idea 😢
+6.8.1.1     Diag        HandleDiagnostic
+6.8.1.2     Stmt        CheckMissingCatchStmt   // TODO: need refine
+6.8.1.3     Stmt        CheckCatchTypeNotReference

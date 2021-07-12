@@ -1007,6 +1007,7 @@ void GJB8114StmtRule::CheckConstLenghtArrayPassToFunction(const clang::CallExpr 
 /*
  * GJB8114: 6.8.1.2
  * Each specified throw must have a matching catch
+ * TODO: need refine
  */
 void GJB8114StmtRule::CheckMissingCatchStmt(const clang::CXXTryStmt *stmt) {
   auto obj_types = RecordThrowObjectTypes(stmt->getTryBlock());
@@ -1038,6 +1039,22 @@ void GJB8114StmtRule::CheckMissingCatchStmt(const clang::CXXTryStmt *stmt) {
 
     issue = report->ReportIssue(GJB8114, G6_8_1_2, stmt);
     std::string ref_msg = "Each specified throw must have a matching catch";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+/*
+ * GJB8114: 6.8.1.3
+ * Exception objects should be catched as reference
+ */
+void GJB8114StmtRule::CheckCatchTypeNotReference(const clang::CXXCatchStmt *stmt) {
+  if (!stmt->getCaughtType()->isReferenceType()) {
+
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB8114, G6_8_1_3, stmt);
+    std::string ref_msg = "Exception objects should be catched as reference";
     issue->SetRefMsg(ref_msg);
   }
 }
