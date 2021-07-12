@@ -324,6 +324,18 @@ private:
    */
   void CheckCatchTypeNotReference(const clang::CXXCatchStmt *stmt);
 
+  /*
+   * GJB8114: 6.8.1.5
+   * Throwing NULL is forbidden
+   */
+  void CheckThrowNullExpr(const clang::CXXThrowExpr *stmt);
+
+  /*
+   * GJB8114: 6.8.2.1
+   * Using default catch after other catches to avoid omitting
+   */
+  void CheckTryWithoutDefaultCatch(const clang::CXXTryStmt *stmt);
+
 
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
@@ -406,10 +418,15 @@ public:
 
   void VisitCXXTryStmt(const clang::CXXTryStmt *stmt) {
     CheckMissingCatchStmt(stmt);
+    CheckTryWithoutDefaultCatch(stmt);
   }
 
   void VisitCXXCatchStmt(const clang::CXXCatchStmt *stmt) {
     CheckCatchTypeNotReference(stmt);
+  }
+
+  void VisitCXXThrowExpr(const clang::CXXThrowExpr *stmt) {
+    CheckThrowNullExpr(stmt);
   }
 
 public:

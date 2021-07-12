@@ -1203,6 +1203,7 @@ void GJB5369StmtRule::CheckReturnStmt(const clang::ReturnStmt *stmt) {
  * type of return value should stay the same
  */
 void GJB5369StmtRule::CheckReturnType(const clang::ReturnStmt *stmt) {
+  if (_current_function_decl == nullptr) return;
   auto decl_return_type = _current_function_decl->getReturnType();
   if (decl_return_type->isVoidType()) return;
   auto ret_value = stmt->getRetValue();

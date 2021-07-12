@@ -989,6 +989,11 @@ void GJB8114StmtRule::CheckConstLenghtArrayPassToFunction(const clang::CallExpr 
   for (const auto &arg : stmt->arguments()) {
     if (arg->IgnoreParenImpCasts()->getType()->isConstantArrayType()) {
       auto callee = stmt->getCalleeDecl()->getAsFunction();
+      if (callee == nullptr || callee->param_empty()) {
+        index++;
+        continue;
+      }
+
       auto param = callee->parameters()[index];
       if (!param->getType()->isReferenceType()) {
         if (issue == nullptr) {
@@ -1052,7 +1057,6 @@ void GJB8114StmtRule::CheckCatchTypeNotReference(const clang::CXXCatchStmt *stmt
   if (!stmt->getExceptionDecl()) return;
 
   if (!stmt->getCaughtType()->isReferenceType()) {
-
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
 
@@ -1060,6 +1064,41 @@ void GJB8114StmtRule::CheckCatchTypeNotReference(const clang::CXXCatchStmt *stmt
     std::string ref_msg = "Exception objects should be catched as reference";
     issue->SetRefMsg(ref_msg);
   }
+}
+
+/*
+ * GJB8114: 6.8.1.5
+ * Throwing NULL is forbidden
+ */
+void GJB8114StmtRule::CheckThrowNullExpr(const clang::CXXThrowExpr *stmt) {
+  if (stmt->getSubExpr()->getStmtClass() == clang::Stmt::GNUNullExprClass) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB8114, G6_8_1_5, stmt);
+    std::string ref_msg = "Throwing NULL is forbidden";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+/*
+ * GJB8114: 6.8.2.1
+ * Using default catch after other catches to avoid omitting
+ */
+void GJB8114StmtRule::CheckTryWithoutDefaultCatch(const clang::CXXTryStmt *stmt) {
+  for (const auto it : stmt->children()) {
+    if (it == stmt->getTryBlock()) continue;
+    if (auto catch_case = clang::dyn_cast<clang::CXXCatchStmt>(it)) {
+      if (catch_case->getExceptionDecl() == nullptr) return;
+    }
+  }
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  issue = report->ReportIssue(GJB8114, G6_8_2_1, stmt);
+  std::string ref_msg = "Using default catch after other catches to avoid omitting";
+  issue->SetRefMsg(ref_msg);
 }
 
 
