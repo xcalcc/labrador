@@ -216,6 +216,12 @@ private:
    */
   void CheckNonVirtualMethodOverriddenAsPure(const clang::CXXMethodDecl *decl);
 
+  /*
+   * GJB8114: 6.7.1.2
+   * Returning non-const value from const member functions is forbidden
+   */
+  void CheckReturnNonConstPointerOrReferenceFromConstMethod(const clang::CXXMethodDecl *decl);
+
 
 public:
   void Finalize() {
@@ -274,6 +280,7 @@ public:
 
   void VisitCXXMethod(const clang::CXXMethodDecl *decl) {
     CheckNonVirtualMethodOverriddenAsPure(decl);
+    CheckReturnNonConstPointerOrReferenceFromConstMethod(decl);
   }
 
 

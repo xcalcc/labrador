@@ -1030,6 +1030,38 @@ void GJB8114DeclRule::CheckNonVirtualMethodOverriddenAsPure(const clang::CXXMeth
   }
 }
 
+/*
+ * GJB8114: 6.7.1.2
+ * Returning non-const value from const member functions is forbidden
+ */
+void GJB8114DeclRule::CheckReturnNonConstPointerOrReferenceFromConstMethod(const clang::CXXMethodDecl *decl) {
+  if (!decl->isConst()) return;
+
+  auto ctx = XcalCheckerManager::GetAstContext();
+  auto return_type = decl->getReturnType();
+  bool need_report = false;
+  if (return_type->isReferenceType() || return_type->isPointerType()) {
+    if (auto pointer_type = clang::dyn_cast<clang::PointerType>(return_type)) {
+      if (!pointer_type->getPointeeType().isConstQualified()) {
+        need_report = true;
+      }
+    }
+  } else {
+    auto refer_type = clang::dyn_cast<clang::ReferenceType>(return_type);
+    if (!refer_type->getPointeeType().isConstQualified()) {
+      need_report = true;
+    }
+  }
+
+  if (need_report) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB8114, G6_7_1_2, decl);
+    std::string ref_msg = "Returning non-const value from const member functions is forbidden";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }
