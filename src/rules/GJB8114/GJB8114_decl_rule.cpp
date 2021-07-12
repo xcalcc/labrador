@@ -1146,6 +1146,23 @@ void GJB8114DeclRule::CheckPositionOfConst(const clang::VarDecl *decl) {
   }
 }
 
+/*
+ * GJB8114: 6.9.2.3
+ * Overloading && or || is forbidden
+ */
+void GJB8114DeclRule::CheckOverloadingLogicOperator(const clang::FunctionDecl *decl) {
+  if (!decl->isOverloadedOperator()) return;
+
+  auto name = decl->getNameAsString();
+  if(name == "operator||" || name == "operator&&") {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB8114, G6_9_2_3, decl);
+    std::string ref_msg = "Overloading && or || is forbidden";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }

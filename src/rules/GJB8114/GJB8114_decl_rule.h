@@ -246,6 +246,12 @@ private:
    */
   void CheckPositionOfConst(const clang::VarDecl *decl);
 
+  /*
+   * GJB8114: 6.9.2.3
+   * Overloading && or || is forbidden
+   */
+  void CheckOverloadingLogicOperator(const clang::FunctionDecl *decl);
+
 public:
   void Finalize() {
     CheckUnusedStaticFunction();
@@ -293,6 +299,7 @@ public:
     CheckTooManyParams(decl);
     CheckInlineFunction(decl);
     CheckExplicitConstructorWithSingleParam(decl);
+    CheckOverloadingLogicOperator(decl);
   }
 
   void VisitVar(const clang::VarDecl *decl) {
