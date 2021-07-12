@@ -66,6 +66,8 @@ void GJB8114Diagnostic::HandleDiagnostic(clang::DiagnosticsEngine::Level diagnos
     case 5591:
       AddIssue(G5_7_1_9, msg, location);
       break;
+    case 5747:
+      AddIssue(G6_6_1_2, "Memory allocated by new[] should be deleted by delete[]", location);
     default: {
       printf("%d\n", diagnosticInfo.getID());
       break;

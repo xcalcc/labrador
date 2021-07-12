@@ -187,3 +187,5 @@ Rule		Kind		Implementation
 6.5.1.1     Stmt        CheckUnrelatedCastToObject
 6.5.1.2     Stmt        CheckConstCastOnPointerOrReference
 6.5.2.1     Stmt        CheckCStyleCastInCPPFile
+6.6.1.1                 Have no idea 😢 // TODO: check in xvsa
+6.6.1.2     Diag        HandleDiagnostic
