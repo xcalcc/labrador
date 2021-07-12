@@ -41,6 +41,12 @@ private:
    */
   void CheckReIncludeHeadFile(clang::SourceLocation Loc, llvm::StringRef IncludedFilename);
 
+  /*
+   * GJB8114: 6.9.2.4
+   * Don't use a header file with .h as suffix
+   */
+  void CheckHeadSuffix(clang::SourceLocation Loc, llvm::StringRef IncludedFilename);
+
 public:
 
   void MacroDefined(const clang::Token &MacroNameTok,
@@ -55,6 +61,7 @@ public:
                           llvm::StringRef RelativePath, const clang::Module *Imported,
                           clang::SrcMgr::CharacteristicKind FileType) {
     CheckReIncludeHeadFile(DirectiveLoc, IncludedFilename);
+    CheckHeadSuffix(DirectiveLoc, IncludedFilename);
   }
 
 }; // GJB8114PPRule

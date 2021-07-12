@@ -49,7 +49,7 @@ void GJB8114PPRule::CheckRedefineKeywordsByMacro(const clang::MacroDirective *MD
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(GJB8114, G5_1_1_1, macro_loc);
     std::string ref_msg = "Redefining reserved words is forbidden: ";
-    ref_msg += token + " -> " +  macro_loc.printToString(*src_mgr);
+    ref_msg += token + " -> " + macro_loc.printToString(*src_mgr);
     issue->SetRefMsg(ref_msg);
   }
 }
@@ -68,6 +68,32 @@ void GJB8114PPRule::CheckReIncludeHeadFile(clang::SourceLocation Loc, llvm::Stri
     issue->SetRefMsg(ref_msg);
   } else {
     _included_file.insert(filename);
+  }
+}
+
+/*
+ * GJB8114: 6.9.2.4
+ * Don't use a header file with .h as suffix
+ */
+void GJB8114PPRule::CheckHeadSuffix(clang::SourceLocation Loc, llvm::StringRef IncludedFilename) {
+  auto filename = IncludedFilename.str();
+
+  auto endWith = [](const char *str, const char *suffix) -> bool {
+    if (!str || !suffix)
+      return 0;
+    size_t lenstr = strlen(str);
+    size_t lensuffix = strlen(suffix);
+    if (lensuffix > lenstr)
+      return 0;
+    return std::strncmp(str + lenstr - lensuffix, suffix, lensuffix) == 0;
+  };
+
+  if (endWith(filename.c_str(), ".h")) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB8114, G6_9_2_4, Loc);
+    std::string ref_msg = "Don't use a header file with .h as suffix: " + filename;
+    issue->SetRefMsg(ref_msg);
   }
 }
 
