@@ -1,5 +1,5 @@
 /*
- * GJB8114: 6.9.1.2
+ * GJB8114: 6.9.2.1
  * Using typename in template's parameter list is recommended
  */
 

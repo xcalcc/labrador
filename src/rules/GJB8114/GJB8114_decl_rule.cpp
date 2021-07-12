@@ -1105,7 +1105,7 @@ void GJB8114DeclRule::CheckTemplateDeclaration(const clang::FunctionTemplateDecl
 }
 
 /*
- * GJB8114: 6.9.1.2
+ * GJB8114: 6.9.2.1
  * Using typename in template's parameter list is recommended
  */
 void GJB8114DeclRule::CheckClassUsedInTemplateParameters(const clang::FunctionTemplateDecl *decl) {
@@ -1113,16 +1113,36 @@ void GJB8114DeclRule::CheckClassUsedInTemplateParameters(const clang::FunctionTe
   XcalReport *report = XcalCheckerManager::GetReport();
   auto tmpl_list = decl->getTemplateParameters();
   for (const auto param : decl->getTemplateParameters()->asArray()) {
-    if(auto param_decl = clang::dyn_cast<clang::TemplateTypeParmDecl>(param)) {
-      if(!param_decl->wasDeclaredWithTypename()) {
+    if (auto param_decl = clang::dyn_cast<clang::TemplateTypeParmDecl>(param)) {
+      if (!param_decl->wasDeclaredWithTypename()) {
         if (issue == nullptr) {
-          issue = report->ReportIssue(GJB8114, G6_9_1_1, decl);
-          std::string ref_msg = "Declaration, definition and implement of template should be in the same file";
+          issue = report->ReportIssue(GJB8114, G6_9_2_1, decl);
+          std::string ref_msg = "Using typename in template's parameter list is recommended";
           issue->SetRefMsg(ref_msg);
         }
         issue->AddDecl(param_decl);
       }
     }
+  }
+}
+
+/*
+ * GJB8114: 6.9.2.2
+ * It is recommended that const be in the outermost layer of the description except for the constant pointer
+ */
+void GJB8114DeclRule::CheckPositionOfConst(const clang::VarDecl *decl) {
+  auto type = decl->getType();
+  if (!type.getQualifiers().hasConst()) return;
+
+  auto location = decl->getBeginLoc();
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  const char *data = src_mgr->getCharacterData(location);
+  if (std::strncmp("const", data, 5) != 0) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB8114, G6_9_2_2, decl);
+    std::string ref_msg = "It is recommended that const be in the outermost layer of the description except for the constant pointer";
+    issue->SetRefMsg(ref_msg);
   }
 }
 

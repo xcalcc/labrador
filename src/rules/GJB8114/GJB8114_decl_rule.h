@@ -235,11 +235,16 @@ private:
   void CheckTemplateDeclaration(const clang::FunctionTemplateDecl *decl);
 
   /*
-   * GJB8114: 6.9.1.2
+   * GJB8114: 6.9.2.1
    * Using typename in template's parameter list is recommended
    */
   void CheckClassUsedInTemplateParameters(const clang::FunctionTemplateDecl *decl);
 
+  /*
+   * GJB8114: 6.9.2.2
+   * It is recommended that const be in the outermost layer of the description except for the constant pointer
+   */
+  void CheckPositionOfConst(const clang::VarDecl *decl);
 
 public:
   void Finalize() {
@@ -295,6 +300,7 @@ public:
     CheckPointerInitWithNull(decl);
     CheckVoidPointer(decl);
     CheckLiteralSuffixInit(decl);
+    CheckPositionOfConst(decl);
   }
 
   void VisitCXXMethod(const clang::CXXMethodDecl *decl) {
