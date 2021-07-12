@@ -228,6 +228,12 @@ private:
    */
   void CheckLocationOfMethodsDefination(const clang::CXXRecordDecl *decl);
 
+  /*
+   * GJB8114: 6.9.1.1
+   * Declaration, defination and implement of template should be in the same file
+   */
+  void CheckTemplateDeclaration(const clang::FunctionTemplateDecl *decl);
+
 
 public:
   void Finalize() {
@@ -288,6 +294,10 @@ public:
   void VisitCXXMethod(const clang::CXXMethodDecl *decl) {
     CheckNonVirtualMethodOverriddenAsPure(decl);
     CheckReturnNonConstPointerOrReferenceFromConstMethod(decl);
+  }
+
+  void VisitFunctionTemplate(const clang::FunctionTemplateDecl *decl) {
+    CheckTemplateDeclaration(decl);
   }
 
 

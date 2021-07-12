@@ -1088,6 +1088,20 @@ void GJB8114DeclRule::CheckLocationOfMethodsDefination(const clang::CXXRecordDec
   }
 }
 
+/*
+ * GJB8114: 6.9.1.1
+ * Declaration, definition and implement of template should be in the same file
+ */
+void GJB8114DeclRule::CheckTemplateDeclaration(const clang::FunctionTemplateDecl *decl) {
+  if (!decl->hasBody()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(GJB8114, G6_9_1_1, decl);
+    std::string ref_msg = "Declaration, defination and implement of template should be in the same file";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }
