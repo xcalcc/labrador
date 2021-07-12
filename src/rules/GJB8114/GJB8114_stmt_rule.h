@@ -10,6 +10,8 @@
 // implement all stmt related rules in GJB8114
 //
 
+#include <unordered_set>
+
 #include "GJB8114_enum.inc"
 #include "stmt_null_handler.h"
 #include "xsca_checker_manager.h"
@@ -31,6 +33,10 @@ private:
 
   // check if this node is in cpp or hpp file
   bool IsInCPPFile(clang::SourceLocation location);
+
+  // collect object types within try block
+  std::vector<clang::QualType>
+  RecordThrowObjectTypes(const clang::Stmt *stmt);
 
   /*
    * GJB8114: 5.2.1.1
@@ -306,6 +312,12 @@ private:
    */
   void CheckConstLenghtArrayPassToFunction(const clang::CallExpr *stmt);
 
+  /*
+   * GJB8114: 6.8.1.2
+   * Each specified throw must have a matching catch
+   */
+  void CheckMissingCatchStmt(const clang::CXXTryStmt *stmt);
+
 
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
@@ -384,6 +396,10 @@ public:
 
   void VisitCXXConstCastExpr(const clang::CXXConstCastExpr *stmt) {
     CheckConstCastOnPointerOrReference(stmt);
+  }
+
+  void VisitCXXTryStmt(const clang::CXXTryStmt *stmt) {
+    CheckMissingCatchStmt(stmt);
   }
 
 public:

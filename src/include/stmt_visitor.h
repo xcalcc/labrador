@@ -58,9 +58,8 @@ public:
     _stmt_handler.VisitFunctionBody(stmt);
 
     // distinguish the CompoundStmt and the try-catch stmt
-    if (clang::dyn_cast<clang::CompoundStmt>(stmt)) {
-      for (const auto &it :
-          clang::dyn_cast<clang::CompoundStmt>(stmt)->body()) {
+    if (auto compound_stmt = clang::dyn_cast<clang::CompoundStmt>(stmt)) {
+      for (const auto &it : compound_stmt->body()) {
         this->Visit(it);
       }
     } else {

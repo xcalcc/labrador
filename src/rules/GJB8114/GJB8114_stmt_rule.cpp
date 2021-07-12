@@ -95,6 +95,22 @@ bool GJB8114StmtRule::IsInCPPFile(clang::SourceLocation location) {
   return false;
 }
 
+// collect object types within try block
+std::vector<clang::QualType>
+GJB8114StmtRule::RecordThrowObjectTypes(const clang::Stmt *stmt) {
+  std::vector<clang::QualType> obj_types;
+  if (auto throw_stmt = clang::dyn_cast<clang::CXXThrowExpr>(stmt)) {
+    auto obj_type = throw_stmt->getSubExpr()->IgnoreParenImpCasts()->getType();
+    obj_types.push_back(obj_type);
+  } else {
+    for (const auto &it : stmt->children()) {
+      auto sub_res = RecordThrowObjectTypes(it);
+      obj_types.insert(obj_types.begin(), sub_res.begin(), sub_res.end());
+    }
+  }
+  return std::move(obj_types);
+}
+
 
 /*
  * GJB8114: 5.1.2.6
@@ -985,6 +1001,44 @@ void GJB8114StmtRule::CheckConstLenghtArrayPassToFunction(const clang::CallExpr 
     }
 
     index++;
+  }
+}
+
+/*
+ * GJB8114: 6.8.1.2
+ * Each specified throw must have a matching catch
+ */
+void GJB8114StmtRule::CheckMissingCatchStmt(const clang::CXXTryStmt *stmt) {
+  auto obj_types = RecordThrowObjectTypes(stmt->getTryBlock());
+  for (const auto &it : stmt->children()) {
+    if (it == stmt->getTryBlock()) continue;
+    if (auto catch_case = clang::dyn_cast<clang::CXXCatchStmt>(it)) {
+
+      auto catch_type = catch_case->getCaughtType();
+      if (auto ref_type = clang::dyn_cast<clang::ReferenceType>(catch_type)) {
+        catch_type = ref_type->getPointeeType();
+      } else if (auto pointer_type = clang::dyn_cast<clang::PointerType>(catch_type)) {
+        catch_type = pointer_type->getPointeeType();
+      }
+
+      auto res = std::find_if(obj_types.begin(), obj_types.end(), [&catch_type](clang::QualType type) {
+        bool qual = catch_type.getQualifiers() == type.getQualifiers();
+        bool res = catch_type->getTypeClass() == type->getTypeClass();
+        return qual && res;
+      });
+
+      if (res != obj_types.end()) obj_types.erase(res);
+
+    }
+  }
+
+  if (!obj_types.empty()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB8114, G6_8_1_2, stmt);
+    std::string ref_msg = "Each specified throw must have a matching catch";
+    issue->SetRefMsg(ref_msg);
   }
 }
 
