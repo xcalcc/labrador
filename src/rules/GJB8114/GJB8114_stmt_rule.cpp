@@ -89,11 +89,9 @@ const clang::Stmt *GetParentStmt(const clang::Stmt *stmt) {
 
 // check if this node is in cpp or hpp file
 bool GJB8114StmtRule::IsInCPPFile(clang::SourceLocation location) {
-  auto src_mgr = XcalCheckerManager::GetSourceManager();
-  auto filename = src_mgr->getFilename(location);
-
-  auto suffix = filename.take_back(4);
-  if (suffix == ".cpp" || suffix == "hpp") return true;
+  auto ctx = XcalCheckerManager::GetAstContext();
+  auto langOpts = ctx->getLangOpts();
+  if (bool(langOpts.CPlusPlus) == true) return true;
   return false;
 }
 
