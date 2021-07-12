@@ -222,6 +222,12 @@ private:
    */
   void CheckReturnNonConstPointerOrReferenceFromConstMethod(const clang::CXXMethodDecl *decl);
 
+  /*
+   * GJB8114: 6.7.2.1
+   * Implement of member functions shouldn't in class definition
+   */
+  void CheckLocationOfMethodsDefination(const clang::CXXRecordDecl *decl);
+
 
 public:
   void Finalize() {
@@ -256,6 +262,7 @@ public:
     CheckVirtualDestructor(decl);
     CheckDefaultParamChangedInDerivedClassVirtualMethod(decl);
     CheckOverriddenVirtualFunction(decl);
+    CheckLocationOfMethodsDefination(decl);
   }
 
   void VisitEnum(const clang::EnumDecl *decl) {

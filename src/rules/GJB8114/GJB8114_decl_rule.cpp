@@ -1047,9 +1047,10 @@ void GJB8114DeclRule::CheckReturnNonConstPointerOrReferenceFromConstMethod(const
       }
     }
   } else {
-    auto refer_type = clang::dyn_cast<clang::ReferenceType>(return_type);
-    if (!refer_type->getPointeeType().isConstQualified()) {
-      need_report = true;
+    if (auto refer_type = clang::dyn_cast<clang::ReferenceType>(return_type)) {
+      if (!refer_type->getPointeeType().isConstQualified()) {
+        need_report = true;
+      }
     }
   }
 
@@ -1059,6 +1060,31 @@ void GJB8114DeclRule::CheckReturnNonConstPointerOrReferenceFromConstMethod(const
     issue = report->ReportIssue(GJB8114, G6_7_1_2, decl);
     std::string ref_msg = "Returning non-const value from const member functions is forbidden";
     issue->SetRefMsg(ref_msg);
+  }
+}
+
+/*
+ * GJB8114: 6.7.2.1
+ * Implement of member functions shouldn't in class definition
+ */
+void GJB8114DeclRule::CheckLocationOfMethodsDefination(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasDefinition()) return;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  for (const auto &method : decl->methods()) {
+    if (method->getDeclKind() == clang::Decl::CXXConstructor ||
+        method->getDeclKind() == clang::Decl::CXXDestructor)
+      continue;
+
+    if (method->hasBody()) {
+      if (issue == nullptr) {
+        issue = report->ReportIssue(GJB8114, G6_7_2_1, decl);
+        std::string ref_msg = "Implement of member functions shouldn't in class definition";
+        issue->SetRefMsg(ref_msg);
+      }
+      issue->AddDecl(method);
+    }
   }
 }
 

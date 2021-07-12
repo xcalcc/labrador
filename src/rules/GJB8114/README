@@ -190,3 +190,7 @@ Rule		Kind		Implementation
 6.6.1.1                 Have no idea 😢 // TODO: check in xvsa
 6.6.1.2     Diag        HandleDiagnostic
 6.6.1.3                 Have no idea 😢 // TODO: check in xvsa
+6.7.1.1     Stmt        CheckConstLenghtArrayPassToFunction
+6.7.1.2     Decl        CheckReturnNonConstPointerOrReferenceFromConstMethod
+6.7.1.3
+6.7.2.1     Decl        CheckLocationOfMethodsDefination
