@@ -1095,11 +1095,34 @@ void GJB8114DeclRule::CheckLocationOfMethodsDefination(const clang::CXXRecordDec
 void GJB8114DeclRule::CheckTemplateDeclaration(const clang::FunctionTemplateDecl *decl) {
   auto func = decl->getTemplatedDecl();
   if (!func->isThisDeclarationADefinition()) {
+    TRACE0();
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(GJB8114, G6_9_1_1, decl);
     std::string ref_msg = "Declaration, definition and implement of template should be in the same file";
     issue->SetRefMsg(ref_msg);
+  }
+}
+
+/*
+ * GJB8114: 6.9.1.2
+ * Using typename in template's parameter list is recommended
+ */
+void GJB8114DeclRule::CheckClassUsedInTemplateParameters(const clang::FunctionTemplateDecl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  auto tmpl_list = decl->getTemplateParameters();
+  for (const auto param : decl->getTemplateParameters()->asArray()) {
+    if(auto param_decl = clang::dyn_cast<clang::TemplateTypeParmDecl>(param)) {
+      if(!param_decl->wasDeclaredWithTypename()) {
+        if (issue == nullptr) {
+          issue = report->ReportIssue(GJB8114, G6_9_1_1, decl);
+          std::string ref_msg = "Declaration, definition and implement of template should be in the same file";
+          issue->SetRefMsg(ref_msg);
+        }
+        issue->AddDecl(param_decl);
+      }
+    }
   }
 }
 

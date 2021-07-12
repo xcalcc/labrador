@@ -234,6 +234,12 @@ private:
    */
   void CheckTemplateDeclaration(const clang::FunctionTemplateDecl *decl);
 
+  /*
+   * GJB8114: 6.9.1.2
+   * Using typename in template's parameter list is recommended
+   */
+  void CheckClassUsedInTemplateParameters(const clang::FunctionTemplateDecl *decl);
+
 
 public:
   void Finalize() {
@@ -298,6 +304,7 @@ public:
 
   void VisitFunctionTemplate(const clang::FunctionTemplateDecl *decl) {
     CheckTemplateDeclaration(decl);
+    CheckClassUsedInTemplateParameters(decl);
   }
 
 
