@@ -291,6 +291,12 @@ private:
    */
   void CheckConstCastOnPointerOrReference(const clang::CXXConstCastExpr *stmt);
 
+  /*
+   * GJB8114: 6.5.2.1
+   * Using C++ style type converting operator is recommended
+   */
+  void CheckCStyleCastInCPPFile(const clang::CStyleCastExpr *stmt);
+
 
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
@@ -351,6 +357,7 @@ public:
   void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {
     CheckDoubleToFloat(stmt);
     CheckIntToShorter(stmt);
+    CheckCStyleCastInCPPFile(stmt);
   }
 
   void VisitCXXReinterpretCastExpr(const clang::CXXReinterpretCastExpr *stmt) {

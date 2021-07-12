@@ -937,6 +937,25 @@ void GJB8114StmtRule::CheckConstCastOnPointerOrReference(const clang::CXXConstCa
   }
 }
 
+/*
+ * GJB8114: 6.5.2.1
+ * Using C++ style type converting operator is recommended
+ */
+void GJB8114StmtRule::CheckCStyleCastInCPPFile(const clang::CStyleCastExpr *stmt) {
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  auto filename = src_mgr->getFilename(stmt->getBeginLoc());
+
+  auto suffix = filename.take_back(4);
+  if (suffix == ".cpp"  || suffix == "hpp") {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB8114, G6_5_2_1, stmt);
+    std::string ref_msg = "Using C++ style type converting operator is recommended";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }
