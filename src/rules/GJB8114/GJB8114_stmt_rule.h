@@ -336,6 +336,12 @@ private:
    */
   void CheckTryWithoutDefaultCatch(const clang::CXXTryStmt *stmt);
 
+  /*
+   * GJB8114: 6.8.2.2
+   * Throwing pointer carefully
+   */
+  void CheckThrowPointer(const clang::CXXThrowExpr *stmt);
+
 
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
@@ -427,6 +433,7 @@ public:
 
   void VisitCXXThrowExpr(const clang::CXXThrowExpr *stmt) {
     CheckThrowNullExpr(stmt);
+    CheckThrowPointer(stmt);
   }
 
 public:
