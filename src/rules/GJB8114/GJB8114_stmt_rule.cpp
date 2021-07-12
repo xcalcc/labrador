@@ -922,6 +922,21 @@ void GJB8114StmtRule::CheckUnrelatedCastToObject(const clang::CXXReinterpretCast
   issue->SetRefMsg(ref_msg);
 }
 
+/*
+ * GJB8114: 6.5.1.2
+ * Removing const or volatile from type conversion of pointer or reference
+ */
+void GJB8114StmtRule::CheckConstCastOnPointerOrReference(const clang::CXXConstCastExpr *stmt) {
+  if (stmt->getType()->isPointerType() || stmt->getType()->isReferenceType()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB8114, G6_5_1_2, stmt);
+    std::string ref_msg = "Removing const or volatile from type conversion of pointer or reference";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }

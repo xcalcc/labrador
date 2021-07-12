@@ -285,6 +285,12 @@ private:
    */
   void CheckUnrelatedCastToObject(const clang::CXXReinterpretCastExpr *stmt);
 
+  /*
+   * GJB8114: 6.5.1.2
+   * Removing const or volatile from type conversion of pointer or reference
+   */
+  void CheckConstCastOnPointerOrReference(const clang::CXXConstCastExpr *stmt);
+
 
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
@@ -357,6 +363,10 @@ public:
 
   void VisitDeclRefExpr(const clang::DeclRefExpr *stmt) {
     CheckUsingGlobalVarInConstructor(stmt);
+  }
+
+  void VisitCXXConstCastExpr(const clang::CXXConstCastExpr *stmt) {
+    CheckConstCastOnPointerOrReference(stmt);
   }
 
 public:
