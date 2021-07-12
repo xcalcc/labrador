@@ -29,6 +29,9 @@ private:
 
   bool HasPrefixOrPostfixSubStmt(const clang::Stmt *stmt);
 
+  // check if this node is in cpp or hpp file
+  bool IsInCPPFile(clang::SourceLocation location);
+
   /*
    * GJB8114: 5.2.1.1
    * Loop body should be enclosed with brace
@@ -297,6 +300,12 @@ private:
    */
   void CheckCStyleCastInCPPFile(const clang::CStyleCastExpr *stmt);
 
+  /*
+   * GJB8114: 6.7.1.1
+   * Using reference to pass a array whose size is constant
+   */
+  void CheckConstLenghtArrayPassToFunction(const clang::CallExpr *stmt);
+
 
 public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
@@ -347,6 +356,7 @@ public:
     CheckUsingGetsFunction(stmt);
     CheckUnusedFunctionCast(stmt);
     CheckNotRequiredFunctionCast(stmt);
+    CheckConstLenghtArrayPassToFunction(stmt);
   }
 
   void VisitImplicitCastExpr(const clang::ImplicitCastExpr *stmt) {

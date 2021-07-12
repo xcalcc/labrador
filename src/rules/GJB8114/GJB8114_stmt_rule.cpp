@@ -87,6 +87,16 @@ const clang::Stmt *GetParentStmt(const clang::Stmt *stmt) {
   return parent;
 }
 
+// check if this node is in cpp or hpp file
+bool GJB8114StmtRule::IsInCPPFile(clang::SourceLocation location) {
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  auto filename = src_mgr->getFilename(location);
+
+  auto suffix = filename.take_back(4);
+  if (suffix == ".cpp" || suffix == "hpp") return true;
+  return false;
+}
+
 
 /*
  * GJB8114: 5.1.2.6
@@ -942,17 +952,41 @@ void GJB8114StmtRule::CheckConstCastOnPointerOrReference(const clang::CXXConstCa
  * Using C++ style type converting operator is recommended
  */
 void GJB8114StmtRule::CheckCStyleCastInCPPFile(const clang::CStyleCastExpr *stmt) {
-  auto src_mgr = XcalCheckerManager::GetSourceManager();
-  auto filename = src_mgr->getFilename(stmt->getBeginLoc());
-
-  auto suffix = filename.take_back(4);
-  if (suffix == ".cpp"  || suffix == "hpp") {
+  if (IsInCPPFile(stmt->getBeginLoc())) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
 
     issue = report->ReportIssue(GJB8114, G6_5_2_1, stmt);
     std::string ref_msg = "Using C++ style type converting operator is recommended";
     issue->SetRefMsg(ref_msg);
+  }
+}
+
+/*
+ * GJB8114: 6.7.1.1
+ * Using reference to pass a array whose size is constant
+ */
+void GJB8114StmtRule::CheckConstLenghtArrayPassToFunction(const clang::CallExpr *stmt) {
+  if (!IsInCPPFile(stmt->getBeginLoc())) return;
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  int index = 0;  // record the index of arguments
+  for (const auto &arg : stmt->arguments()) {
+    if (arg->IgnoreParenImpCasts()->getType()->isConstantArrayType()) {
+      auto callee = stmt->getCalleeDecl()->getAsFunction();
+      auto param = callee->parameters()[index];
+      if (!param->getType()->isReferenceType()) {
+        if (issue == nullptr) {
+          issue = report->ReportIssue(GJB8114, G6_7_1_1, callee);
+          std::string ref_msg = "Using reference to pass a array whose size is constant";
+          issue->SetRefMsg(ref_msg);
+        }
+        issue->AddDecl(param);
+      }
+    }
+
+    index++;
   }
 }
 
