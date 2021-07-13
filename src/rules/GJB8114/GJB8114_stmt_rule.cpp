@@ -867,7 +867,10 @@ void GJB8114StmtRule::CheckVirtualBaseClassCastToDerivedClass(const clang::CXXRe
       if (!sub_type->isRecordType()) return;
     }
 
-    auto cxx_record = clang::dyn_cast<clang::RecordType>(sub_type)->getAsCXXRecordDecl();
+    const clang::RecordType *rec_type = clang::dyn_cast<clang::RecordType>(sub_type);
+    if (rec_type == nullptr)
+      return;
+    const clang::CXXRecordDecl *cxx_record = rec_type->getAsCXXRecordDecl();
     if (cxx_record) {
 
       // get pointee type
@@ -993,6 +996,9 @@ void GJB8114StmtRule::CheckConstLenghtArrayPassToFunction(const clang::CallExpr 
         index++;
         continue;
       }
+
+      if (index >= callee->getNumParams())
+        break;
 
       auto param = callee->parameters()[index];
       if (!param->getType()->isReferenceType()) {

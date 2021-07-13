@@ -23,6 +23,11 @@
 
 #include "xsca_checker_manager.h"
 
+// helper function to dump decl
+extern "C" void dump_decl(void* decl) {
+  ((clang::Decl*)decl)->dump();
+}
+
 namespace clang {
 
 CodeGenAction::CodeGenAction(unsigned _Act, llvm::LLVMContext *_VMContext)

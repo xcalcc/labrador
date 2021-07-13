@@ -791,8 +791,9 @@ void GJB8114DeclRule::CheckDerivedClassContainConstructorOfBaseClass(const clang
   // get base class
   std::unordered_set<clang::CXXRecordDecl *> bases;
   for (const auto &base : decl->bases()) {
-    auto record_decl = clang::dyn_cast<clang::RecordType>(base.getType())->getAsCXXRecordDecl();
-    bases.insert(record_decl);
+    const clang::RecordType *base_type = clang::dyn_cast<clang::RecordType>(base.getType());
+    if (base_type && base_type->getAsCXXRecordDecl())
+      bases.insert(base_type->getAsCXXRecordDecl());
   }
 
   bool need_report = false;
