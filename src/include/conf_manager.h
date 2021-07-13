@@ -89,7 +89,9 @@ public:
   void InitPath() {
     if (auto path = std::getenv("XSCA_HOME")) {
       _conf_path = path;
-      if (_conf_path.back() != '/') _conf_path += '/';
+      if (_conf_path.back() != '/')
+        _conf_path += '/';
+      _conf_path += "conf/";
     } else {
 
 #if defined(linux) || __APPLE__
@@ -97,7 +99,7 @@ public:
       while(exe.back() != '/') {
         exe.pop_back();
       }
-      _conf_path = exe + "conf/";
+      _conf_path = exe + "../conf/";
 #endif
     }
   }
