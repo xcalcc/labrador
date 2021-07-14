@@ -134,6 +134,7 @@ XcalReport::PrintStdoutIssue(const XcalIssue *issue)
 // Check if source is std library
 bool XcalReport::IsStdLibrary(clang::SourceLocation location) {
   auto src_mgr = XcalCheckerManager::GetSourceManager();
+  if (location.isInvalid()) return false;
   if (src_mgr->isInSystemHeader(location) ||
       src_mgr->isInSystemMacro(location)  ||
       src_mgr->isWrittenInBuiltinFile(location)) {

@@ -311,7 +311,7 @@ void GJB5369StmtRule::CheckStringLiteralEnd(const clang::StringLiteral *stmt) {
 void GJB5369StmtRule::CheckEmptyIfElseStmt(const clang::IfStmt *stmt) {
   bool need_report_if = false, need_report_else = false;
 
-  // check if-blcok
+  // check if-block
   auto _then = stmt->getThen();
   if (clang::dyn_cast<clang::NullStmt>(_then)) {
     need_report_if = true;
