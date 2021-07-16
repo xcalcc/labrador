@@ -2,6 +2,7 @@ add_subdirectory (GJB5369)
 add_subdirectory (GJB8114)
 add_subdirectory (MISRA)
 add_subdirectory (SJT11682)
+add_subdirectory (CERT)
 add_subdirectory (common)
 add_subdirectory (example)
 
@@ -14,4 +15,5 @@ target_link_libraries (xscaRule
   xscaGJB5369Rule
   xscaGJB8114Rule
   xscaMISRARule
+  xscaCERTRule
   )

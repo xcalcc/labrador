@@ -36,7 +36,7 @@ XcalCheckerManager::InitCheckers(clang::CompilerInstance &CI,
   strncpy(fileptr, InFile.data(), InFile.size());
   fileptr[InFile.size()] = '\0';
   char *filename = basename(fileptr);
-  strcat(filename, ".vtxt");
+  strcat(filename, ".fe.vtxt");
   _report->Initialize(_source_mgr, filename);
 
   // initializer consumers and ppcallbacks

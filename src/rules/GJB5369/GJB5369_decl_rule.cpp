@@ -464,34 +464,13 @@ void GJB5369DeclRule::CheckArrayBoundary(const clang::VarDecl *decl) {
 
   auto decl_type = decl->getType().getAsString();
 
-  // return if not array type
-  if (decl_type.find('[') == std::string::npos) {
-    return;
-  }
-
-  auto src_mgr = XcalCheckerManager::GetSourceManager();
-  auto start_loc = decl->getBeginLoc();
-  auto end_loc = decl->getEndLoc();
-  auto start = src_mgr->getCharacterData(start_loc);
-  auto end = src_mgr->getCharacterData(end_loc);
-
-  while (start != end) {
-    if (*start == '[') {
-      start++;  // eat '['
-
-      // eat space
-      while (std::isspace(*start)) {
-        start++;
-      }
-
-      if (*start == ']') {
-        issue = report->ReportIssue(GJB5369, G4_1_1_19, decl);
-        std::string ref_msg = "Arrays without boundary limitation is forbidden: ";
-        ref_msg += decl->getNameAsString();
-        issue->SetRefMsg(ref_msg);
-      }
-    }
-    ++start;
+  if (!decl->getType()->isArrayType()) return;
+  auto array_type = clang::dyn_cast<clang::ConstantArrayType>(decl->getType());
+  if (!array_type) {
+    issue = report->ReportIssue(GJB5369, G4_1_1_19, decl);
+    std::string ref_msg = "Arrays without boundary limitation is forbidden: ";
+    ref_msg += decl->getNameAsString();
+    issue->SetRefMsg(ref_msg);
   }
 }
 
