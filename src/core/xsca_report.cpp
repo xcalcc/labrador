@@ -11,14 +11,14 @@
 //
 
 // vtxt format:
-// {"V"}
+// {"V", A, 0.7.1,0000000000000000000000000000000000000000000000000000000000000000}
 // [
 //   {
 //     "fid": 1,
 //     "path": "filename.c"
 //   }
 // ]
-// ["A10"],[key],[filename][fid:line],[SML],[D],[G4_2_1_7],[1,0,0],[var/typename],[funcname],[fid:line:path,fid:line:path,...]
+// [A10],[key],[filename][fid:line],[SML],[D],[G4_2_1_7],[1,0,0],[var/typename],#funcname#,[fid:line:path,fid:line:path,...]
 //
 // stdout format:
 // filename.c:line:column: GJB5369:4.1.1.1 msg
@@ -38,7 +38,7 @@ XcalReport::PrintVtxtFileList()
   DBG_ASSERT(_vtxt_file, "vtxt file not initialized");
   DBG_ASSERT(_source_mgr, "source manager is null");
 
-  fprintf(_vtxt_file, "{\"V\"}\n[\n");
+  fprintf(_vtxt_file, "{\"V\", A, 0.7.1, 0000000000000000000000000000000000000000000000000000000000000000}\n[\n");
 
   clang::SourceManager::fileinfo_iterator end = _source_mgr->fileinfo_end();
   bool append_comma = false;
@@ -81,10 +81,10 @@ XcalReport::PrintVtxtIssue(const XcalIssue *issue)
                              issue->DeclName(), issue->RuleName(),
                              ploc.getFilename(), ploc.getLine());
 
-  fprintf(_vtxt_file, "[\"A10\"],[%s],[%s],[%d:%d],[SML],[D],[%s],[1,0,0],",
+  fprintf(_vtxt_file, "[A10],[%s],[%s],[%d:%d],[SML],[D],[%s],[1,0,0],",
                       key, ploc.getFilename(),
                       fid + 1, ploc.getLine(), issue->RuleName());
-  fprintf(_vtxt_file, "[%s],[],[", issue->DeclName());
+  fprintf(_vtxt_file, "[%s],##,[", issue->DeclName());
 
   std::vector<XcalPathInfo>::const_iterator end = issue->PathInfo().end();
   bool append_comma = false;
