@@ -97,7 +97,7 @@ void MISRADeclRule::CheckUnusedLabelInFunction() {
  * There should be no unused parameters in functions
  */
 void MISRADeclRule::CheckUnusedParameters(const clang::FunctionDecl *decl) {
-//  if (decl->getBody()) {
+  if (decl->getBody()) {
     if (decl->getNumParams() == 0) return;
 
     XcalIssue *issue = nullptr;
@@ -113,7 +113,7 @@ void MISRADeclRule::CheckUnusedParameters(const clang::FunctionDecl *decl) {
         issue->AddDecl(&(*it));
       }
     }
-//  }
+  }
 }
 
 /* MISRA

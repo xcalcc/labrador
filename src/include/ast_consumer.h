@@ -50,6 +50,7 @@ private:
          it != end; ++it) {
       _decl_visitor.Visit(*it);
     }
+    return true;
 //    XcalCheckerManager::Finalize();
   }
 
