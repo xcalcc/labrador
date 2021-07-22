@@ -97,21 +97,23 @@ void MISRADeclRule::CheckUnusedLabelInFunction() {
  * There should be no unused parameters in functions
  */
 void MISRADeclRule::CheckUnusedParameters(const clang::FunctionDecl *decl) {
-  if (decl->getNumParams() == 0) return;
+//  if (decl->getBody()) {
+    if (decl->getNumParams() == 0) return;
 
-  XcalIssue *issue = nullptr;
-  XcalReport *report = XcalCheckerManager::GetReport();
-  for (const auto &it : decl->parameters()) {
-    if (!it->isUsed()) {
-      if (issue == nullptr) {
-        issue = report->ReportIssue(MISRA, M_R_2_7, decl);
-        std::string ref_msg = "A function should not contain unused label declarations: ";
-        ref_msg += decl->getNameAsString();
-        issue->SetRefMsg(ref_msg);
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    for (const auto &it : decl->parameters()) {
+      if (!it->isUsed()) {
+        if (issue == nullptr) {
+          issue = report->ReportIssue(MISRA, M_R_2_7, decl);
+          std::string ref_msg = "There should be no unused parameters in functions";
+          ref_msg += decl->getNameAsString();
+          issue->SetRefMsg(ref_msg);
+        }
+        issue->AddDecl(&(*it));
       }
-      issue->AddDecl(&(*it));
     }
-  }
+//  }
 }
 
 /* MISRA
@@ -197,6 +199,34 @@ void MISRADeclRule::CheckIdentifierNameConflict() {
         }
       }, true);
 #endif
+}
+
+/* MISRA
+ * Rule: 5.6
+ * A typedef name shall be a unique identifier
+ */
+void MISRADeclRule::CheckTypedefUnique() {
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+  constexpr uint32_t kind = IdentifierManager::VAR | IdentifierManager::FIELD | IdentifierManager::TYPE |
+                            IdentifierManager::FUNCTION | IdentifierManager::LABEL | IdentifierManager::VALUE;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  top_scope->TraverseAll<kind,
+      const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+      [&issue, &report, &top_scope](const std::string &name, const clang::Decl *decl, IdentifierManager *id_mgr) {
+        if (top_scope->HasTypeDef<true>(name)) {
+          if (issue == nullptr) {
+            issue = report->ReportIssue(MISRA, M_R_5_6, decl);
+            std::string ref_msg = "A typedef name shall be a unique identifier";
+            issue->SetRefMsg(ref_msg);
+          } else {
+            issue->AddDecl(decl);
+          }
+        }
+      }, true);
 }
 
 }

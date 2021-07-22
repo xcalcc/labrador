@@ -58,12 +58,19 @@ private:
    */
   void CheckIdentifierNameConflict();
 
+  /* MISRA
+   * Rule: 5.6
+   * A typedef name shall be a unique identifier
+   */
+  void CheckTypedefUnique();
+
 public:
   void Finalize() {
     CheckUnusedTypedef();
     CheckUnusedLabelInFunction();
     CheckUndistinctExternalIdent();
     CheckIdentifierNameConflict();
+    CheckTypedefUnique();
   }
 
   void VisitVar(const clang::VarDecl *decl) {

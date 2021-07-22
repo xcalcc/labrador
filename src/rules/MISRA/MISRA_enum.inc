@@ -20,3 +20,8 @@
 #define M_R_5_1   "M_R_5_1"
 #define M_R_5_2   "M_R_5_2"
 #define M_R_5_3   "M_R_5_3"
+#define M_R_5_4   "M_R_5_4"
+#define M_R_5_5   "M_R_5_5"
+#define M_R_5_6   "M_R_5_6"
+#define M_R_5_7   "M_R_5_7"
+
