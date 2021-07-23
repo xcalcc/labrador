@@ -24,10 +24,14 @@ public:
 private:
   std::set<const clang::TypedefNameDecl *> _used_typedef;
 
-  /* MISRA
-   * Rule: 2.3
-   * A project should not contain unused type declarations
-   */
+  std::string GetTypeString(clang::QualType type);
+
+  bool IsExplicitSign(const std::string &type_name);
+
+    /* MISRA
+     * Rule: 2.3
+     * A project should not contain unused type declarations
+     */
   void CheckUnusedTypedef(const clang::VarDecl *decl);
 
   void CheckUnusedTypedef(const clang::TypedefDecl *decl);
@@ -64,6 +68,13 @@ private:
    */
   void CheckTypedefUnique();
 
+  /* MISRA
+   * Rule 6.1
+   * Bit-fields shall only be declared with an appropriate type
+   * Note: This assumes that the "int" type is 32 bit
+   */
+  void CheckInappropriateBitField(const clang::RecordDecl *);
+
 public:
   void Finalize() {
     CheckUnusedTypedef();
@@ -83,6 +94,10 @@ public:
 
   void VisitFunction(const clang::FunctionDecl *decl) {
     CheckUnusedParameters(decl);
+  }
+
+  void VisitRecord(const clang::RecordDecl *decl) {
+    CheckInappropriateBitField(decl);
   }
 
 

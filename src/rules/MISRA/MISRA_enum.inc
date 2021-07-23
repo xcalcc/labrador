@@ -25,3 +25,6 @@
 #define M_R_5_6   "M_R_5_6"
 #define M_R_5_7   "M_R_5_7"
 
+
+#define M_R_6_1   "M_R_6_1"
+

@@ -17,6 +17,30 @@
 namespace xsca {
 namespace rule {
 
+
+std::string MISRADeclRule::GetTypeString(clang::QualType type) {
+  std::string type_name;
+  if (type->getTypeClass() == clang::Type::Typedef) {
+    auto underlying_tp =
+        clang::dyn_cast<clang::TypedefType>(type)->getDecl()->getUnderlyingType();
+    type_name = underlying_tp.getAsString();
+  } else {
+    type_name = type.getAsString();
+  }
+  return type_name;
+}
+
+bool MISRADeclRule::IsExplicitSign(const std::string &type_name) {
+  if (type_name.find("unsigned ") != std::string::npos) {
+    return true;
+  } else {
+    if (type_name.find("signed ") != std::string::npos) {
+      return true;
+    }
+  }
+  return false;
+};
+
 /* MISRA
  * Rule: 2.3
  * A project should not contain unused type declarations
@@ -227,6 +251,53 @@ void MISRADeclRule::CheckTypedefUnique() {
           }
         }
       }, true);
+}
+
+/* MISRA
+ * Rule 6.1
+ * Bit-fields shall only be declared with an appropriate type
+ * Note: This assumes that the "int" type is 32 bit
+ */
+void MISRADeclRule::CheckInappropriateBitField(const clang::RecordDecl *decl) {
+  if (decl->field_empty()) return;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+
+  for (const auto &field : decl->fields()) {
+    bool need_report = false;
+    auto type = field->getType();
+    if (!type->isIntegerType()) continue;
+
+    auto start = src_mgr->getCharacterData(field->getBeginLoc());
+    auto end = src_mgr->getCharacterData(field->getEndLoc());
+    std::string token;
+    while (start != end) {
+      token += *start;
+      start++;
+    }
+
+    if (!IsExplicitSign(GetTypeString(type)) && !IsExplicitSign(token)) need_report = true;
+
+    auto bt_type = clang::dyn_cast<clang::BuiltinType>(type);
+    if (bt_type != nullptr) {
+      auto kind = bt_type->getKind();
+      if ((kind > clang::BuiltinType::Int && kind <= clang::BuiltinType::Int128) ||
+          (kind > clang::BuiltinType::UInt && kind <= clang::BuiltinType::UInt128))
+        need_report = true;
+    }
+
+    if (need_report) {
+      if (issue == nullptr) {
+        issue = report->ReportIssue(MISRA, M_R_6_1, decl);
+        std::string ref_msg = "Bit-fields shall only be declared with an appropriate type: ";
+        ref_msg += decl->getNameAsString();
+        issue->SetRefMsg(ref_msg);
+      }
+      issue->AddDecl(field);
+    }
+  }
 }
 
 }
