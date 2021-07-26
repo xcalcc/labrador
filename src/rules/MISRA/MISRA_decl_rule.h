@@ -121,6 +121,12 @@ private:
     }
   }
 
+  /* MISRA
+   * Rule: 9.3
+   * Arrays shall not be partially initialized
+   */
+  void CheckArrayPartialInitialized(const clang::VarDecl *decl);
+
 public:
   void Finalize() {
     CheckUnusedTypedef();
@@ -135,6 +141,7 @@ public:
     CheckStringLiteralToNonConstChar(decl);
     CheckImplicitSizeWithExternalArray(decl);
     CheckRestrict<clang::VarDecl>(decl);
+    CheckArrayPartialInitialized(decl);
   }
 
   void VisitParmVar(const clang::ParmVarDecl *decl) {
