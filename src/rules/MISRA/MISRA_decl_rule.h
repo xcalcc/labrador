@@ -87,6 +87,12 @@ private:
    */
   void CheckStaticSpecifier(const clang::FunctionDecl *decl);
 
+  /* MISRA
+   * Rule: 8.10
+   * An inline function shall be declared with the static storage class
+   */
+  void CheckInlineFunctionWithExternalLinkage(const clang::FunctionDecl *decl);
+
 public:
   void Finalize() {
     CheckUnusedTypedef();
@@ -108,6 +114,7 @@ public:
   void VisitFunction(const clang::FunctionDecl *decl) {
     CheckUnusedParameters(decl);
     CheckStaticSpecifier(decl);
+    CheckInlineFunctionWithExternalLinkage(decl);
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {

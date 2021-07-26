@@ -26,3 +26,5 @@ Rule		Kind		Implementation
 7.4         Decl        CheckStringLiteralToNonConstChar
 
 8.8         Decl        CheckStaticSpecifier
+
+8.10        Decl

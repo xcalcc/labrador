@@ -337,5 +337,19 @@ void MISRADeclRule::CheckStaticSpecifier(const clang::FunctionDecl *decl) {
   }
 }
 
+/* MISRA
+ * Rule: 8.10
+ * An inline function shall be declared with the static storage class
+ */
+void MISRADeclRule::CheckInlineFunctionWithExternalLinkage(const clang::FunctionDecl *decl) {
+  if (decl->isInlineSpecified() && (decl->getStorageClass() == clang::StorageClass::SC_Extern)) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_8_10, decl);
+    std::string ref_msg = "An inline function shall be declared with the static storage class";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 }
 }
