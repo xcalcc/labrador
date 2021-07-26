@@ -11,7 +11,6 @@
 //
 
 #include "xsca_report.h"
-#include "MISRA_enum.inc"
 #include "MISRA_decl_rule.h"
 
 namespace xsca {
@@ -382,7 +381,7 @@ void MISRADeclRule::CheckUniqueImplicitEnumerator(const clang::EnumDecl *decl) {
     if (it->getInitExpr() == nullptr) {
       if (has_implicit) {
         if (issue == nullptr) {
-          issue = report->ReportIssue(MISRA, M_R_8_11, decl);
+          issue = report->ReportIssue(MISRA, M_R_8_12, decl);
           std::string ref_msg = "When an array with external linkage is declared, its size should be explicitly specified";
           issue->SetRefMsg(ref_msg);
         }
@@ -393,6 +392,10 @@ void MISRADeclRule::CheckUniqueImplicitEnumerator(const clang::EnumDecl *decl) {
     }
   }
 }
+
+
+
+
 
 }
 }

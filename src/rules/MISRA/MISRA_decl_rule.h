@@ -10,6 +10,7 @@
 // implement Decl related rules for MISRA-C-2012
 //
 
+#include "MISRA_enum.inc"
 #include "scope_manager.h"
 #include "decl_null_handler.h"
 #include "xsca_checker_manager.h"
@@ -107,8 +108,18 @@ private:
 
   /* MISRA
    * Rule: 8.14
-   * Within an enumerator list, the value of an implicitly-specified enumeration constant shall be unique
+   * The restrict type qualifier shall not be used
    */
+  template<typename TYPE>
+  void CheckRestrict(const TYPE *decl) {
+    if (decl->getType().isRestrictQualified()) {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+      issue = report->ReportIssue(MISRA, M_R_8_14, decl);
+      std::string ref_msg = "The restrict type qualifier shall not be used";
+      issue->SetRefMsg(ref_msg);
+    }
+  }
 
 public:
   void Finalize() {
@@ -123,6 +134,11 @@ public:
     CheckUnusedTypedef(decl);
     CheckStringLiteralToNonConstChar(decl);
     CheckImplicitSizeWithExternalArray(decl);
+    CheckRestrict<clang::VarDecl>(decl);
+  }
+
+  void VisitParmVar(const clang::ParmVarDecl *decl) {
+    CheckRestrict<clang::ParmVarDecl>(decl);
   }
 
   void VisitEnum(const clang::EnumDecl *decl) {
