@@ -28,3 +28,5 @@ Rule		Kind		Implementation
 8.8         Decl        CheckStaticSpecifier
 
 8.10        Decl
+8.11        Decl        CheckImplicitSizeWithExternalArray
+8.12        Decl        CheckUniqueImplicitEnumerator

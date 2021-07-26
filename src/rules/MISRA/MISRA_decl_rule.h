@@ -99,6 +99,17 @@ private:
    */
   void CheckImplicitSizeWithExternalArray(const clang::VarDecl *decl);
 
+  /* MISRA
+   * Rule: 8.12
+   * Within an enumerator list, the value of an implicitly-specified enumeration constant shall be unique
+   */
+  void CheckUniqueImplicitEnumerator(const clang::EnumDecl *decl);
+
+  /* MISRA
+   * Rule: 8.14
+   * Within an enumerator list, the value of an implicitly-specified enumeration constant shall be unique
+   */
+
 public:
   void Finalize() {
     CheckUnusedTypedef();
@@ -112,6 +123,10 @@ public:
     CheckUnusedTypedef(decl);
     CheckStringLiteralToNonConstChar(decl);
     CheckImplicitSizeWithExternalArray(decl);
+  }
+
+  void VisitEnum(const clang::EnumDecl *decl) {
+    CheckUniqueImplicitEnumerator(decl);
   }
 
   void VisitTypedef(const clang::TypedefDecl *decl) {

@@ -369,5 +369,30 @@ void MISRADeclRule::CheckImplicitSizeWithExternalArray(const clang::VarDecl *dec
   }
 }
 
+/* MISRA
+ * Rule: 8.12
+ * Within an enumerator list, the value of an implicitly-specified enumeration constant shall be unique
+ */
+void MISRADeclRule::CheckUniqueImplicitEnumerator(const clang::EnumDecl *decl) {
+  bool has_implicit = false;
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  for (const auto &it : decl->enumerators()) {
+    if (it->getInitExpr() == nullptr) {
+      if (has_implicit) {
+        if (issue == nullptr) {
+          issue = report->ReportIssue(MISRA, M_R_8_11, decl);
+          std::string ref_msg = "When an array with external linkage is declared, its size should be explicitly specified";
+          issue->SetRefMsg(ref_msg);
+        }
+        issue->AddDecl(it);
+      } else {
+        has_implicit = true;
+      }
+    }
+  }
+}
+
 }
 }
