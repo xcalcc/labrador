@@ -75,6 +75,12 @@ private:
    */
   void CheckInappropriateBitField(const clang::RecordDecl *);
 
+  /* MISRA
+   * Rule: 7.4
+   * A string literal shall not be assigned to an object unless the object’s type is “pointer to const-qualified char”
+   */
+  void CheckStringLiteralToNonConstChar(const clang::VarDecl *decl);
+
 public:
   void Finalize() {
     CheckUnusedTypedef();
@@ -86,6 +92,7 @@ public:
 
   void VisitVar(const clang::VarDecl *decl) {
     CheckUnusedTypedef(decl);
+    CheckStringLiteralToNonConstChar(decl);
   }
 
   void VisitTypedef(const clang::TypedefDecl *decl) {

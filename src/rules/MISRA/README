@@ -16,3 +16,9 @@ Rule		Kind		Implementation
 5.1         Decl        CheckUndistinctExternalIdent
 5.2
 5.3         Decl
+
+5.6         Decl        CheckTypedefUnique
+
+6.1         Decl        CheckInappropriateBitField
+
+6.2                     GJB5369 4.6.1.6 -> CheckSingleBitSignedValue

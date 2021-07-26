@@ -22,7 +22,24 @@ public:
   ~MISRAStmtRule() = default;
 
 private:
+
+  /* MISRA
+   * Rule: 7.4
+   * A string literal shall not be assigned to an object unless the object’s type is “pointer to const-qualified char”
+   */
+  void CheckStringLiteralToNonConstChar(const clang::BinaryOperator *stmt);
+
+  void CheckStringLiteralToNonConstChar(const clang::CallExpr *stmt);
+
 public:
+
+  void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
+    CheckStringLiteralToNonConstChar(stmt);
+  }
+
+  void VisitCallExpr(const clang::CallExpr *stmt) {
+    CheckStringLiteralToNonConstChar(stmt);
+  }
 
 }; // MISRAStmtRule
 

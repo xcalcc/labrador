@@ -300,5 +300,24 @@ void MISRADeclRule::CheckInappropriateBitField(const clang::RecordDecl *decl) {
   }
 }
 
+/* MISRA
+ * Rule: 7.4
+ * A string literal shall not be assigned to an object unless the object’s type is “pointer to const-qualified char”
+ */
+void MISRADeclRule::CheckStringLiteralToNonConstChar(const clang::VarDecl *decl) {
+  auto decl_type = decl->getType();
+  if (decl_type->isPointerType() && decl_type->getPointeeType()->isCharType() && !decl_type->getPointeeType().isConstQualified()) {
+    if (!decl->hasInit()) return;
+    auto init = decl->getInit()->IgnoreParenImpCasts();
+    if (init->getStmtClass() == clang::Stmt::StringLiteralClass) {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+      issue = report->ReportIssue(MISRA, M_R_7_4, decl);
+      std::string ref_msg = "A string literal shall not be assigned to an object unless the object’s type is \"pointer to const-qualified char\"";
+      issue->SetRefMsg(ref_msg);
+    }
+  }
+}
+
 }
 }
