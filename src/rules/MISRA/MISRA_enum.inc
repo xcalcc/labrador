@@ -30,4 +30,5 @@
 #define M_R_7_4     "M_R_7_4"
 #define M_R_8_4     "M_R_8_4"
 #define M_R_8_10    "M_R_8_10"
+#define M_R_8_11    "M_R_8_11"
 

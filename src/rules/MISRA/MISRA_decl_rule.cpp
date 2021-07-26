@@ -351,5 +351,23 @@ void MISRADeclRule::CheckInlineFunctionWithExternalLinkage(const clang::Function
   }
 }
 
+/* MISRA
+ * Rule: 8.11
+ * When an array with external linkage is declared, its size should be explicitly specified
+ */
+void MISRADeclRule::CheckImplicitSizeWithExternalArray(const clang::VarDecl *decl) {
+  if (!decl->getType()->isArrayType()) return;
+  if (decl->getStorageClass() != clang::StorageClass::SC_Extern) return;
+
+  auto array_type = clang::dyn_cast<clang::ConstantArrayType>(decl->getType());
+  if (!array_type) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_8_11, decl);
+    std::string ref_msg = "When an array with external linkage is declared, its size should be explicitly specified";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 }
 }

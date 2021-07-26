@@ -18,7 +18,7 @@
 //     "path": "filename.c"
 //   }
 // ]
-// [A10],[key],[filename][fid:line],[SML],[D],[G4_2_1_7],[1,0,0],[var/typename],#funcname#,[fid:line:path,fid:line:path,...]
+// [A10],[key],[filename][fid:line],[RBC],[D],[G4_2_1_7],[1,0,0],[var/typename],#funcname#,[fid:line:path,fid:line:path,...]
 //
 // stdout format:
 // filename.c:line:column: GJB5369:4.1.1.1 msg
@@ -53,8 +53,8 @@ XcalReport::PrintVtxtFileList()
     }
     // output file entry
     fprintf(_vtxt_file, "  {\n    \"fid\" : %d,\n    \"path\" : \"%s\"\n  }",
-                        it->first->getUID() + 1,
-                        it->first->getName().str().c_str());
+            it->first->getUID() + 1,
+            it->first->getName().str().c_str());
   }
 
   fprintf(_vtxt_file, "\n]\n");
@@ -78,12 +78,20 @@ XcalReport::PrintVtxtIssue(const XcalIssue *issue)
 
   char key[1024];
   snprintf(key, sizeof(key), "%s@%s@%s:%d",
-                             issue->DeclName(), issue->RuleName(),
-                             ploc.getFilename(), ploc.getLine());
+           issue->DeclName(), issue->RuleName(),
+           ploc.getFilename(), ploc.getLine());
 
-  fprintf(_vtxt_file, "[A10],[%s],[%s],[%d:%d],[SML],[D],[%s],[1,0,0],",
-                      key, ploc.getFilename(),
-                      fid + 1, ploc.getLine(), issue->RuleName());
+  std::string output_std;
+  std::string std_name = std::string(issue->StdName());
+  if (std_name.find("GJB") == std::string::npos) {
+    output_std = "MSR";
+  } else {
+    output_std = "GJB";
+  }
+
+  fprintf(_vtxt_file, "[A10],[%s],[%s],[%d:%d],[Vul],[D],[RBC],[1,0,0],[%s],[%s]",
+          key, ploc.getFilename(),
+          fid + 1, ploc.getLine(), output_std.c_str(), issue->RuleName());
   fprintf(_vtxt_file, "[%s],##,[", issue->DeclName());
 
   std::vector<XcalPathInfo>::const_iterator end = issue->PathInfo().end();
@@ -102,7 +110,7 @@ XcalReport::PrintVtxtIssue(const XcalIssue *issue)
     fe = _source_mgr->getFileEntryForID(ploc.getFileID());
     fid = fe ? fe->getUID() : ploc.getFileID().getHashValue();
     fprintf(_vtxt_file, "%d:%d:%d:%d",
-                         fid + 1, ploc.getLine(), ploc.getColumn(), it->Kind());
+            fid + 1, ploc.getLine(), ploc.getColumn(), it->Kind());
   }
 
   fprintf(_vtxt_file, "]\n");

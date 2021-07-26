@@ -93,6 +93,12 @@ private:
    */
   void CheckInlineFunctionWithExternalLinkage(const clang::FunctionDecl *decl);
 
+  /* MISRA
+   * Rule: 8.11
+   * When an array with external linkage is declared, its size should be explicitly specified
+   */
+  void CheckImplicitSizeWithExternalArray(const clang::VarDecl *decl);
+
 public:
   void Finalize() {
     CheckUnusedTypedef();
@@ -105,6 +111,7 @@ public:
   void VisitVar(const clang::VarDecl *decl) {
     CheckUnusedTypedef(decl);
     CheckStringLiteralToNonConstChar(decl);
+    CheckImplicitSizeWithExternalArray(decl);
   }
 
   void VisitTypedef(const clang::TypedefDecl *decl) {
