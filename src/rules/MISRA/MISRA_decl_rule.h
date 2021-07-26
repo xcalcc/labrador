@@ -81,6 +81,12 @@ private:
    */
   void CheckStringLiteralToNonConstChar(const clang::VarDecl *decl);
 
+  /* MISRA
+   * Rule: 8.8
+   * The static storage class specifier shall be used in all declarations of objects and functions that have internal linkage
+   */
+  void CheckStaticSpecifier(const clang::FunctionDecl *decl);
+
 public:
   void Finalize() {
     CheckUnusedTypedef();
@@ -101,6 +107,7 @@ public:
 
   void VisitFunction(const clang::FunctionDecl *decl) {
     CheckUnusedParameters(decl);
+    CheckStaticSpecifier(decl);
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {

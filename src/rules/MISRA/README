@@ -22,3 +22,7 @@ Rule		Kind		Implementation
 6.1         Decl        CheckInappropriateBitField
 
 6.2                     GJB5369 4.6.1.6 -> CheckSingleBitSignedValue
+
+7.4         Decl        CheckStringLiteralToNonConstChar
+
+8.8         Decl        CheckStaticSpecifier
