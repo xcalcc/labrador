@@ -1,4 +1,5 @@
 add_library (xscaMISRARule STATIC
+  diagnostic.cpp
   MISRA_pp_rule.cpp
   MISRA_decl_rule.cpp
   MISRA_stmt_rule.cpp

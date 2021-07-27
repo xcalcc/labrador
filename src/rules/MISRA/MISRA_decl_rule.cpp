@@ -398,29 +398,29 @@ void MISRADeclRule::CheckUniqueImplicitEnumerator(const clang::EnumDecl *decl) {
  * Arrays shall not be partially initialized
  */
 void MISRADeclRule::CheckArrayPartialInitialized(const clang::VarDecl *decl) {
-    auto type = decl->getType();
-    if (!type->isArrayType()) return;
-    if (!decl->hasInit()) return;
-    auto init = decl->getInit();
+  auto type = decl->getType();
+  if (!type->isArrayType()) return;
+  if (!decl->hasInit()) return;
+  auto init = decl->getInit();
 
-    auto const_array_type = clang::dyn_cast<clang::ConstantArrayType>(type);
-    if (!const_array_type) return;
-    auto size = const_array_type->getSize().getZExtValue();
+  auto const_array_type = clang::dyn_cast<clang::ConstantArrayType>(type);
+  if (!const_array_type) return;
+  auto size = const_array_type->getSize().getZExtValue();
 
-    auto initList = clang::dyn_cast<clang::InitListExpr>(init);
-    if (initList == nullptr) return;
+  auto initList = clang::dyn_cast<clang::InitListExpr>(init);
+  if (initList == nullptr) return;
 
-    auto inits = initList->inits();
-    if (inits.size() == 1) {
-      auto head = inits[0];
-      if (auto literal = clang::dyn_cast<clang::IntegerLiteral>(head)) {
-        if (literal->getValue() == 0) {
-          return;
-        }
+  auto inits = initList->inits();
+  if (inits.size() == 1) {
+    auto head = inits[0];
+    if (auto literal = clang::dyn_cast<clang::IntegerLiteral>(head)) {
+      if (literal->getValue() == 0) {
+        return;
       }
-    } else if (inits.size() == size) {
-      return;
     }
+  } else if (inits.size() == size) {
+    return;
+  }
 
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();

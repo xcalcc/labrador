@@ -7,12 +7,13 @@
 // add all decl rules into macro below
 #define ALL_Diagnostic(R)                      \
   R(GJB5369Diagnostic,   "GJB5369Diagnostic"), \
-  R(GJB8114Diagnostic,   "GJB8114Diagnostic")
-//  R(MISRADeclRule,     "MISRADeclRule"),       \
+  R(GJB8114Diagnostic,   "GJB8114Diagnostic"), \
+  R(MISRADiagnostic,     "MISRADiagnostic")
 //  R(SJT11682DeclRule,  "SJT11682DeclRule")
 
 #include "GJB5369/diagnostic.h"
 #include "GJB8114/diagnostic.h"
+#include "MISRA/diagnostic.h"
 
 namespace xsca {
 using namespace rule;

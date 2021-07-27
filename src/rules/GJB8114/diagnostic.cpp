@@ -76,7 +76,6 @@ void GJB8114Diagnostic::HandleDiagnostic(clang::DiagnosticsEngine::Level diagnos
       AddIssue(G6_8_1_4, msg, location);
       break;
     default: {
-      printf("%d\n", diagnosticInfo.getID());
       break;
     }
   }
