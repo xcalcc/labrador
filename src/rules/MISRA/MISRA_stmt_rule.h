@@ -31,10 +31,17 @@ private:
 
   void CheckStringLiteralToNonConstChar(const clang::CallExpr *stmt);
 
+  /* MISRA
+   * Rule: 10 .2
+   * Expressions of essentially character type shall not be used inappropriately in addition and subtraction operations
+   */
+  void CheckAddOrSubOnCharacter(const clang::BinaryOperator *stmt);
+
 public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
     CheckStringLiteralToNonConstChar(stmt);
+    CheckAddOrSubOnCharacter(stmt);
   }
 
   void VisitCallExpr(const clang::CallExpr *stmt) {

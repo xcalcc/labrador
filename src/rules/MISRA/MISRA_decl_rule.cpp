@@ -430,6 +430,25 @@ void MISRADeclRule::CheckArrayPartialInitialized(const clang::VarDecl *decl) {
 
 }
 
+/* MISRA
+ * Rule: 9.5
+ * Where designated initializers are used to initialize an array object the size of the array shall be specified explicitly
+ */
+void MISRADeclRule::CheckDesignatedInitWithImplicitSizeArray(const clang::VarDecl *decl) {
+#if 0
+  auto type = decl->getType();
+  if (!type->isArrayType()) return;
+  if (!decl->hasInit()) return;
+
+  auto inits = clang::dyn_cast<clang::InitListExpr>(decl->getInit());
+  for (const auto &it : inits->inits()) {
+    if (it->getStmtClass() == clang::Stmt::DesignatedInitExprClass) {
+      it->dumpColor();
+    }
+  }
+#endif
+}
+
 
 }
 }

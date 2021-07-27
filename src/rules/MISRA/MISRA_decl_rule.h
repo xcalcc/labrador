@@ -127,6 +127,12 @@ private:
    */
   void CheckArrayPartialInitialized(const clang::VarDecl *decl);
 
+  /* MISRA
+   * Rule: 9.5
+   * Where designated initializers are used to initialize an array object the size of the array shall be specified explicitly
+   */
+  void CheckDesignatedInitWithImplicitSizeArray(const clang::VarDecl *decl);
+
 public:
   void Finalize() {
     CheckUnusedTypedef();
@@ -142,6 +148,7 @@ public:
     CheckImplicitSizeWithExternalArray(decl);
     CheckRestrict<clang::VarDecl>(decl);
     CheckArrayPartialInitialized(decl);
+    CheckDesignatedInitWithImplicitSizeArray(decl);
   }
 
   void VisitParmVar(const clang::ParmVarDecl *decl) {

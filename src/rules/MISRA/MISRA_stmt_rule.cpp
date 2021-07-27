@@ -67,6 +67,24 @@ void MISRAStmtRule::CheckStringLiteralToNonConstChar(const clang::CallExpr *stmt
   }
 }
 
+/* MISRA
+ * Rule: 10 .2
+ * Expressions of essentially character type shall not be used inappropriately in addition and subtraction operations
+ */
+void MISRAStmtRule::CheckAddOrSubOnCharacter(const clang::BinaryOperator *stmt) {
+  if (!stmt->isAdditiveOp()) return;
+
+  auto lhs_type = stmt->getLHS()->IgnoreParenImpCasts()->getType();
+  auto rhs_type = stmt->getRHS()->IgnoreParenImpCasts()->getType();
+  if (lhs_type->isCharType() || rhs_type->isCharType()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_10_2, stmt);
+    std::string ref_msg = "Expressions of essentially character type shall not be used inappropriately in addition and subtraction operations";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }
