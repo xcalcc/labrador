@@ -25,23 +25,39 @@ private:
 
   /* MISRA
    * Rule: 7.4
-   * A string literal shall not be assigned to an object unless the object’s type is “pointer to const-qualified char”
+   * A string literal shall not be assigned to an object unless the object’s
+   * type is “pointer to const-qualified char”
    */
   void CheckStringLiteralToNonConstChar(const clang::BinaryOperator *stmt);
 
   void CheckStringLiteralToNonConstChar(const clang::CallExpr *stmt);
 
   /* MISRA
-   * Rule: 10 .2
-   * Expressions of essentially character type shall not be used inappropriately in addition and subtraction operations
+   * Rule: 10.2
+   * Expressions of essentially character type shall not be used inappropriately
+   * in addition and subtraction operations
    */
   void CheckAddOrSubOnCharacter(const clang::BinaryOperator *stmt);
+
+  /* MISRA
+   * Rule: 10.4
+   * Both operands of an operator in which the usual arithmetic conversions are performed
+   * shall have the same essential type category
+   */
+  bool IsTypeFit(clang::QualType lhs_type, clang::QualType rhs_type);
+  void CheckArithmeticWithDifferentType(const clang::BinaryOperator *stmt);
+  void CheckArithmeticWithDifferentType(const clang::CompoundAssignOperator *stmt);
 
 public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
     CheckStringLiteralToNonConstChar(stmt);
     CheckAddOrSubOnCharacter(stmt);
+    CheckArithmeticWithDifferentType(stmt);
+  }
+
+  void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
+    CheckArithmeticWithDifferentType(stmt);
   }
 
   void VisitCallExpr(const clang::CallExpr *stmt) {

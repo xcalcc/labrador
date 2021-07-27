@@ -33,7 +33,8 @@ void MISRAStmtRule::CheckStringLiteralToNonConstChar(const clang::BinaryOperator
       XcalIssue *issue = nullptr;
       XcalReport *report = XcalCheckerManager::GetReport();
       issue = report->ReportIssue(MISRA, M_R_7_4, stmt);
-      std::string ref_msg = "A string literal shall not be assigned to an object unless the object’s type is \"pointer to const-qualified char\"";
+      std::string ref_msg = "A string literal shall not be assigned to an object unless "
+                            "the object’s type is \"pointer to const-qualified char\"";
       issue->SetRefMsg(ref_msg);
     }
   }
@@ -57,7 +58,8 @@ void MISRAStmtRule::CheckStringLiteralToNonConstChar(const clang::CallExpr *stmt
           param_type->getPointeeType()->isCharType() && !param_type->getPointeeType().isConstQualified()) {
         if (issue == nullptr) {
           issue = report->ReportIssue(MISRA, M_R_7_4, stmt);
-          std::string ref_msg = "A string literal shall not be assigned to an object unless the object’s type is \"pointer to const-qualified char\"";
+          std::string ref_msg = "A string literal shall not be assigned to an object "
+                                "unless the object’s type is \"pointer to const-qualified char\"";
           issue->SetRefMsg(ref_msg);
         }
         issue->AddDecl(param_decl);
@@ -80,7 +82,65 @@ void MISRAStmtRule::CheckAddOrSubOnCharacter(const clang::BinaryOperator *stmt) 
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(MISRA, M_R_10_2, stmt);
-    std::string ref_msg = "Expressions of essentially character type shall not be used inappropriately in addition and subtraction operations";
+    std::string ref_msg = "Expressions of essentially character type shall not be"
+                          " used inappropriately in addition and subtraction operations";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+/* MISRA
+ * Rule: 10.4
+ * Both operands of an operator in which the usual arithmetic conversions are performed
+ * shall have the same essential type category
+ */
+bool MISRAStmtRule::IsTypeFit(clang::QualType lhs_type, clang::QualType rhs_type) {
+  bool type_fit = true;
+  if (lhs_type->isUnsignedIntegerType() != rhs_type->isUnsignedIntegerType()) {
+    type_fit = false;
+  } else if (lhs_type->isCharType() != rhs_type->isCharType()) {
+    if (!lhs_type->isIntegerType() || !rhs_type->isIntegerType()) {
+      type_fit = false;
+    }
+  } else if (lhs_type->isFloatingType() != rhs_type->isFloatingType()) {
+    type_fit = false;
+  }
+  return type_fit;
+}
+
+void MISRAStmtRule::CheckArithmeticWithDifferentType(const clang::BinaryOperator *stmt) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  bool need_report = false;
+  if (stmt->isAdditiveOp() || stmt->isComparisonOp()) {
+    auto lhs_type = stmt->getLHS()->IgnoreParenImpCasts()->getType();
+    auto rhs_type = stmt->getRHS()->IgnoreParenImpCasts()->getType();
+    need_report = !IsTypeFit(lhs_type, rhs_type);
+  }
+
+  if (need_report) {
+    issue = report->ReportIssue(MISRA, M_R_10_4, stmt);
+    std::string ref_msg = "Both operands of an operator in which the usual"
+                          " arithmetic conversions are performed shall have the same essential type category";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+void MISRAStmtRule::CheckArithmeticWithDifferentType(const clang::CompoundAssignOperator *stmt) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  bool need_report = false;
+  if (stmt->isCompoundAssignmentOp()) {
+    auto lhs_type = stmt->getLHS()->IgnoreParenImpCasts()->getType();
+    auto rhs_type = stmt->getRHS()->IgnoreParenImpCasts()->getType();
+    need_report = !IsTypeFit(lhs_type, rhs_type);
+  }
+
+  if (need_report) {
+    issue = report->ReportIssue(MISRA, M_R_10_4, stmt);
+    std::string ref_msg = "Both operands of an operator in which the usual"
+                          " arithmetic conversions are performed shall have the same essential type category";
     issue->SetRefMsg(ref_msg);
   }
 }

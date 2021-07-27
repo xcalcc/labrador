@@ -34,3 +34,4 @@ Rule		Kind		Implementation
 9.4         Diag        HandleDiagnostic
 
 10.2        Stmt        CheckAddOrSubOnCharacter
+10.3                    GJB8114 5.10.2.3 -> CheckIntToShorter
