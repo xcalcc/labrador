@@ -50,3 +50,4 @@
 #define M_R_11_5    "M_R_11_5"
 #define M_R_11_6    "M_R_11_6"
 #define M_R_11_7    "M_R_11_7"
+#define M_R_11_8    "M_R_11_8"

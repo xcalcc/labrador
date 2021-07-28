@@ -345,6 +345,29 @@ void MISRAStmtRule::CheckCastBetweenPointerAndNonIntType(const clang::CastExpr *
   }
 }
 
+/* MISRA
+ * Rule: 11.8
+ * A cast shall not remove any const or volatile qualification from the type pointed to by a pointer
+ */
+void MISRAStmtRule::CheckAssignRemoveConstOrVolatile(const clang::BinaryOperator *stmt) {
+  if (!stmt->isAssignmentOp()) return;
+  auto lhs_type = stmt->getLHS()->IgnoreParenImpCasts()->getType();
+  if (!lhs_type->isPointerType()) return;
+
+  auto rhs = stmt->getRHS();
+  if (auto cast_inst = clang::dyn_cast<clang::CastExpr>(rhs)) {
+    auto sub_type = cast_inst->getSubExpr()->IgnoreParenImpCasts()->getType();
+    if (sub_type->getPointeeType().isConstQualified() || sub_type->getPointeeType().isVolatileQualified()) {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+      issue = report->ReportIssue(MISRA, M_R_11_8, stmt);
+      std::string ref_msg = "A cast shall not remove any const or volatile "
+                            "qualification from the type pointed to by a pointer";
+      issue->SetRefMsg(ref_msg);
+    }
+  }
+}
+
 
 }
 }

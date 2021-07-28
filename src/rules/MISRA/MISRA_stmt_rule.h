@@ -98,6 +98,12 @@ private:
    */
   void CheckCastBetweenPointerAndNonIntType(const clang::CastExpr *stmt);
 
+  /* MISRA
+   * Rule: 11.8
+   * A cast shall not remove any const or volatile qualification from the type pointed to by a pointer
+   */
+  void CheckAssignRemoveConstOrVolatile(const clang::BinaryOperator *stmt);
+
 public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -106,6 +112,7 @@ public:
     CheckArithmeticWithDifferentType(stmt);
     CheckCompositeMixTypeExpr(stmt);
     CheckCompositeExprAssignToWiderTypeVar(stmt);
+    CheckAssignRemoveConstOrVolatile(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
