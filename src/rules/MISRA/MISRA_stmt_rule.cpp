@@ -210,6 +210,37 @@ void MISRAStmtRule::CheckCompositeExprAssignToWiderTypeVar(const clang::BinaryOp
 }
 
 /* MISRA
+ * Rule: 10.7
+ * If a composite expression is used as one operand of an operator in which the usual
+ * arithmetic conversions are performed then the other operand shall not have wider essential type
+ */
+void MISRAStmtRule::CheckCompositeMixTypeExpr(const clang::BinaryOperator *stmt) {
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+  auto lhs_type = lhs->getType();
+  auto rhs_type = rhs->getType();
+
+  bool need_report = false;
+  if (lhs_type < rhs_type) {
+    if (lhs->getStmtClass() == clang::Stmt::BinaryOperatorClass) {
+      need_report = true;
+    }
+  } else if (rhs_type < lhs_type) {
+    if (rhs->getStmtClass() == clang::Stmt::BinaryOperatorClass) {
+      need_report = true;
+    }
+  }
+
+  if (need_report) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_10_7, stmt);
+    std::string ref_msg = "Composite expression and mixed type is not allow";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+/* MISRA
  * Rule: 10.8
  * The value of a composite expression shall not be cast to a different
  * essential type category or a wider essential type
@@ -243,6 +274,7 @@ void MISRAStmtRule::CheckCompositeExprCastToWiderType(const clang::CStyleCastExp
     issue->SetRefMsg(ref_msg);
   }
 }
+
 
 
 }

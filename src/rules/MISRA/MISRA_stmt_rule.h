@@ -61,6 +61,13 @@ private:
   void CheckCompositeExprAssignToWiderTypeVar(const clang::BinaryOperator *stmt);
 
   /* MISRA
+   * Rule: 10.7
+   * If a composite expression is used as one operand of an operator in which the usual
+   * arithmetic conversions are performed then the other operand shall not have wider essential type
+   */
+  void CheckCompositeMixTypeExpr(const clang::BinaryOperator *stmt);
+
+  /* MISRA
    * Rule: 10.8
    * The value of a composite expression shall not be cast to a different
    * essential type category or a wider essential type
@@ -73,6 +80,7 @@ public:
     CheckStringLiteralToNonConstChar(stmt);
     CheckAddOrSubOnCharacter(stmt);
     CheckArithmeticWithDifferentType(stmt);
+    CheckCompositeMixTypeExpr(stmt);
     CheckCompositeExprAssignToWiderTypeVar(stmt);
   }
 
