@@ -60,6 +60,13 @@ private:
    */
   void CheckCompositeExprAssignToWiderTypeVar(const clang::BinaryOperator *stmt);
 
+  /* MISRA
+   * Rule: 10.8
+   * The value of a composite expression shall not be cast to a different
+   * essential type category or a wider essential type
+   */
+  void CheckCompositeExprCastToWiderType(const clang::CStyleCastExpr *stmt);
+
 public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -79,6 +86,7 @@ public:
 
   void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {
     CheckInappropriateCast(stmt);
+    CheckCompositeExprCastToWiderType(stmt);
   }
 
 }; // MISRAStmtRule

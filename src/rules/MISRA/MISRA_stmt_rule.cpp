@@ -209,6 +209,41 @@ void MISRAStmtRule::CheckCompositeExprAssignToWiderTypeVar(const clang::BinaryOp
   }
 }
 
+/* MISRA
+ * Rule: 10.8
+ * The value of a composite expression shall not be cast to a different
+ * essential type category or a wider essential type
+ */
+void MISRAStmtRule::CheckCompositeExprCastToWiderType(const clang::CStyleCastExpr *stmt) {
+  auto sub_expr = stmt->getSubExpr()->IgnoreParenImpCasts();
+  auto sub_type = sub_expr->getType();
+  auto type = stmt->IgnoreParenImpCasts()->getType();
+
+  if (sub_expr->getStmtClass() != clang::Stmt::BinaryOperatorClass) return;
+//  auto bin_inst = clang::dyn_cast<clang::BinaryOperator>(sub_expr);
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  bool need_report = false;
+  if (sub_type < type) {
+    need_report = true;
+  } else if (type < sub_type) {
+    if (type->isUnsignedIntegerType() != sub_type->isUnsignedIntegerType()) {
+      need_report = true;
+    } else if (type->isIntegerType() != sub_type->isIntegerType()) {
+      need_report = true;
+    }
+  }
+
+  if (need_report) {
+    issue = report->ReportIssue(MISRA, M_R_10_8, stmt);
+    std::string ref_msg = "The value of a composite expression shall not be cast to a "
+                          "different essential type category or a wider essential type";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }
