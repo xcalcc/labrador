@@ -310,6 +310,23 @@ void MISRAStmtRule::CheckVoidPointerToOtherTypePointer(const clang::CastExpr *st
   }
 }
 
+/* MISRA
+ * Rule: 11.6
+ * A cast shall not be performed between pointer to void and an arithmetic type
+ */
+void MISRAStmtRule::CheckArithTypeCastToVoidPointerType(const clang::CastExpr *stmt) {
+  auto type = stmt->IgnoreParenImpCasts()->getType();
+  auto sub_type = stmt->getSubExpr()->IgnoreParenImpCasts()->getType();
+
+  if (sub_type->isIntegerType() && type->isVoidPointerType()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_11_6, stmt);
+    std::string ref_msg = "A cast shall not be performed between pointer to void and an arithmetic type";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }

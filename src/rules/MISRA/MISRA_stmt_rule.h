@@ -86,6 +86,12 @@ private:
    */
   void CheckVoidPointerToOtherTypePointer(const clang::CastExpr *stmt);
 
+  /* MISRA
+   * Rule: 11.6
+   * A cast shall not be performed between pointer to void and an arithmetic type
+   */
+  void CheckArithTypeCastToVoidPointerType(const clang::CastExpr *stmt);
+
 public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -109,11 +115,13 @@ public:
     CheckCompositeExprCastToWiderType(stmt);
     CheckCastBetweenIntAndPointer(stmt);
     CheckVoidPointerToOtherTypePointer(stmt);
+    CheckArithTypeCastToVoidPointerType(stmt);
   }
 
   void VisitImplicitCastExpr(const clang::ImplicitCastExpr *stmt) {
     CheckCastBetweenIntAndPointer(stmt);
     CheckVoidPointerToOtherTypePointer(stmt);
+    CheckArithTypeCastToVoidPointerType(stmt);
   }
 
 }; // MISRAStmtRule
