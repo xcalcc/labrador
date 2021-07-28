@@ -48,6 +48,12 @@ private:
   void CheckArithmeticWithDifferentType(const clang::BinaryOperator *stmt);
   void CheckArithmeticWithDifferentType(const clang::CompoundAssignOperator *stmt);
 
+  /* MISRA
+   * Rule: 10.5
+   * The value of an expression should not be cast to an inappropriate essential type
+   */
+  void CheckInappropriateCast(const clang::CStyleCastExpr *stmt);
+
 public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -62,6 +68,10 @@ public:
 
   void VisitCallExpr(const clang::CallExpr *stmt) {
     CheckStringLiteralToNonConstChar(stmt);
+  }
+
+  void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {
+    CheckInappropriateCast(stmt);
   }
 
 }; // MISRAStmtRule
