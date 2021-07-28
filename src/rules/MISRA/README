@@ -35,3 +35,12 @@ Rule		Kind		Implementation
 
 10.2        Stmt        CheckAddOrSubOnCharacter
 10.3                    GJB8114 5.10.2.3 -> CheckIntToShorter
+10.4        Stmt        CheckArithmeticWithDifferentType
+10.5        Stmt        CheckInappropriateCast
+10.6        Stmt        CheckCompositeExprAssignToWiderTypeVar
+10.7        Stmt        CheckCompositeMixTypeExpr
+10.8        Stmt        CheckCompositeExprCastToWiderType
+
+11.2                    GJB5369 4.12.1.1 -> CheckPointerCast
+11.3                    GJB5369 4.12.1.1 -> CheckPointerCast
+11.4        Stmt        CheckCastBetweenIntAndPointer

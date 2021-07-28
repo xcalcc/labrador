@@ -293,6 +293,23 @@ void MISRAStmtRule::CheckCastBetweenIntAndPointer(const clang::CastExpr *stmt) {
   }
 }
 
+/* MISRA
+ * Rule: 11.5
+ * A conversion should not be performed from pointer to void into pointer to object
+ */
+void MISRAStmtRule::CheckVoidPointerToOtherTypePointer(const clang::CastExpr *stmt) {
+  auto type = stmt->IgnoreParenImpCasts()->getType();
+  auto sub_type = stmt->getSubExpr()->IgnoreParenImpCasts()->getType();
+
+  if (type->isPointerType() && sub_type->isVoidPointerType()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_11_5, stmt);
+    std::string ref_msg = "A conversion should not be performed from pointer to void into pointer to object";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }

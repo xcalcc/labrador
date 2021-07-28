@@ -80,6 +80,12 @@ private:
    */
   void CheckCastBetweenIntAndPointer(const clang::CastExpr *stmt);
 
+  /* MISRA
+   * Rule: 11.5
+   * A conversion should not be performed from pointer to void into pointer to object
+   */
+  void CheckVoidPointerToOtherTypePointer(const clang::CastExpr *stmt);
+
 public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -102,10 +108,12 @@ public:
     CheckInappropriateCast(stmt);
     CheckCompositeExprCastToWiderType(stmt);
     CheckCastBetweenIntAndPointer(stmt);
+    CheckVoidPointerToOtherTypePointer(stmt);
   }
 
   void VisitImplicitCastExpr(const clang::ImplicitCastExpr *stmt) {
     CheckCastBetweenIntAndPointer(stmt);
+    CheckVoidPointerToOtherTypePointer(stmt);
   }
 
 }; // MISRAStmtRule
