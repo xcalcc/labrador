@@ -54,12 +54,19 @@ private:
    */
   void CheckInappropriateCast(const clang::CStyleCastExpr *stmt);
 
+  /* MISRA
+   * Rule: 10.6
+   * The value of a composite expression shall not be assigned to an object with wider essential type
+   */
+  void CheckCompositeExprAssignToWiderTypeVar(const clang::BinaryOperator *stmt);
+
 public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
     CheckStringLiteralToNonConstChar(stmt);
     CheckAddOrSubOnCharacter(stmt);
     CheckArithmeticWithDifferentType(stmt);
+    CheckCompositeExprAssignToWiderTypeVar(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {

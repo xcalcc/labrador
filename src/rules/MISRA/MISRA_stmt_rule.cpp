@@ -190,6 +190,25 @@ void MISRAStmtRule::CheckInappropriateCast(const clang::CStyleCastExpr *stmt) {
   }
 }
 
+/* MISRA
+ * Rule: 10.6
+ * The value of a composite expression shall not be assigned to an object with wider essential type
+ */
+void MISRAStmtRule::CheckCompositeExprAssignToWiderTypeVar(const clang::BinaryOperator *stmt) {
+  if (!stmt->isAssignmentOp()) return;
+
+  auto lhs_type = stmt->getLHS()->IgnoreParenImpCasts()->getType();
+  auto rhs_type = stmt->getRHS()->IgnoreParenImpCasts()->getType();
+
+  if (rhs_type < lhs_type) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_10_6, stmt);
+    std::string ref_msg = "The value of a composite expression shall not be assigned to an object with wider essential type";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }
