@@ -70,7 +70,7 @@ void MISRAStmtRule::CheckStringLiteralToNonConstChar(const clang::CallExpr *stmt
 }
 
 /* MISRA
- * Rule: 10 .2
+ * Rule: 10.2
  * Expressions of essentially character type shall not be used inappropriately in addition and subtraction operations
  */
 void MISRAStmtRule::CheckAddOrSubOnCharacter(const clang::BinaryOperator *stmt) {
@@ -275,6 +275,23 @@ void MISRAStmtRule::CheckCompositeExprCastToWiderType(const clang::CStyleCastExp
   }
 }
 
+/* MISRA
+ * Rule: 11.4
+ * A conversion should not be performed between a pointer to object and an integer type
+ */
+void MISRAStmtRule::CheckCastBetweenIntAndPointer(const clang::CastExpr *stmt) {
+  auto type = stmt->IgnoreParenImpCasts()->getType();
+  auto sub_type = stmt->getSubExpr()->IgnoreParenImpCasts()->getType();
+
+  if ((type->isIntegerType() && sub_type->isPointerType()) ||
+      (type->isPointerType() && sub_type->isIntegerType())) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_11_4, stmt);
+    std::string ref_msg = "A conversion should not be performed between a pointer to object and an integer type";
+    issue->SetRefMsg(ref_msg);
+  }
+}
 
 
 }

@@ -74,6 +74,12 @@ private:
    */
   void CheckCompositeExprCastToWiderType(const clang::CStyleCastExpr *stmt);
 
+  /* MISRA
+   * Rule: 11.4
+   * A conversion should not be performed between a pointer to object and an integer type
+   */
+  void CheckCastBetweenIntAndPointer(const clang::CastExpr *stmt);
+
 public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -95,6 +101,11 @@ public:
   void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {
     CheckInappropriateCast(stmt);
     CheckCompositeExprCastToWiderType(stmt);
+    CheckCastBetweenIntAndPointer(stmt);
+  }
+
+  void VisitImplicitCastExpr(const clang::ImplicitCastExpr *stmt) {
+    CheckCastBetweenIntAndPointer(stmt);
   }
 
 }; // MISRAStmtRule
