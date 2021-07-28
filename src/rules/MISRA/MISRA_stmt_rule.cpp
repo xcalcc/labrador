@@ -327,6 +327,24 @@ void MISRAStmtRule::CheckArithTypeCastToVoidPointerType(const clang::CastExpr *s
   }
 }
 
+/* MISRA
+ * Rule: 11.7
+ * A cast shall not be performed between pointer to object and a non-integer arithmetic type
+ */
+void MISRAStmtRule::CheckCastBetweenPointerAndNonIntType(const clang::CastExpr *stmt) {
+  auto type = stmt->IgnoreParenImpCasts()->getType();
+  auto sub_type = stmt->getSubExpr()->IgnoreParenImpCasts()->getType();
+
+  if ((type->isPointerType() && !sub_type->isIntegerType()) ||
+      (!type->isIntegerType() && sub_type->isPointerType())) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_11_7, stmt);
+    std::string ref_msg = "A cast shall not be performed between pointer to object and a non-integer arithmetic type";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }
