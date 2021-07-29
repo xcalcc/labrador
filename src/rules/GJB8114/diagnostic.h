@@ -14,7 +14,7 @@ public:
   void HandleDiagnostic(clang::DiagnosticsEngine::Level diagnosticLevel,
                         const clang::Diagnostic &diagnosticInfo) override;
 
-  void AddIssue(const char *rule, const std::string &ref_msg, clang::SourceLocation location);
+  void AddIssue(const char *rule, const std::string &ref_msg, clang::SourceLocation location) final;
 };
 
 }

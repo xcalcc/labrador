@@ -44,3 +44,11 @@ Rule		Kind		Implementation
 11.2                    GJB5369 4.12.1.1 -> CheckPointerCast
 11.3                    GJB5369 4.12.1.1 -> CheckPointerCast
 11.4        Stmt        CheckCastBetweenIntAndPointer
+11.5        Stmt        CheckVoidPointerToOtherTypePointer
+11.6        Stmt        CheckArithTypeCastToVoidPointerType
+11.7        Stmt        CheckCastBetweenPointerAndNonIntType
+11.8        Stmt        CheckAssignRemoveConstOrVolatile
+11.9        Stmt        CheckZeroAsPointerConstant
+
+12.2        Stmt        CheckShiftOutOfRange
+12.3        Stmt        CheckCommaStmt

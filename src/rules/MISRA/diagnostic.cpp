@@ -4,7 +4,7 @@
 #include "xsca_checker_manager.h"
 #include <clang/Basic/DiagnosticSema.h>
 
-namespace xsca{
+namespace xsca {
 namespace rule {
 
 
@@ -16,10 +16,14 @@ void MISRADiagnostic::HandleDiagnostic(clang::DiagnosticsEngine::Level diagnosti
   auto msg = diagnosticMessage.c_str();
 
   switch (diagnosticInfo.getID()) {
-    case 5705:
+    case 5705:  // MISRA 9.4
       AddIssue(M_R_9_4, msg, location);
       break;
-    default: break;
+    case 5418:  // MISRA 13.4
+      AddIssue(M_R_13_4, msg, location);
+      break;
+    default:
+      break;
   }
 }
 

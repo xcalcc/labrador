@@ -70,11 +70,11 @@ private:
 
 public:
   XcalIssue(const char *std, const char *rule)
-    : _std_name(std), _rule_name(rule) {
+    : _std_name(std), _rule_name(rule), _need_ignore(false) {
   }
 
   XcalIssue(const char *std, const char *rule, const clang::Decl *decl)
-    : _std_name(std), _rule_name(rule) {
+    : _std_name(std), _rule_name(rule), _need_ignore(false) {
     _path_info.push_back(XcalPathInfo(decl));
     if (clang::isa<clang::NamedDecl>(decl)) {
       _decl_name = clang::cast<clang::NamedDecl>(decl)->getNameAsString();
@@ -82,12 +82,12 @@ public:
   }
 
   XcalIssue(const char *std, const char *rule, const clang::Stmt *stmt)
-    : _std_name(std), _rule_name(rule) {
+    : _std_name(std), _rule_name(rule), _need_ignore(false) {
     _path_info.push_back(XcalPathInfo(stmt));
   }
 
   XcalIssue(const char *std, const char *rule, clang::SourceLocation location)
-    : _std_name(std), _rule_name(rule) {
+    : _std_name(std), _rule_name(rule), _need_ignore(false) {
     _path_info.push_back(XcalPathInfo(location));
   }
 
