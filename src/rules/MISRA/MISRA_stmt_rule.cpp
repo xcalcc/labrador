@@ -424,6 +424,20 @@ void MISRAStmtRule::CheckShiftOutOfRange(const clang::BinaryOperator *stmt) {
   }
 }
 
+/* MISRA
+ * Rule: 12.3
+ * The comma operator should not be used
+ */
+void MISRAStmtRule::CheckCommaStmt(const clang::BinaryOperator *stmt) {
+  if (stmt->isCommaOp()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_12_3, stmt);
+    std::string ref_msg = "The comma operator should not be used";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }

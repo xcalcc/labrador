@@ -117,6 +117,12 @@ private:
    */
   void CheckShiftOutOfRange(const clang::BinaryOperator *stmt);
 
+  /* MISRA
+   * Rule: 12.3
+   * The comma operator should not be used
+   */
+  void CheckCommaStmt(const clang::BinaryOperator *stmt);
+
 public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -128,6 +134,7 @@ public:
     CheckAssignRemoveConstOrVolatile(stmt);
     CheckZeroAsPointerConstant(stmt);
     CheckShiftOutOfRange(stmt);
+    CheckCommaStmt(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
