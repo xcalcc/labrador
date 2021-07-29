@@ -123,6 +123,16 @@ private:
    */
   void CheckCommaStmt(const clang::BinaryOperator *stmt);
 
+  /* MISRA
+   * Rule: 13.4
+   * The result of an assignment operator should not be used
+   */
+  bool IsAssignmentStmt(const clang::Stmt *stmt);
+
+  void CheckUsingAssignmentAsResult(const clang::ArraySubscriptExpr *stmt);
+
+  void CheckUsingAssignmentAsResult(const clang::BinaryOperator *stmt);
+
 public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -135,6 +145,7 @@ public:
     CheckZeroAsPointerConstant(stmt);
     CheckShiftOutOfRange(stmt);
     CheckCommaStmt(stmt);
+    CheckUsingAssignmentAsResult(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
@@ -159,6 +170,10 @@ public:
     CheckVoidPointerToOtherTypePointer(stmt);
     CheckArithTypeCastToVoidPointerType(stmt);
     CheckCastBetweenPointerAndNonIntType(stmt);
+  }
+
+  void VisitArraySubscriptExpr(const clang::ArraySubscriptExpr *stmt) {
+    CheckUsingAssignmentAsResult(stmt);
   }
 
 }; // MISRAStmtRule

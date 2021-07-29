@@ -398,7 +398,8 @@ void MISRAStmtRule::CheckZeroAsPointerConstant(const clang::BinaryOperator *stmt
 void MISRAStmtRule::CheckShiftOutOfRange(const clang::BinaryOperator *stmt) {
   if (!stmt->isShiftOp() && !stmt->isShiftAssignOp()) return;
   if ((stmt->getOpcode() != clang::BinaryOperatorKind::BO_Shl) &&
-      (stmt->getOpcode() != clang::BinaryOperatorKind::BO_ShlAssign)) return;
+      (stmt->getOpcode() != clang::BinaryOperatorKind::BO_ShlAssign))
+    return;
 
   auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
   auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
@@ -434,6 +435,42 @@ void MISRAStmtRule::CheckCommaStmt(const clang::BinaryOperator *stmt) {
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(MISRA, M_R_12_3, stmt);
     std::string ref_msg = "The comma operator should not be used";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+/* MISRA
+ * Rule: 13.4
+ * The result of an assignment operator should not be used
+ */
+bool MISRAStmtRule::IsAssignmentStmt(const clang::Stmt *stmt) {
+  if (auto bin_inst = clang::dyn_cast<clang::BinaryOperator>(stmt)) {
+    if (bin_inst->isCompoundAssignmentOp() || bin_inst->isAssignmentOp()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void MISRAStmtRule::CheckUsingAssignmentAsResult(const clang::ArraySubscriptExpr *stmt) {
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+  if (rhs->getStmtClass() != clang::Stmt::BinaryOperatorClass) return;
+  if (IsAssignmentStmt(rhs)) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_13_4, stmt);
+    std::string ref_msg = "The result of an assignment operator should not be used";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+void MISRAStmtRule::CheckUsingAssignmentAsResult(const clang::BinaryOperator *stmt) {
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+  if (IsAssignmentStmt(rhs)) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_13_4, stmt);
+    std::string ref_msg = "The result of an assignment operator should not be used";
     issue->SetRefMsg(ref_msg);
   }
 }
