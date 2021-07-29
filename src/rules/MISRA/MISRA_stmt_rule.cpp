@@ -390,6 +390,40 @@ void MISRAStmtRule::CheckZeroAsPointerConstant(const clang::BinaryOperator *stmt
   }
 }
 
+/* MISRA
+ * Rule: 12.2
+ * The right hand operand of a shift operator shall lie in the range zero to one less than the
+ * width in bits of the essential type of the left hand operand
+ */
+void MISRAStmtRule::CheckShiftOutOfRange(const clang::BinaryOperator *stmt) {
+  if (!stmt->isShiftOp() && !stmt->isShiftAssignOp()) return;
+  if ((stmt->getOpcode() != clang::BinaryOperatorKind::BO_Shl) &&
+      (stmt->getOpcode() != clang::BinaryOperatorKind::BO_ShlAssign)) return;
+
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+
+  // handle lhs
+  while (lhs->getStmtClass() == clang::Stmt::ImplicitCastExprClass) {
+    lhs = clang::dyn_cast<clang::ImplicitCastExpr>(lhs)->getSubExpr();
+  }
+
+  auto lhs_type = lhs->getType();
+  if (rhs->getStmtClass() != clang::Stmt::IntegerLiteralClass) return;
+
+  auto ctx = XcalCheckerManager::GetAstContext();
+  auto value = clang::dyn_cast<clang::IntegerLiteral>(rhs)->getValue().getZExtValue();
+  auto lhs_size = ctx->getTypeSize(lhs_type);
+  if (lhs_size <= value) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_12_2, stmt);
+    std::string ref_msg = "The right hand operand of a shift operator shall lie in the range zero to one less than the "
+                          "width in bits of the essential type of the left hand operand";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }

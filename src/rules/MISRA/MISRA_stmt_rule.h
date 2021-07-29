@@ -110,6 +110,13 @@ private:
    */
   void CheckZeroAsPointerConstant(const clang::BinaryOperator *stmt);
 
+  /* MISRA
+   * Rule: 12.2
+   * The right hand operand of a shift operator shall lie in the range zero to one less than the
+   * width in bits of the essential type of the left hand operand
+   */
+  void CheckShiftOutOfRange(const clang::BinaryOperator *stmt);
+
 public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -120,6 +127,7 @@ public:
     CheckCompositeExprAssignToWiderTypeVar(stmt);
     CheckAssignRemoveConstOrVolatile(stmt);
     CheckZeroAsPointerConstant(stmt);
+    CheckShiftOutOfRange(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
