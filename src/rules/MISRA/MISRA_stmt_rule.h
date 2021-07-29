@@ -104,6 +104,12 @@ private:
    */
   void CheckAssignRemoveConstOrVolatile(const clang::BinaryOperator *stmt);
 
+  /* MISRA
+   * Rule: 11.9
+   * The macro NULL shall be the only permitted form of integer null pointer constant
+   */
+  void CheckZeroAsPointerConstant(const clang::BinaryOperator *stmt);
+
 public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -113,6 +119,7 @@ public:
     CheckCompositeMixTypeExpr(stmt);
     CheckCompositeExprAssignToWiderTypeVar(stmt);
     CheckAssignRemoveConstOrVolatile(stmt);
+    CheckZeroAsPointerConstant(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {

@@ -368,6 +368,28 @@ void MISRAStmtRule::CheckAssignRemoveConstOrVolatile(const clang::BinaryOperator
   }
 }
 
+/* MISRA
+ * Rule: 11.9
+ * The macro NULL shall be the only permitted form of integer null pointer constant
+ */
+void MISRAStmtRule::CheckZeroAsPointerConstant(const clang::BinaryOperator *stmt) {
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+
+  auto lhs_type = lhs->getType();
+  auto rhs_type = rhs->getType();
+
+  if (!lhs_type->isPointerType() && !rhs_type->isPointerType()) return;
+
+  if (lhs_type->isIntegerType() || rhs_type->isIntegerType()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_11_9, stmt);
+    std::string ref_msg = "The macro NULL shall be the only permitted form of integer null pointer constant";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }
