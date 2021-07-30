@@ -191,6 +191,7 @@ private:
    */
   void CheckCaseStmtNum(const clang::SwitchStmt *stmt);
 
+
 public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {

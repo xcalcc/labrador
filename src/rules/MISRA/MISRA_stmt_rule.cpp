@@ -630,5 +630,7 @@ void MISRAStmtRule::CheckCaseStmtNum(const clang::SwitchStmt *stmt) {
 }
 
 
+
+
 }
 }
