@@ -533,6 +533,36 @@ void MISRAStmtRule::CheckGotoBackward(const clang::GotoStmt *stmt) {
   }
 }
 
+/* MISRA
+ * Rule: 15.4
+ * There should be no more than one break or goto statement used to terminate any iteration statement
+ */
+void MISRAStmtRule::CollectTerminate(const clang::Stmt *stmt) {
+  for (const auto &it : stmt->children()) {
+    if ((it->getStmtClass() == clang::Stmt::BreakStmtClass) ||
+        (it->getStmtClass() == clang::Stmt::GotoStmtClass)) {
+      _terminates.insert(it);
+      if (_terminates.size() >= 2) return;
+    }
+    for (const auto &sub_stmt : it->children()) {
+      CollectTerminate(sub_stmt);
+    }
+  }
+}
+
+void MISRAStmtRule::CheckMultiTerminate(const clang::Stmt *stmt) {
+  CollectTerminate(stmt);
+  if (_terminates.size() >= 2) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_15_4, stmt);
+    std::string ref_msg = "There should be no more than one break or goto "
+                          "statement used to terminate any iteration statement";
+    issue->SetRefMsg(ref_msg);
+    for (const auto &it : _terminates) issue->AddStmt(it);
+  }
+}
+
 
 }
 }

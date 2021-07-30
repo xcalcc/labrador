@@ -13,6 +13,7 @@
 #include "MISRA_enum.inc"
 #include "stmt_null_handler.h"
 #include "xsca_checker_manager.h"
+#include <unordered_set>
 
 namespace xsca {
 namespace rule {
@@ -22,6 +23,7 @@ public:
   ~MISRAStmtRule() = default;
 
 private:
+  std::unordered_set<const clang::Stmt *> _terminates;
 
   /* MISRA
    * Rule: 7.4
@@ -150,6 +152,26 @@ private:
    */
   void CheckGotoBackward(const clang::GotoStmt *stmt);
 
+  /* MISRA
+   * Rule: 15.4
+   * There should be no more than one break or goto statement used to terminate any iteration statement
+   */
+  void CollectTerminate(const clang::Stmt *stmt);
+  void CheckMultiTerminate(const clang::Stmt *stmt);
+
+  template<typename TYPE>
+  void CheckMultiTerminate(const TYPE *stmt) {
+    _terminates.clear();
+    CheckMultiTerminate(stmt->getBody());
+  }
+
+  template<>
+  void CheckMultiTerminate<clang::IfStmt>(const clang::IfStmt *stmt) {
+    _terminates.clear();
+    CheckMultiTerminate(stmt->getThen());
+    CheckMultiTerminate(stmt->getElse());
+  }
+
 public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -195,18 +217,22 @@ public:
 
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckControlStmt(stmt);
+    CheckMultiTerminate(stmt);
   }
 
   void VisitWhileStmt(const clang::WhileStmt *stmt) {
     CheckControlStmt(stmt);
+    CheckMultiTerminate(stmt);
   }
 
   void VisitDoStmt(const clang::DoStmt *stmt) {
     CheckControlStmt(stmt);
+    CheckMultiTerminate(stmt);
   }
 
   void VisitForStmt(const clang::ForStmt *stmt) {
     CheckControlStmt(stmt);
+    CheckMultiTerminate(stmt);
   }
 
   void VisitGotoStmt(const clang::GotoStmt *stmt) {
