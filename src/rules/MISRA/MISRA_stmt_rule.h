@@ -179,6 +179,12 @@ private:
     CheckMultiTerminate(stmt->getElse());
   }
 
+  /* MISRA
+   * Rule: 16.5
+   * A default label shall appear as either the first or the last switch label of a switch statement
+   */
+  void CheckDefaultStmtPosition(const clang::SwitchStmt *stmt);
+
 public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -245,6 +251,10 @@ public:
   void VisitGotoStmt(const clang::GotoStmt *stmt) {
     CheckGotoBackward(stmt);
     CheckLabelNotEncloseWithGoto(stmt);
+  }
+
+  void VisitSwitchStmt(const clang::SwitchStmt *stmt) {
+    CheckDefaultStmtPosition(stmt);
   }
 
 }; // MISRAStmtRule

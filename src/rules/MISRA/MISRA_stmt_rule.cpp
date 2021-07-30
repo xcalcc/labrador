@@ -593,6 +593,25 @@ void MISRAStmtRule::CheckMultiTerminate(const clang::Stmt *stmt) {
   }
 }
 
+/* MISRA
+ * Rule: 16.5
+ * A default label shall appear as either the first or the last switch label of a switch statement
+ */
+void MISRAStmtRule::CheckDefaultStmtPosition(const clang::SwitchStmt *stmt) {
+  auto cases = stmt->getSwitchCaseList();
+  if (cases->getStmtClass() == clang::Stmt::DefaultStmtClass) return;
+  while (cases->getNextSwitchCase()) {
+    cases = cases->getNextSwitchCase();
+  }
+  if (cases->getStmtClass() == clang::Stmt::DefaultStmtClass) return;
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(MISRA, M_R_16_5, stmt);
+  std::string ref_msg = "A default label shall appear as either the "
+                        "first or the last switch label of a switch statement";
+  issue->SetRefMsg(ref_msg);
+}
+
 
 }
 }
