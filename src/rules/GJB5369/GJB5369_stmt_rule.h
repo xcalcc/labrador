@@ -136,6 +136,7 @@ private:
    * GJB5369: 4.3.1.7
    * "case" statement without "break" is forbidden
    */
+  bool HasBreakStmt(const clang::Stmt *stmt);
   void CheckCaseEndWithBreak(const clang::SwitchStmt *stmt);
 
   /*

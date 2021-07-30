@@ -457,6 +457,13 @@ bool GJB5369StmtRule::CheckEmptySwitch(const clang::SwitchStmt *stmt) {
  * GJB5369: 4.3.1.7
  * "case" statement without "break" is forbidden
  */
+bool GJB5369StmtRule::HasBreakStmt(const clang::Stmt *stmt) {
+  for (const auto &child : stmt->children()) {
+    if (child->getStmtClass() == clang::Stmt::BreakStmtClass) return true;
+  }
+  return false;
+}
+
 void GJB5369StmtRule::CheckCaseEndWithBreak(const clang::SwitchStmt *stmt) {
   using StmtClass = clang::Stmt::StmtClass;
   auto src_mgr = XcalCheckerManager::GetSourceManager();
@@ -469,59 +476,28 @@ void GJB5369StmtRule::CheckCaseEndWithBreak(const clang::SwitchStmt *stmt) {
 
     auto it = switch_body->child_begin();
     auto case_end = switch_body->child_end();
-    clang::SourceLocation location;
 
+    bool need_report = false;
     for (; it != case_end; it++) {
       if (IsCaseStmt(*it)) {
         CheckEmptyCaseStmt(clang::dyn_cast<clang::SwitchCase>(*it));
-
-        location = it->getBeginLoc();
-
-        auto next = it;
-        next++;
 
         /*
          * 1. case: ...; break;
          * 2. case: { ...; break; }
          */
-        if (next != case_end) {
-          // case: ...; break;
-          if (next->getStmtClass() == StmtClass::BreakStmtClass) {
-            continue;
-          } else {
-
-            bool need_report = true;
-            auto sub_stmt = clang::dyn_cast<clang::SwitchCase>(*it)->getSubStmt();
-
-            // case: { ...; break; }
-            if (clang::dyn_cast<clang::CompoundStmt>(sub_stmt)) {
-              for (const auto &sub_it : sub_stmt->children()) {
-                if (sub_it->getStmtClass() == StmtClass::BreakStmtClass) {
-                  need_report = false;
-                  break;
-                }
-              }
-            }
-
-            if (need_report) {
-              if (issue == nullptr) {
-                issue = report->ReportIssue(GJB5369, G4_3_1_7, stmt);
-                std::string ref_msg = R"("case" statement without "break" is forbidden)";
-                issue->SetRefMsg(ref_msg);
-              }
-              issue->AddStmt(*it);
-            }
-          }
-        } else {
+        bool has_break = false;
+        for (const auto &sub : it->children()) has_break |= HasBreakStmt(sub);
+        has_break |= ((std::next(it) != case_end) &&
+            (std::next(it)->getStmtClass() == clang::Stmt::BreakStmtClass));
+        if (!has_break && !HasBreakStmt(*it)) {
           if (issue == nullptr) {
             issue = report->ReportIssue(GJB5369, G4_3_1_7, stmt);
             std::string ref_msg = R"("case" statement without "break" is forbidden)";
             issue->SetRefMsg(ref_msg);
           }
           issue->AddStmt(*it);
-          break;
         }
-
       }
     }
   }
