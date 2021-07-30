@@ -133,6 +133,18 @@ private:
 
   void CheckUsingAssignmentAsResult(const clang::BinaryOperator *stmt);
 
+  /* MISRA
+   * Rule: 14.4
+   * The controlling expression of an if statement and the controlling expression
+   * of an iteration-statement shall have essentially Boolean type
+   */
+  bool CheckControlStmt(const clang::Expr *stmt);
+  void CheckControlStmt(const clang::IfStmt *stmt);
+  void CheckControlStmt(const clang::WhileStmt *stmt);
+  void CheckControlStmt(const clang::DoStmt *stmt);
+  void CheckControlStmt(const clang::ForStmt *stmt);
+  void
+
 public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -174,6 +186,22 @@ public:
 
   void VisitArraySubscriptExpr(const clang::ArraySubscriptExpr *stmt) {
     CheckUsingAssignmentAsResult(stmt);
+  }
+
+  void VisitIfStmt(const clang::IfStmt *stmt) {
+    CheckControlStmt(stmt);
+  }
+
+  void VisitWhileStmt(const clang::WhileStmt *stmt) {
+    CheckControlStmt(stmt);
+  }
+
+  void VisitDoStmt(const clang::DoStmt *stmt) {
+    CheckControlStmt(stmt);
+  }
+
+  void VisitForStmt(const clang::ForStmt *stmt) {
+    CheckControlStmt(stmt);
   }
 
 }; // MISRAStmtRule

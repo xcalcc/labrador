@@ -475,6 +475,38 @@ void MISRAStmtRule::CheckUsingAssignmentAsResult(const clang::BinaryOperator *st
   }
 }
 
+/* MISRA
+ * Rule: 14.4
+ * The controlling expression of an if statement and the controlling expression
+ * of an iteration-statement shall have essentially Boolean type
+ */
+bool MISRAStmtRule::CheckControlStmt(const clang::Expr *stmt) {
+  if (!stmt->getType()->isBooleanType()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_14_4, stmt);
+    std::string ref_msg = "The controlling expression of an if statement and the controlling expression "
+                          "of an iteration-statement shall have essentially Boolean type";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+void MISRAStmtRule::CheckControlStmt(const clang::IfStmt *stmt) {
+  CheckControlStmt(stmt->getCond()->IgnoreParenImpCasts());
+}
+
+void MISRAStmtRule::CheckControlStmt(const clang::WhileStmt *stmt) {
+  CheckControlStmt(stmt->getCond()->IgnoreParenImpCasts());
+}
+
+void MISRAStmtRule::CheckControlStmt(const clang::DoStmt *stmt) {
+  CheckControlStmt(stmt->getCond()->IgnoreParenImpCasts());
+}
+
+void MISRAStmtRule::CheckControlStmt(const clang::ForStmt *stmt) {
+  CheckControlStmt(stmt->getCond()->IgnoreParenImpCasts());
+}
+
 
 }
 }
