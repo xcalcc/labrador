@@ -10,6 +10,7 @@
 // implement all stmt related rules in MISRA
 //
 
+#include <clang/AST/ParentMapContext.h>
 #include "MISRA_stmt_rule.h"
 
 namespace xsca {
@@ -534,6 +535,34 @@ void MISRAStmtRule::CheckGotoBackward(const clang::GotoStmt *stmt) {
 }
 
 /* MISRA
+ * Rule: 15.3
+ * Any label referenced by a goto statement shall be declared in
+ * the same block, or in any block enclosing the goto statement
+ */
+void MISRAStmtRule::CheckLabelNotEncloseWithGoto(const clang::GotoStmt *stmt) {
+  auto ctx = XcalCheckerManager::GetAstContext();
+  auto label = stmt->getLabel()->getStmt();
+  auto label_parents = ctx->getParents(*label);
+  auto label_parent = label_parents[0].get<clang::Stmt>();
+
+  const clang::Stmt *tmp = stmt;
+  while (true) {
+    if (tmp == nullptr) break;
+    auto goto_parents = ctx->getParents(*tmp);
+    if (goto_parents.empty()) break;
+    tmp = goto_parents[0].get<clang::Stmt>();
+    if (tmp == label_parent) return;
+  }
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(MISRA, M_R_15_3, stmt);
+  std::string ref_msg = "Any label referenced by a goto statement shall be declared"
+                        " in the same block, or in any block enclosing the goto statement";
+  issue->SetRefMsg(ref_msg);
+}
+
+/* MISRA
  * Rule: 15.4
  * There should be no more than one break or goto statement used to terminate any iteration statement
  */
@@ -551,6 +580,7 @@ void MISRAStmtRule::CollectTerminate(const clang::Stmt *stmt) {
 }
 
 void MISRAStmtRule::CheckMultiTerminate(const clang::Stmt *stmt) {
+  if (stmt == nullptr) return;
   CollectTerminate(stmt);
   if (_terminates.size() >= 2) {
     XcalIssue *issue = nullptr;

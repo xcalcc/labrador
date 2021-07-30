@@ -153,6 +153,13 @@ private:
   void CheckGotoBackward(const clang::GotoStmt *stmt);
 
   /* MISRA
+   * Rule: 15.3
+   * Any label referenced by a goto statement shall be declared in
+   * the same block, or in any block enclosing the goto statement
+   */
+  void CheckLabelNotEncloseWithGoto(const clang::GotoStmt *stmt);
+
+  /* MISRA
    * Rule: 15.4
    * There should be no more than one break or goto statement used to terminate any iteration statement
    */
@@ -237,6 +244,7 @@ public:
 
   void VisitGotoStmt(const clang::GotoStmt *stmt) {
     CheckGotoBackward(stmt);
+    CheckLabelNotEncloseWithGoto(stmt);
   }
 
 }; // MISRAStmtRule
