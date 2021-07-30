@@ -507,6 +507,32 @@ void MISRAStmtRule::CheckControlStmt(const clang::ForStmt *stmt) {
   CheckControlStmt(stmt->getCond()->IgnoreParenImpCasts());
 }
 
+/* MISRA
+ * Rule: 15.2
+ * The goto statement shall jump to a label declared later in the same function
+ */
+void MISRAStmtRule::CheckGotoBackward(const clang::GotoStmt *stmt) {
+  auto loc = stmt->getBeginLoc();
+  auto target = stmt->getLabel()->getLocation();
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  bool need_report = false;
+  if (!src_mgr->isWrittenInSameFile(loc, target)) {
+    need_report = true;
+  } else {
+    if (target < loc) {
+      need_report = true;
+    }
+  }
+
+  if (need_report) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_15_2, stmt);
+    std::string ref_msg = "The goto statement shall jump to a label declared later in the same function";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }

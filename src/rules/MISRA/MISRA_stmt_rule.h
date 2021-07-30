@@ -143,7 +143,12 @@ private:
   void CheckControlStmt(const clang::WhileStmt *stmt);
   void CheckControlStmt(const clang::DoStmt *stmt);
   void CheckControlStmt(const clang::ForStmt *stmt);
-  void
+
+  /* MISRA
+   * Rule: 15.2
+   * The goto statement shall jump to a label declared later in the same function
+   */
+  void CheckGotoBackward(const clang::GotoStmt *stmt);
 
 public:
 
@@ -202,6 +207,10 @@ public:
 
   void VisitForStmt(const clang::ForStmt *stmt) {
     CheckControlStmt(stmt);
+  }
+
+  void VisitGotoStmt(const clang::GotoStmt *stmt) {
+    CheckGotoBackward(stmt);
   }
 
 }; // MISRAStmtRule
