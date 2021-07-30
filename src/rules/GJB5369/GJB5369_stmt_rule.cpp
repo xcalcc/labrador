@@ -1271,6 +1271,13 @@ void GJB5369StmtRule::CheckLoopVariable(const clang::ForStmt *stmt) {
       }
     }
 
+  } else if (auto decl_stmt = clang::dyn_cast<clang::DeclStmt>(init_stmt)) {
+    auto decl = decl_stmt->getSingleDecl();
+    if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
+      if (!var_decl->getType()->isIntegerType()) {
+        need_report_1 = true;
+      }
+    }
   }
 
   if (need_report_1) {
