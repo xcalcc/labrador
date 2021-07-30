@@ -599,17 +599,34 @@ void MISRAStmtRule::CheckMultiTerminate(const clang::Stmt *stmt) {
  */
 void MISRAStmtRule::CheckDefaultStmtPosition(const clang::SwitchStmt *stmt) {
   auto cases = stmt->getSwitchCaseList();
-  if (cases->getStmtClass() == clang::Stmt::DefaultStmtClass) return;
-  while (cases->getNextSwitchCase()) {
-    cases = cases->getNextSwitchCase();
+  if (cases != nullptr) {
+    if (cases->getStmtClass() == clang::Stmt::DefaultStmtClass) return;
+    while (cases->getNextSwitchCase()) {
+      cases = cases->getNextSwitchCase();
+    }
+    if (cases->getStmtClass() == clang::Stmt::DefaultStmtClass) return;
   }
-  if (cases->getStmtClass() == clang::Stmt::DefaultStmtClass) return;
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
   issue = report->ReportIssue(MISRA, M_R_16_5, stmt);
   std::string ref_msg = "A default label shall appear as either the "
                         "first or the last switch label of a switch statement";
   issue->SetRefMsg(ref_msg);
+}
+
+/* MISRA
+ * Rule: 16.6
+ * Every switch statement shall have at least two switch-clauses
+ */
+void MISRAStmtRule::CheckCaseStmtNum(const clang::SwitchStmt *stmt) {
+  auto cases = stmt->getSwitchCaseList();
+  if (cases == nullptr || cases->getNextSwitchCase() == nullptr) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_16_6, stmt);
+    std::string ref_msg = "Every switch statement shall have at least two switch-clauses";
+    issue->SetRefMsg(ref_msg);
+  }
 }
 
 

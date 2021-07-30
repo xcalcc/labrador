@@ -185,6 +185,12 @@ private:
    */
   void CheckDefaultStmtPosition(const clang::SwitchStmt *stmt);
 
+  /* MISRA
+   * Rule: 16.6
+   * Every switch statement shall have at least two switch-clauses
+   */
+  void CheckCaseStmtNum(const clang::SwitchStmt *stmt);
+
 public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -255,6 +261,7 @@ public:
 
   void VisitSwitchStmt(const clang::SwitchStmt *stmt) {
     CheckDefaultStmtPosition(stmt);
+    CheckCaseStmtNum(stmt);
   }
 
 }; // MISRAStmtRule
