@@ -21,23 +21,15 @@ namespace rule {
 class MISRAPPRule : public PPNullHandler {
 private:
 
-#if 0
-  std::hash<const clang::MacroDirective *> _hash_gen;
-  std::set<unsigned long> _all_macros={};
-  std::set<unsigned long> _used_macros;
-
-  void RecordMacro(const clang::Token &MacroNameTok, const clang::MacroDirective *MD);
-
   /* MISRA
-   * Rule: 2.5
-   * A project should not contain unused type declarations
+   * Rule: 17.1
+   * The features of <stdarg.h> shall not be used
    */
-  void RecordUsedMacro(const clang::Token &MacroNameTok, const clang::MacroDirective *MD);
+  void CheckStdArgHeaderFile(clang::SourceLocation Loc, llvm::StringRef IncludedFilename);
 
 public:
   void MacroDefined(const clang::Token &MacroNameTok,
                     const clang::MacroDirective *MD) {
-    RecordMacro(MacroNameTok, MD);
   }
 
   void MacroExpands(const clang::Token &MacroNameTok,
@@ -45,10 +37,16 @@ public:
                     clang::SourceRange Range,
                     const clang::MacroArgs *Args
   ) {
-    TRACE0();
-    RecordUsedMacro(MacroNameTok, MD.getLocalDirective());
   }
-#endif
+
+  void InclusionDirective(clang::SourceLocation DirectiveLoc,
+                          const clang::Token &IncludeToken, llvm::StringRef IncludedFilename,
+                          bool IsAngled, clang::CharSourceRange FilenameRange,
+                          const clang::FileEntry *IncludedFile, llvm::StringRef SearchPath,
+                          llvm::StringRef RelativePath, const clang::Module *Imported,
+                          clang::SrcMgr::CharacteristicKind FileType) {
+    CheckStdArgHeaderFile(DirectiveLoc, IncludedFilename);
+  }
 
 }; // MISRAPPRule
 
