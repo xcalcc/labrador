@@ -204,6 +204,12 @@ private:
    */
   void CheckUnusedCallExprWithoutVoidCast(const clang::CallExpr *stmt);
 
+  /* MISRA
+   * Rule: 17.8
+   * A function parameter should not be modified
+   */
+  void CheckModifyParameters(const clang::BinaryOperator *stmt);
+
 
 public:
 
@@ -218,6 +224,7 @@ public:
     CheckShiftOutOfRange(stmt);
     CheckCommaStmt(stmt);
     CheckUsingAssignmentAsResult(stmt);
+    CheckModifyParameters(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
