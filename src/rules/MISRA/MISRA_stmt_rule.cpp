@@ -670,6 +670,23 @@ void MISRAStmtRule::CheckArrayArgumentSize(const clang::CallExpr *stmt) {
   }
 }
 
+/* MISRA
+ * Rule: 17.7
+ * The value returned by a function having non-void return type shall be used
+ */
+void MISRAStmtRule::CheckUnusedCallExprWithoutVoidCast(const clang::CallExpr *stmt) {
+  auto ctx = XcalCheckerManager::GetAstContext();
+  auto parent = ctx->getParents(*stmt)[0].get<clang::Stmt>();
+  if (parent == nullptr) return;
+  if (auto block = clang::dyn_cast<clang::CompoundStmt>(parent)) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_17_7, stmt);
+    std::string ref_msg = "The value returned by a function having non-void return type shall be used";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }

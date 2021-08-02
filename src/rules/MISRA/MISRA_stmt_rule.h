@@ -198,6 +198,12 @@ private:
    */
   void CheckArrayArgumentSize(const clang::CallExpr *stmt);
 
+  /* MISRA
+   * Rule: 17.7
+   * The value returned by a function having non-void return type shall be used
+   */
+  void CheckUnusedCallExprWithoutVoidCast(const clang::CallExpr *stmt);
+
 
 public:
 
@@ -221,6 +227,7 @@ public:
   void VisitCallExpr(const clang::CallExpr *stmt) {
     CheckStringLiteralToNonConstChar(stmt);
     CheckArrayArgumentSize(stmt);
+    CheckUnusedCallExprWithoutVoidCast(stmt);
   }
 
   void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {
