@@ -71,3 +71,4 @@
 #define M_R_16_7    "M_R_16_7"
 #define M_R_16_8    "M_R_16_8"
 #define M_R_17_1    "M_R_17_1"
+#define M_R_17_5    "M_R_17_5"

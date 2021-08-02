@@ -191,6 +191,13 @@ private:
    */
   void CheckCaseStmtNum(const clang::SwitchStmt *stmt);
 
+  /* MISRA
+   * Rule: 17.5
+   * The function argument corresponding to a parameter declared to have an
+   * array type shall have an appropriate number of elements
+   */
+  void CheckArrayArgumentSize(const clang::CallExpr *stmt);
+
 
 public:
 
@@ -213,6 +220,7 @@ public:
 
   void VisitCallExpr(const clang::CallExpr *stmt) {
     CheckStringLiteralToNonConstChar(stmt);
+    CheckArrayArgumentSize(stmt);
   }
 
   void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {

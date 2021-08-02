@@ -629,7 +629,46 @@ void MISRAStmtRule::CheckCaseStmtNum(const clang::SwitchStmt *stmt) {
   }
 }
 
+/* MISRA
+ * Rule: 17.5
+ * The function argument corresponding to a parameter declared to have an
+ * array type shall have an appropriate number of elements
+ */
+void MISRAStmtRule::CheckArrayArgumentSize(const clang::CallExpr *stmt) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  auto decl = stmt->getCalleeDecl()->getAsFunction();
 
+  unsigned int i = 0;
+  for (const auto &it : stmt->arguments()) {
+    auto arg_type = it->IgnoreParenImpCasts()->getType();
+    auto param_decay_type = clang::dyn_cast<clang::DecayedType>(decl->getParamDecl(i)->getType());
+    if (!param_decay_type) {
+      i++;
+      continue;
+    }
+    auto param_type = param_decay_type->getOriginalType();
+
+    if (!param_type->isConstantArrayType() || !arg_type->isConstantArrayType()) {
+      i++;
+      continue;
+    }
+    auto array_arg_type = clang::dyn_cast<clang::ConstantArrayType>(arg_type);
+    auto array_param_type = clang::dyn_cast<clang::ConstantArrayType>(param_type);
+    if (array_arg_type->getSize() == array_param_type->getSize()) {
+      i++;
+      continue;
+    }
+
+    if (issue == nullptr) {
+      issue = report->ReportIssue(MISRA, M_R_17_5, stmt);
+      std::string ref_msg = "The function argument corresponding to a parameter declared to have an array type"
+                            " shall have an appropriate number of elements";
+      issue->SetRefMsg(ref_msg);
+    }
+    issue->AddDecl(decl->getParamDecl(i));
+  }
+}
 
 
 }
