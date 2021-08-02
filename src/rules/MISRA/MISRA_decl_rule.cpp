@@ -449,6 +449,31 @@ void MISRADeclRule::CheckDesignatedInitWithImplicitSizeArray(const clang::VarDec
 #endif
 }
 
+/* MISRA
+ * Rule: 17.6
+ * The declaration of an array parameter shall not contain the static keyword between the [ ]
+ */
+void MISRADeclRule::CheckStaticBetweenBracket(const clang::FunctionDecl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  for (const auto &param : decl->parameters()) {
+    auto param_type = param->getType();
+    auto decay_type = clang::dyn_cast<clang::DecayedType>(param_type);
+    if (decay_type == nullptr) continue;
+    auto origin_type = decay_type->getOriginalType();
+    auto array_type = clang::dyn_cast<clang::ArrayType>(origin_type);
+    if (array_type == nullptr) continue;
+    if (array_type->getSizeModifier() == clang::ArrayType::Static) {
+      if (issue == nullptr) {
+        issue = report->ReportIssue(MISRA, M_R_17_6, decl);
+        std::string ref_msg = "The declaration of an array parameter shall not contain the static keyword between the [ ]";
+        issue->SetRefMsg(ref_msg);
+      }
+      issue->AddDecl(param);
+    }
+  }
+}
+
 
 }
 }

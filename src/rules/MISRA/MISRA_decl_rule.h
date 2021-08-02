@@ -133,6 +133,12 @@ private:
    */
   void CheckDesignatedInitWithImplicitSizeArray(const clang::VarDecl *decl);
 
+  /* MISRA
+   * Rule: 17.6
+   * The declaration of an array parameter shall not contain the static keyword between the [ ]
+   */
+  void CheckStaticBetweenBracket(const clang::FunctionDecl *decl);
+
 public:
   void Finalize() {
     CheckUnusedTypedef();
@@ -167,6 +173,7 @@ public:
     CheckUnusedParameters(decl);
     CheckStaticSpecifier(decl);
     CheckInlineFunctionWithExternalLinkage(decl);
+    CheckStaticBetweenBracket(decl);
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {
