@@ -139,11 +139,17 @@ private:
    */
   void CheckStaticBetweenBracket(const clang::FunctionDecl *decl);
 
-/* MISRA
- * Rule: 18.7
- * Flexible array members shall not be declared
- */
+  /* MISRA
+   * Rule: 18.7
+   * Flexible array members shall not be declared
+   */
   void CheckFlexibleArray(const clang::RecordDecl *decl);
+
+  /* MISRA
+   * Rule: 18.8
+   * Variable-length array types shall not be used
+   */
+  void CheckVariableAsArrayLength(const clang::VarDecl *decl);
 
 public:
   void Finalize() {
@@ -161,6 +167,7 @@ public:
     CheckRestrict<clang::VarDecl>(decl);
     CheckArrayPartialInitialized(decl);
     CheckDesignatedInitWithImplicitSizeArray(decl);
+    CheckVariableAsArrayLength(decl);
   }
 
   void VisitParmVar(const clang::ParmVarDecl *decl) {

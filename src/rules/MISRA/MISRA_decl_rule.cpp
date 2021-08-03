@@ -488,6 +488,23 @@ void MISRADeclRule::CheckFlexibleArray(const clang::RecordDecl *decl) {
   }
 }
 
+/* MISRA
+ * Rule: 18.8
+ * Variable-length array types shall not be used
+ */
+void MISRADeclRule::CheckVariableAsArrayLength(const clang::VarDecl *decl) {
+  auto type = decl->getType();
+  if (!type->isArrayType()) return;
+  auto array_type = clang::dyn_cast<clang::ArrayType>(type);
+  if (array_type->hasSizedVLAType()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_18_8, decl);
+    std::string ref_msg = "Variable-length array types shall not be used";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }
