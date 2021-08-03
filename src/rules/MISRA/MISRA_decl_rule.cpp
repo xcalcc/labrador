@@ -474,6 +474,20 @@ void MISRADeclRule::CheckStaticBetweenBracket(const clang::FunctionDecl *decl) {
   }
 }
 
+/* MISRA
+ * Rule: 18.7
+ * Flexible array members shall not be declared
+ */
+void MISRADeclRule::CheckFlexibleArray(const clang::RecordDecl *decl) {
+  if (decl->hasFlexibleArrayMember()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_18_7, decl);
+    std::string ref_msg = "Flexible array members shall not be declared";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }

@@ -139,6 +139,12 @@ private:
    */
   void CheckStaticBetweenBracket(const clang::FunctionDecl *decl);
 
+/* MISRA
+ * Rule: 18.7
+ * Flexible array members shall not be declared
+ */
+  void CheckFlexibleArray(const clang::RecordDecl *decl);
+
 public:
   void Finalize() {
     CheckUnusedTypedef();
@@ -178,6 +184,7 @@ public:
 
   void VisitRecord(const clang::RecordDecl *decl) {
     CheckInappropriateBitField(decl);
+    CheckFlexibleArray(decl);
   }
 
 

@@ -108,6 +108,26 @@ bool MISRAStmtRule::IsTypeFit(clang::QualType lhs_type, clang::QualType rhs_type
   return type_fit;
 }
 
+void MISRAStmtRule::CheckArithmeticWithDifferentType(const clang::BinaryOperator *stmt) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  bool need_report = false;
+  if (stmt->isAdditiveOp() || stmt->isComparisonOp() || stmt->isCompoundAssignmentOp()) {
+    auto lhs_type = stmt->getLHS()->IgnoreParenImpCasts()->getType();
+    auto rhs_type = stmt->getRHS()->IgnoreParenImpCasts()->getType();
+    need_report = !IsTypeFit(lhs_type, rhs_type);
+  }
+
+  if (need_report) {
+    issue = report->ReportIssue(MISRA, M_R_10_4, stmt);
+    std::string ref_msg = "Both operands of an operator in which the usual"
+                          " arithmetic conversions are performed shall have the same essential type category";
+    issue->SetRefMsg(ref_msg);
+  }
+
+}
+
 /* MISRA
  * Rule: 10.5
  * The value of an expression should not be cast to an inappropriate essential type
@@ -669,8 +689,22 @@ void MISRAStmtRule::CheckModifyParameters(const clang::BinaryOperator *stmt) {
   }
 }
 
-
-
+/* MISRA
+ * Rule: 18.4
+ * The +, -, += and -= operators should not be applied to an expression of pointer type
+ */
+void MISRAStmtRule::CheckAddOrSubOnPointer(const clang::BinaryOperator *stmt) {
+  if (!stmt->isAdditiveOp() && !stmt->isCompoundAssignmentOp()) return;
+  auto lhs_type = stmt->getLHS()->IgnoreParenImpCasts()->getType();
+  auto rhs_type = stmt->getRHS()->IgnoreParenImpCasts()->getType();
+  if (lhs_type->isPointerType() || rhs_type->isPointerType()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_18_4, stmt);
+    std::string ref_msg = "The +, -, += and -= operators should not be applied to an expression of pointer type";
+    issue->SetRefMsg(ref_msg);
+  }
+}
 
 }
 }
