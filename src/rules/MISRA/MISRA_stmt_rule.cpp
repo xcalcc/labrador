@@ -706,5 +706,21 @@ void MISRAStmtRule::CheckAddOrSubOnPointer(const clang::BinaryOperator *stmt) {
   }
 }
 
+/* MISRA
+ * Rule: 21.3
+ * The memory allocation and deallocation functions of <stdlib.h> shall not be used
+ */
+void MISRAStmtRule::CheckStdMemoryAllocationFunction(const clang::CallExpr *stmt) {
+  auto name = stmt->getCalleeDecl()->getAsFunction()->getNameAsString();
+  auto conf_mgr = XcalCheckerManager::GetConfigureManager();
+  if (conf_mgr->IsMemAllocFunction(name)) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_21_3, stmt);
+    std::string ref_msg = "The memory allocation and deallocation functions of <stdlib.h> shall not be used";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 }
 }

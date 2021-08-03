@@ -215,6 +215,12 @@ private:
    */
   void CheckAddOrSubOnPointer(const clang::BinaryOperator *stmt);
 
+  /* MISRA
+   * Rule: 21.3
+   * The memory allocation and deallocation functions of <stdlib.h> shall not be used
+   */
+  void CheckStdMemoryAllocationFunction(const clang::CallExpr *stmt);
+
 
 public:
 
@@ -242,6 +248,7 @@ public:
     CheckStringLiteralToNonConstChar(stmt);
     CheckArrayArgumentSize(stmt);
     CheckUnusedCallExprWithoutVoidCast(stmt);
+    CheckStdMemoryAllocationFunction(stmt);
   }
 
   void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {

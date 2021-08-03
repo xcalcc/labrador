@@ -33,6 +33,7 @@ private:
   std::vector<std::string> _c_cxx_identifiers;
   std::vector<std::string> _jump_functions;
   std::vector<std::string> _danger_functions;
+  std::vector<std::string> _std_mem_functions;
 
 
   ConfigureManager(const ConfigureManager &) = delete;
@@ -44,6 +45,7 @@ private:
     C_CXX_IDENTIFIERS = 1,
     JUMP_FUNCTIONS = 2,
     DANGER_FUNCTIONS = 3,
+    STD_MEM_FUNCTIONS = 4,
     ALL,
   };
 
@@ -60,6 +62,7 @@ public:
     LoadFile("c_cxx_identifier.conf", _c_cxx_identifiers);
     LoadFile("jump_function.conf", _jump_functions);
     LoadFile("danger_function.conf", _danger_functions);
+    LoadFile("std_memory_function.conf", _std_mem_functions);
   }
 
 #ifdef linux
@@ -138,6 +141,11 @@ public:
   bool IsJumpFunction(const std::string &str) const {
     auto res = std::find(_jump_functions.begin(), _jump_functions.end(), str);
     return (res != _jump_functions.end());
+  }
+
+  bool IsMemAllocFunction(const std::string &str) const {
+    auto res = std::find(_std_mem_functions.begin(), _std_mem_functions.end(), str);
+    return (res != _std_mem_functions.end());
   }
 
   template<unsigned conf>
