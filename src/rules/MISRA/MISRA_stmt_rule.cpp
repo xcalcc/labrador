@@ -786,6 +786,19 @@ void MISRAStmtRule::CheckTimeFunctionInStdlib(const clang::CallExpr *stmt) {
   HasThisFunctionThenReport(fid_funcs, name, stmt, M_R_21_10, info);
 }
 
+/* MISRA
+ * Rule: 21.12
+ * The exception handling features of <fenv.h> should not be used
+ */
+void MISRAStmtRule::CheckExceptionFeaturesInFenv(const clang::CallExpr *stmt) {
+  std::vector<std::string> fid_funcs = {"feclearexcept", "fegetexceptflag", "feraiseexcept",
+                                        "fesetexceptflag", "fetestexcept"};
+  auto name = stmt->getCalleeDecl()->getAsFunction()->getNameAsString();
+
+  std::string info = "The exception handling features of <fenv.h> should not be used";
+  HasThisFunctionThenReport(fid_funcs, name, stmt, M_R_21_12, info);
+}
+
 
 }
 }

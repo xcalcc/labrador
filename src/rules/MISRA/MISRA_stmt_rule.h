@@ -248,6 +248,12 @@ private:
    */
   void CheckTimeFunctionInStdlib(const clang::CallExpr *stmt);
 
+  /* MISRA
+   * Rule: 21.12
+   * The exception handling features of <fenv.h> should not be used
+   */
+  void CheckExceptionFeaturesInFenv(const clang::CallExpr *stmt);
+
 
 public:
 
@@ -280,6 +286,7 @@ public:
     CheckSystemFuncInStdlib(stmt);
     CheckBsearchAndQsortInStdlib(stmt);
     CheckTimeFunctionInStdlib(stmt);
+    CheckExceptionFeaturesInFenv(stmt);
   }
 
   void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {
