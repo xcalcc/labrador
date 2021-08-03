@@ -671,7 +671,9 @@ void MISRAStmtRule::CheckArrayArgumentSize(const clang::CallExpr *stmt) {
  */
 void MISRAStmtRule::CheckUnusedCallExprWithoutVoidCast(const clang::CallExpr *stmt) {
   auto ctx = XcalCheckerManager::GetAstContext();
-  auto parent = ctx->getParents(*stmt)[0].get<clang::Stmt>();
+  auto parents = ctx->getParents(*stmt);
+  if (parents.size() == 0) return;
+  auto parent = parents[0].get<clang::Stmt>();
   if (parent == nullptr) return;
   if (auto block = clang::dyn_cast<clang::CompoundStmt>(parent)) {
     XcalIssue *issue = nullptr;
