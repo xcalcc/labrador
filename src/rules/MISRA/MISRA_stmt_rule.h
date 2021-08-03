@@ -236,6 +236,12 @@ private:
    */
   void CheckSystemFuncInStdlib(const clang::CallExpr *stmt);
 
+  /* MISRA
+   * Rule: 21.9
+   * The library functions bsearch and qsort of <stdlib.h> shall not be used
+   */
+  void CheckBsearchAndQsortInStdlib(const clang::CallExpr *stmt);
+
 
 public:
 
@@ -266,6 +272,7 @@ public:
     CheckStdMemoryAllocationFunction(stmt);
     CheckIntConvertFunctionInStdlib(stmt);
     CheckSystemFuncInStdlib(stmt);
+    CheckBsearchAndQsortInStdlib(stmt);
   }
 
   void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {

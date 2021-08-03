@@ -760,6 +760,18 @@ void MISRAStmtRule::CheckSystemFuncInStdlib(const clang::CallExpr *stmt) {
   HasThisFunctionThenReport(fid_funcs, name, stmt, M_R_21_8, info);
 }
 
+/* MISRA
+ * Rule: 21.9
+ * The library functions bsearch and qsort of <stdlib.h> shall not be used
+ */
+void MISRAStmtRule::CheckBsearchAndQsortInStdlib(const clang::CallExpr *stmt) {
+  std::vector<std::string> fid_funcs = {"bsearch", "qsort"};
+  auto name = stmt->getCalleeDecl()->getAsFunction()->getNameAsString();
+
+  std::string info = "The library functions bsearch and qsort of <stdlib.h> shall not be used";
+  HasThisFunctionThenReport(fid_funcs, name, stmt, M_R_21_9, info);
+}
+
 
 }
 }
