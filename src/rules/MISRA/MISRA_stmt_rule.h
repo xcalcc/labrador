@@ -227,6 +227,12 @@ private:
    */
   void CheckIntConvertFunctionInStdlib(const clang::CallExpr *stmt);
 
+  /* MISRA
+   * Rule: 21.8
+   * The library functions abort, exit, getenv and system of <stdlib.h> shall not be used
+   */
+  void CheckSystemFuncInStdlib(const clang::CallExpr *stmt);
+
 
 public:
 
@@ -256,6 +262,7 @@ public:
     CheckUnusedCallExprWithoutVoidCast(stmt);
     CheckStdMemoryAllocationFunction(stmt);
     CheckIntConvertFunctionInStdlib(stmt);
+    CheckSystemFuncInStdlib(stmt);
   }
 
   void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {

@@ -739,5 +739,23 @@ void MISRAStmtRule::CheckIntConvertFunctionInStdlib(const clang::CallExpr *stmt)
   }
 }
 
+
+/* MISRA
+ * Rule: 21.8
+ * The library functions abort, exit, getenv and system of <stdlib.h> shall not be used
+ */
+void MISRAStmtRule::CheckSystemFuncInStdlib(const clang::CallExpr *stmt) {
+  std::vector<std::string> fid_funcs = {"abort", "exit", "getenv", "system"};
+  auto name = stmt->getCalleeDecl()->getAsFunction()->getNameAsString();
+
+  if (std::find(fid_funcs.begin(), fid_funcs.end(), name) != fid_funcs.end()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_21_8, stmt);
+    std::string ref_msg = "The library functions abort, exit, getenv and system of <stdlib.h> shall not be used";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 }
 }
