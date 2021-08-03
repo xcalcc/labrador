@@ -47,8 +47,25 @@ private:
    * shall have the same essential type category
    */
   bool IsTypeFit(clang::QualType lhs_type, clang::QualType rhs_type);
-  void CheckArithmeticWithDifferentType(const clang::BinaryOperator *stmt);
-  void CheckArithmeticWithDifferentType(const clang::CompoundAssignOperator *stmt);
+  template<typename TYPE>
+  void CheckArithmeticWithDifferentType(const TYPE *stmt) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    bool need_report = false;
+    if (stmt->isCompoundAssignmentOp()) {
+      auto lhs_type = stmt->getLHS()->IgnoreParenImpCasts()->getType();
+      auto rhs_type = stmt->getRHS()->IgnoreParenImpCasts()->getType();
+      need_report = !IsTypeFit(lhs_type, rhs_type);
+    }
+
+    if (need_report) {
+      issue = report->ReportIssue(MISRA, M_R_10_4, stmt);
+      std::string ref_msg = "Both operands of an operator in which the usual"
+                            " arithmetic conversions are performed shall have the same essential type category";
+      issue->SetRefMsg(ref_msg);
+    }
+  }
 
   /* MISRA
    * Rule: 10.5
