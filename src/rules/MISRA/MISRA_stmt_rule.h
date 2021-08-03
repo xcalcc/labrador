@@ -242,6 +242,12 @@ private:
    */
   void CheckBsearchAndQsortInStdlib(const clang::CallExpr *stmt);
 
+  /* MISRA
+   * Rule: 21.10
+   * The Standard Library time and date functions shall not be used
+   */
+  void CheckTimeFunctionInStdlib(const clang::CallExpr *stmt);
+
 
 public:
 
@@ -273,6 +279,7 @@ public:
     CheckIntConvertFunctionInStdlib(stmt);
     CheckSystemFuncInStdlib(stmt);
     CheckBsearchAndQsortInStdlib(stmt);
+    CheckTimeFunctionInStdlib(stmt);
   }
 
   void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {

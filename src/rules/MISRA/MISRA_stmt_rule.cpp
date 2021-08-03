@@ -772,6 +772,18 @@ void MISRAStmtRule::CheckBsearchAndQsortInStdlib(const clang::CallExpr *stmt) {
   HasThisFunctionThenReport(fid_funcs, name, stmt, M_R_21_9, info);
 }
 
+/* MISRA
+ * Rule: 21.10
+ * The Standard Library time and date functions shall not be used
+ */
+void MISRAStmtRule::CheckTimeFunctionInStdlib(const clang::CallExpr *stmt) {
+  std::vector<std::string> fid_funcs = {"wcsftime"};
+  auto name = stmt->getCalleeDecl()->getAsFunction()->getNameAsString();
+
+  std::string info = "The Standard Library time and date functions shall not be used";
+  HasThisFunctionThenReport(fid_funcs, name, stmt, M_R_21_10, info);
+}
+
 
 }
 }
