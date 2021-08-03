@@ -722,5 +722,22 @@ void MISRAStmtRule::CheckStdMemoryAllocationFunction(const clang::CallExpr *stmt
   }
 }
 
+/* MISRA
+ * Rule: 21.7
+ * The atof, atoi, atol and atoll functions of <stdlib.h> shall not be used
+ */
+void MISRAStmtRule::CheckIntConvertFunctionInStdlib(const clang::CallExpr *stmt) {
+  std::vector<std::string> fid_funcs = {"atoi", "atol", "atoll"};
+  auto name = stmt->getCalleeDecl()->getAsFunction()->getNameAsString();
+
+  if (std::find(fid_funcs.begin(), fid_funcs.end(), name) != fid_funcs.end()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_21_7, stmt);
+    std::string ref_msg = "The atof, atoi, atol and atoll functions of <stdlib.h> shall not be used";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 }
 }
