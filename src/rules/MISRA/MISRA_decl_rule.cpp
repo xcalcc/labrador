@@ -505,6 +505,20 @@ void MISRADeclRule::CheckVariableAsArrayLength(const clang::VarDecl *decl) {
   }
 }
 
+/* MISRA
+ * Rule: 19.2
+ * The union keyword should not be used
+ */
+void MISRADeclRule::CheckUnionKeyword(const clang::RecordDecl *decl) {
+  if (decl->isUnion()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_19_2, decl);
+    std::string ref_msg = "The union keyword should not be used";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }

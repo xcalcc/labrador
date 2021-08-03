@@ -151,6 +151,12 @@ private:
    */
   void CheckVariableAsArrayLength(const clang::VarDecl *decl);
 
+  /* MISRA
+   * Rule: 19.2
+   * The union keyword should not be used
+   */
+  void CheckUnionKeyword(const clang::RecordDecl *decl);
+
 public:
   void Finalize() {
     CheckUnusedTypedef();
@@ -192,6 +198,7 @@ public:
   void VisitRecord(const clang::RecordDecl *decl) {
     CheckInappropriateBitField(decl);
     CheckFlexibleArray(decl);
+    CheckUnionKeyword(decl);
   }
 
 
