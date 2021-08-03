@@ -25,6 +25,9 @@ public:
 private:
   std::unordered_set<const clang::Stmt *> _terminates;
 
+  void HasThisFunctionThenReport(const std::vector<std::string> &fid_func, const std::string &str,
+                                 const clang::Stmt *stmt, const std::string &std_id, const std::string &info);
+
   /* MISRA
    * Rule: 7.4
    * A string literal shall not be assigned to an object unless the object’s

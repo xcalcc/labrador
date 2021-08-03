@@ -16,6 +16,19 @@
 namespace xsca {
 namespace rule {
 
+void MISRAStmtRule::HasThisFunctionThenReport(const std::vector<std::string> &fid_func, const std::string &str,
+                                              const clang::Stmt *stmt, const std::string &std_id,
+                                              const std::string &info) {
+  auto res = std::find(fid_func.begin(), fid_func.end(), str);
+  if (res != fid_func.end()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, std_id.c_str(), stmt);
+    std::string ref_msg = info;
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 /* MISRA
  * Rule: 7.4
  * A string literal shall not be assigned to an object unless the object’s type is “pointer to const-qualified char”
@@ -730,13 +743,8 @@ void MISRAStmtRule::CheckIntConvertFunctionInStdlib(const clang::CallExpr *stmt)
   std::vector<std::string> fid_funcs = {"atoi", "atol", "atoll"};
   auto name = stmt->getCalleeDecl()->getAsFunction()->getNameAsString();
 
-  if (std::find(fid_funcs.begin(), fid_funcs.end(), name) != fid_funcs.end()) {
-    XcalIssue *issue = nullptr;
-    XcalReport *report = XcalCheckerManager::GetReport();
-    issue = report->ReportIssue(MISRA, M_R_21_7, stmt);
-    std::string ref_msg = "The atof, atoi, atol and atoll functions of <stdlib.h> shall not be used";
-    issue->SetRefMsg(ref_msg);
-  }
+  std::string info = "The atof, atoi, atol and atoll functions of <stdlib.h> shall not be used";
+  HasThisFunctionThenReport(fid_funcs, name, stmt, M_R_21_7, info);
 }
 
 
@@ -748,14 +756,10 @@ void MISRAStmtRule::CheckSystemFuncInStdlib(const clang::CallExpr *stmt) {
   std::vector<std::string> fid_funcs = {"abort", "exit", "getenv", "system"};
   auto name = stmt->getCalleeDecl()->getAsFunction()->getNameAsString();
 
-  if (std::find(fid_funcs.begin(), fid_funcs.end(), name) != fid_funcs.end()) {
-    XcalIssue *issue = nullptr;
-    XcalReport *report = XcalCheckerManager::GetReport();
-    issue = report->ReportIssue(MISRA, M_R_21_8, stmt);
-    std::string ref_msg = "The library functions abort, exit, getenv and system of <stdlib.h> shall not be used";
-    issue->SetRefMsg(ref_msg);
-  }
+  std::string info = "The library functions abort, exit, getenv and system of <stdlib.h> shall not be used";
+  HasThisFunctionThenReport(fid_funcs, name, stmt, M_R_21_8, info);
 }
+
 
 }
 }
