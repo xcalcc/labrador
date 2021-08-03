@@ -35,6 +35,7 @@ private:
   std::vector<std::string> _danger_functions;
   std::vector<std::string> _std_mem_functions;
   std::vector<std::string> _fid_header_files;
+  std::vector<std::string> _std_io_functions;
 
 
   ConfigureManager(const ConfigureManager &) = delete;
@@ -65,6 +66,7 @@ public:
     LoadFile("danger_function.conf", _danger_functions);
     LoadFile("std_memory_function.conf", _std_mem_functions);
     LoadFile("fid_header_file.conf", _fid_header_files);
+    LoadFile("std_io_function.conf", _std_io_functions);
   }
 
 #ifdef linux
@@ -153,6 +155,11 @@ public:
   bool IsForbidHeaderFile(const std::string &str) const {
     auto res = std::find(_fid_header_files.begin(), _fid_header_files.end(), str);
     return (res != _fid_header_files.end());
+  }
+
+  bool IsStdIoFunction(const std::string &str) const {
+    auto res = std::find(_std_io_functions.begin(), _std_io_functions.end(), str);
+    return (res != _std_io_functions.end());
   }
 
   template<unsigned conf>

@@ -225,6 +225,12 @@ private:
   void CheckStdMemoryAllocationFunction(const clang::CallExpr *stmt);
 
   /* MISRA
+   * Rule: 21.6
+   * The Standard Library input/output functions shall not be used
+   */
+  void CheckIOFunctionInStdio(const clang::CallExpr *stmt);
+
+  /* MISRA
    * Rule: 21.7
    * The atof, atoi, atol and atoll functions of <stdlib.h> shall not be used
    */
@@ -282,6 +288,7 @@ public:
     CheckArrayArgumentSize(stmt);
     CheckUnusedCallExprWithoutVoidCast(stmt);
     CheckStdMemoryAllocationFunction(stmt);
+    CheckIOFunctionInStdio(stmt);
     CheckIntConvertFunctionInStdlib(stmt);
     CheckSystemFuncInStdlib(stmt);
     CheckBsearchAndQsortInStdlib(stmt);

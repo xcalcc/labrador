@@ -9,7 +9,6 @@
 //
 // implement Decl related rules for MISRA-C-2012
 //
-
 #include "MISRA_enum.inc"
 #include "scope_manager.h"
 #include "decl_null_handler.h"

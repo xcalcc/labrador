@@ -39,5 +39,37 @@ void MISRAPPRule::CheckFidHeaderFile(clang::SourceLocation Loc, llvm::StringRef 
   }
 }
 
+/* MISRA
+ * Rule: 21.6
+ * The Standard Library input/output functions shall not be used
+ */
+void MISRAPPRule::CheckIOFunctionInStdio(const clang::Token &MacroNameTok, const clang::MacroDefinition &MD) {
+  std::vector<std::string> fid_macro{
+      "BUFSIZ",
+      "EOF",
+      "FILENAME_MAX",
+      "FOPEN_MAX",
+      "L_tmpnam",
+      "SEEK_CUR",
+      "SEEK_END",
+      "SEEK_SET",
+      "TMP_MAX",
+      "_IOFBF",
+      "_IOLBF",
+      "_IONBF",
+      "stderr",
+      "stdin",
+      "stdout"
+  };
+  auto name =  MacroNameTok.getIdentifierInfo()->getName();
+  if (std::find(fid_macro.begin(), fid_macro.end(), name) != fid_macro.end()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_21_6, MacroNameTok.getLocation());
+    std::string ref_msg = "The Standard Library input/output functions shall not be used";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 }
 }

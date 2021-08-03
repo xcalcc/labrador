@@ -29,6 +29,12 @@ private:
    */
   void CheckFidHeaderFile(clang::SourceLocation Loc, llvm::StringRef IncludedFilename);
 
+  /* MISRA
+   * Rule: 21.6
+   * The Standard Library input/output functions shall not be used
+   */
+  void CheckIOFunctionInStdio(const clang::Token &MacroNameTok, const clang::MacroDefinition &MD);
+
 public:
   void MacroDefined(const clang::Token &MacroNameTok,
                     const clang::MacroDirective *MD) {
@@ -39,6 +45,7 @@ public:
                     clang::SourceRange Range,
                     const clang::MacroArgs *Args
   ) {
+    CheckIOFunctionInStdio(MacroNameTok, MD);
   }
 
   void InclusionDirective(clang::SourceLocation DirectiveLoc,

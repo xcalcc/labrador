@@ -738,6 +738,22 @@ void MISRAStmtRule::CheckStdMemoryAllocationFunction(const clang::CallExpr *stmt
 }
 
 /* MISRA
+ * Rule: 21.6
+ * The Standard Library input/output functions shall not be used
+ */
+void MISRAStmtRule::CheckIOFunctionInStdio(const clang::CallExpr *stmt) {
+  auto name = stmt->getCalleeDecl()->getAsFunction()->getNameAsString();
+  auto conf_mgr = XcalCheckerManager::GetConfigureManager();
+  if (conf_mgr->IsStdIoFunction(name)) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_21_6, stmt);
+    std::string ref_msg = "The Standard Library input/output functions shall not be used";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+/* MISRA
  * Rule: 21.7
  * The atof, atoi, atol and atoll functions of <stdlib.h> shall not be used
  */
@@ -798,6 +814,7 @@ void MISRAStmtRule::CheckExceptionFeaturesInFenv(const clang::CallExpr *stmt) {
   std::string info = "The exception handling features of <fenv.h> should not be used";
   HasThisFunctionThenReport(fid_funcs, name, stmt, M_R_21_12, info);
 }
+
 
 
 }
