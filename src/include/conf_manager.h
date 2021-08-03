@@ -34,6 +34,7 @@ private:
   std::vector<std::string> _jump_functions;
   std::vector<std::string> _danger_functions;
   std::vector<std::string> _std_mem_functions;
+  std::vector<std::string> _fid_header_files;
 
 
   ConfigureManager(const ConfigureManager &) = delete;
@@ -63,6 +64,7 @@ public:
     LoadFile("jump_function.conf", _jump_functions);
     LoadFile("danger_function.conf", _danger_functions);
     LoadFile("std_memory_function.conf", _std_mem_functions);
+    LoadFile("fid_header_file.conf", _fid_header_files);
   }
 
 #ifdef linux
@@ -146,6 +148,11 @@ public:
   bool IsMemAllocFunction(const std::string &str) const {
     auto res = std::find(_std_mem_functions.begin(), _std_mem_functions.end(), str);
     return (res != _std_mem_functions.end());
+  }
+
+  bool IsForbidHeaderFile(const std::string &str) const {
+    auto res = std::find(_fid_header_files.begin(), _fid_header_files.end(), str);
+    return (res != _fid_header_files.end());
   }
 
   template<unsigned conf>

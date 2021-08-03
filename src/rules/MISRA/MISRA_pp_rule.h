@@ -24,8 +24,10 @@ private:
   /* MISRA
    * Rule: 17.1
    * The features of <stdarg.h> shall not be used
+   * Rule: 21.5
+   * The standard header file <signal.h> shall not be used
    */
-  void CheckStdArgHeaderFile(clang::SourceLocation Loc, llvm::StringRef IncludedFilename);
+  void CheckFidHeaderFile(clang::SourceLocation Loc, llvm::StringRef IncludedFilename);
 
 public:
   void MacroDefined(const clang::Token &MacroNameTok,
@@ -45,7 +47,7 @@ public:
                           const clang::FileEntry *IncludedFile, llvm::StringRef SearchPath,
                           llvm::StringRef RelativePath, const clang::Module *Imported,
                           clang::SrcMgr::CharacteristicKind FileType) {
-    CheckStdArgHeaderFile(DirectiveLoc, IncludedFilename);
+    CheckFidHeaderFile(DirectiveLoc, IncludedFilename);
   }
 
 }; // MISRAPPRule
