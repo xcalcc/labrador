@@ -708,5 +708,7 @@ void MISRAStmtRule::CheckModifyParameters(const clang::BinaryOperator *stmt) {
 }
 
 
+
+
 }
 }

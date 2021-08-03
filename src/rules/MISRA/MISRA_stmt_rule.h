@@ -210,6 +210,24 @@ private:
    */
   void CheckModifyParameters(const clang::BinaryOperator *stmt);
 
+  /* MISRA
+   * Rule: 18.4
+   * The +, -, += and -= operators should not be applied to an expression of pointer type
+   */
+  template<typename TYPE>
+  void CheckAddOrSubOnPointer(const TYPE *stmt) {
+    if (!stmt->isAdditiveOp() && !stmt->isCompoundAssignmentOp()) return;
+    auto lhs_type = stmt->getLHS()->IgnoreParenImpCasts()->getType();
+    auto rhs_type = stmt->getRHS()->IgnoreParenImpCasts()->getType();
+    if (lhs_type->isPointerType() || rhs_type->isPointerType()) {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+      issue = report->ReportIssue(MISRA, M_R_18_4, stmt);
+      std::string ref_msg = "The +, -, += and -= operators should not be applied to an expression of pointer type";
+      issue->SetRefMsg(ref_msg);
+    }
+  }
+
 
 public:
 
@@ -225,10 +243,12 @@ public:
     CheckCommaStmt(stmt);
     CheckUsingAssignmentAsResult(stmt);
     CheckModifyParameters(stmt);
+    CheckAddOrSubOnPointer(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
     CheckArithmeticWithDifferentType(stmt);
+    CheckAddOrSubOnPointer(stmt);
   }
 
   void VisitCallExpr(const clang::CallExpr *stmt) {
