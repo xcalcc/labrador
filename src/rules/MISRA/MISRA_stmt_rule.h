@@ -174,8 +174,8 @@ private:
     CheckMultiTerminate(stmt->getBody());
   }
 
-  template<>
-  void CheckMultiTerminate<clang::IfStmt>(const clang::IfStmt *stmt) {
+
+  void CheckMultiTerminate(const clang::IfStmt *stmt) {
     _terminates.clear();
     CheckMultiTerminate(stmt->getThen());
     CheckMultiTerminate(stmt->getElse());
