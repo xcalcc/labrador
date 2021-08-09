@@ -565,6 +565,7 @@ void MISRAStmtRule::CheckLabelNotEncloseWithGoto(const clang::GotoStmt *stmt) {
 void MISRAStmtRule::CollectTerminate(const clang::Stmt *stmt) {
   if (stmt == nullptr) return;
   for (const auto &it : stmt->children()) {
+    if (it == nullptr) continue;
     if ((it->getStmtClass() == clang::Stmt::BreakStmtClass) ||
         (it->getStmtClass() == clang::Stmt::GotoStmtClass)) {
       _terminates.insert(it);
@@ -635,6 +636,9 @@ void MISRAStmtRule::CheckArrayArgumentSize(const clang::CallExpr *stmt) {
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
   auto decl = stmt->getCalleeDecl()->getAsFunction();
+
+  // TODO: call function pointer would return nullptr
+  if (decl == nullptr) return;
 
   unsigned int i = 0;
   for (const auto &it : stmt->arguments()) {
@@ -730,7 +734,10 @@ void MISRAStmtRule::CheckAddOrSubOnPointer(const clang::BinaryOperator *stmt) {
  * The memory allocation and deallocation functions of <stdlib.h> shall not be used
  */
 void MISRAStmtRule::CheckStdMemoryAllocationFunction(const clang::CallExpr *stmt) {
-  auto name = stmt->getCalleeDecl()->getAsFunction()->getNameAsString();
+  auto callee = stmt->getCalleeDecl()->getAsFunction();
+  // call function pointer would return nullptr
+  if (callee == nullptr) return;
+  auto name = callee->getNameAsString();
   auto conf_mgr = XcalCheckerManager::GetConfigureManager();
   if (conf_mgr->IsMemAllocFunction(name)) {
     XcalIssue *issue = nullptr;
@@ -746,7 +753,9 @@ void MISRAStmtRule::CheckStdMemoryAllocationFunction(const clang::CallExpr *stmt
  * The Standard Library input/output functions shall not be used
  */
 void MISRAStmtRule::CheckIOFunctionInStdio(const clang::CallExpr *stmt) {
-  auto name = stmt->getCalleeDecl()->getAsFunction()->getNameAsString();
+  auto callee = stmt->getCalleeDecl()->getAsFunction();
+  if (callee == nullptr) return;
+  auto name = callee->getNameAsString();
   auto conf_mgr = XcalCheckerManager::GetConfigureManager();
   if (conf_mgr->IsStdIoFunction(name)) {
     XcalIssue *issue = nullptr;
@@ -763,7 +772,9 @@ void MISRAStmtRule::CheckIOFunctionInStdio(const clang::CallExpr *stmt) {
  */
 void MISRAStmtRule::CheckIntConvertFunctionInStdlib(const clang::CallExpr *stmt) {
   std::vector<std::string> fid_funcs = {"atoi", "atol", "atoll"};
-  auto name = stmt->getCalleeDecl()->getAsFunction()->getNameAsString();
+  auto callee = stmt->getCalleeDecl()->getAsFunction();
+  if (callee == nullptr) return;
+  auto name = callee->getNameAsString();
 
   std::string info = "The atof, atoi, atol and atoll functions of <stdlib.h> shall not be used";
   HasThisFunctionThenReport(fid_funcs, name, stmt, M_R_21_7, info);
@@ -776,7 +787,9 @@ void MISRAStmtRule::CheckIntConvertFunctionInStdlib(const clang::CallExpr *stmt)
  */
 void MISRAStmtRule::CheckSystemFuncInStdlib(const clang::CallExpr *stmt) {
   std::vector<std::string> fid_funcs = {"abort", "exit", "getenv", "system"};
-  auto name = stmt->getCalleeDecl()->getAsFunction()->getNameAsString();
+  auto callee = stmt->getCalleeDecl()->getAsFunction();
+  if (callee == nullptr) return;
+  auto name = callee->getNameAsString();
 
   std::string info = "The library functions abort, exit, getenv and system of <stdlib.h> shall not be used";
   HasThisFunctionThenReport(fid_funcs, name, stmt, M_R_21_8, info);
@@ -788,7 +801,9 @@ void MISRAStmtRule::CheckSystemFuncInStdlib(const clang::CallExpr *stmt) {
  */
 void MISRAStmtRule::CheckBsearchAndQsortInStdlib(const clang::CallExpr *stmt) {
   std::vector<std::string> fid_funcs = {"bsearch", "qsort"};
-  auto name = stmt->getCalleeDecl()->getAsFunction()->getNameAsString();
+  auto callee = stmt->getCalleeDecl()->getAsFunction();
+  if (callee == nullptr) return;
+  auto name = callee->getNameAsString();
 
   std::string info = "The library functions bsearch and qsort of <stdlib.h> shall not be used";
   HasThisFunctionThenReport(fid_funcs, name, stmt, M_R_21_9, info);
@@ -800,7 +815,9 @@ void MISRAStmtRule::CheckBsearchAndQsortInStdlib(const clang::CallExpr *stmt) {
  */
 void MISRAStmtRule::CheckTimeFunctionInStdlib(const clang::CallExpr *stmt) {
   std::vector<std::string> fid_funcs = {"wcsftime"};
-  auto name = stmt->getCalleeDecl()->getAsFunction()->getNameAsString();
+  auto callee = stmt->getCalleeDecl()->getAsFunction();
+  if (callee == nullptr) return;
+  auto name = callee->getNameAsString();
 
   std::string info = "The Standard Library time and date functions shall not be used";
   HasThisFunctionThenReport(fid_funcs, name, stmt, M_R_21_10, info);
@@ -813,7 +830,9 @@ void MISRAStmtRule::CheckTimeFunctionInStdlib(const clang::CallExpr *stmt) {
 void MISRAStmtRule::CheckExceptionFeaturesInFenv(const clang::CallExpr *stmt) {
   std::vector<std::string> fid_funcs = {"feclearexcept", "fegetexceptflag", "feraiseexcept",
                                         "fesetexceptflag", "fetestexcept"};
-  auto name = stmt->getCalleeDecl()->getAsFunction()->getNameAsString();
+  auto callee = stmt->getCalleeDecl()->getAsFunction();
+  if (callee == nullptr) return;
+  auto name = callee->getNameAsString();
 
   std::string info = "The exception handling features of <fenv.h> should not be used";
   HasThisFunctionThenReport(fid_funcs, name, stmt, M_R_21_12, info);
