@@ -657,6 +657,10 @@ void MISRAStmtRule::CheckArrayArgumentSize(const clang::CallExpr *stmt) {
     }
     auto array_arg_type = clang::dyn_cast<clang::ConstantArrayType>(arg_type);
     auto array_param_type = clang::dyn_cast<clang::ConstantArrayType>(param_type);
+    if (array_arg_type == nullptr || array_param_type == nullptr) {
+      i++;
+      continue;
+    }
     if (array_arg_type->getSize() == array_param_type->getSize()) {
       i++;
       continue;

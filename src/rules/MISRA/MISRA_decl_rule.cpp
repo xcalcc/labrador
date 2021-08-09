@@ -496,6 +496,7 @@ void MISRADeclRule::CheckVariableAsArrayLength(const clang::VarDecl *decl) {
   auto type = decl->getType();
   if (!type->isArrayType()) return;
   auto array_type = clang::dyn_cast<clang::ArrayType>(type);
+  if (!array_type) return;
   if (array_type->hasSizedVLAType()) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
