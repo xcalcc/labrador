@@ -353,6 +353,7 @@ void MISRAStmtRule::CheckAssignRemoveConstOrVolatile(const clang::BinaryOperator
   auto rhs = stmt->getRHS();
   if (auto cast_inst = clang::dyn_cast<clang::CastExpr>(rhs)) {
     auto sub_type = cast_inst->getSubExpr()->IgnoreParenImpCasts()->getType();
+    if (!sub_type->isPointerType()) return;
     if (sub_type->getPointeeType().isConstQualified() || sub_type->getPointeeType().isVolatileQualified()) {
       XcalIssue *issue = nullptr;
       XcalReport *report = XcalCheckerManager::GetReport();
@@ -562,6 +563,7 @@ void MISRAStmtRule::CheckLabelNotEncloseWithGoto(const clang::GotoStmt *stmt) {
  * There should be no more than one break or goto statement used to terminate any iteration statement
  */
 void MISRAStmtRule::CollectTerminate(const clang::Stmt *stmt) {
+  if (stmt == nullptr) return;
   for (const auto &it : stmt->children()) {
     if ((it->getStmtClass() == clang::Stmt::BreakStmtClass) ||
         (it->getStmtClass() == clang::Stmt::GotoStmtClass)) {
@@ -636,6 +638,7 @@ void MISRAStmtRule::CheckArrayArgumentSize(const clang::CallExpr *stmt) {
 
   unsigned int i = 0;
   for (const auto &it : stmt->arguments()) {
+    if (i >= decl->param_size()) break;
     auto arg_type = it->IgnoreParenImpCasts()->getType();
     auto param_decay_type = clang::dyn_cast<clang::DecayedType>(decl->getParamDecl(i)->getType());
     if (!param_decay_type) {
@@ -662,6 +665,7 @@ void MISRAStmtRule::CheckArrayArgumentSize(const clang::CallExpr *stmt) {
       issue->SetRefMsg(ref_msg);
     }
     issue->AddDecl(decl->getParamDecl(i));
+    i++;
   }
 }
 
