@@ -459,6 +459,7 @@ bool GJB5369StmtRule::CheckEmptySwitch(const clang::SwitchStmt *stmt) {
  */
 bool GJB5369StmtRule::HasBreakStmt(const clang::Stmt *stmt) {
   for (const auto &child : stmt->children()) {
+    if (child == nullptr) continue;
     if (child->getStmtClass() == clang::Stmt::BreakStmtClass) return true;
   }
   return false;

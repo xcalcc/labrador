@@ -142,7 +142,7 @@ private:
    * The controlling expression of an if statement and the controlling expression
    * of an iteration-statement shall have essentially Boolean type
    */
-  bool CheckControlStmt(const clang::Expr *stmt);
+  void CheckControlStmt(const clang::Expr *stmt);
   void CheckControlStmt(const clang::IfStmt *stmt);
   void CheckControlStmt(const clang::WhileStmt *stmt);
   void CheckControlStmt(const clang::DoStmt *stmt);

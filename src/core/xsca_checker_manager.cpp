@@ -31,7 +31,8 @@ XcalCheckerManager::InitCheckers(clang::CompilerInstance &CI,
 
   // initialize report
   _report = std::make_unique<XcalReport>();
-  auto filebuf = std::make_unique<char []>(InFile.size() + 8);
+  auto filebuf = std::make_unique<char []>(InFile.size() + 16);
+
   char *fileptr = filebuf.get();
   strncpy(fileptr, InFile.data(), InFile.size());
   fileptr[InFile.size()] = '\0';

@@ -477,7 +477,8 @@ void MISRAStmtRule::CheckUsingAssignmentAsResult(const clang::BinaryOperator *st
  * The controlling expression of an if statement and the controlling expression
  * of an iteration-statement shall have essentially Boolean type
  */
-bool MISRAStmtRule::CheckControlStmt(const clang::Expr *stmt) {
+void MISRAStmtRule::CheckControlStmt(const clang::Expr *stmt) {
+  if (stmt == nullptr) return;
   if (!stmt->getType()->isBooleanType()) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
@@ -539,6 +540,7 @@ void MISRAStmtRule::CheckLabelNotEncloseWithGoto(const clang::GotoStmt *stmt) {
   auto ctx = XcalCheckerManager::GetAstContext();
   auto label = stmt->getLabel()->getStmt();
   auto label_parents = ctx->getParents(*label);
+  if (label_parents.empty()) return;
   auto label_parent = label_parents[0].get<clang::Stmt>();
 
   const clang::Stmt *tmp = stmt;
