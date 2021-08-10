@@ -329,8 +329,8 @@ void MISRADeclRule::CheckStaticSpecifier(const clang::FunctionDecl *decl) {
     if (canonical_decl->isStatic() != decl->isStatic()) {
       XcalIssue *issue = nullptr;
       XcalReport *report = XcalCheckerManager::GetReport();
-      issue = report->ReportIssue(MISRA, M_R_8_4, decl);
-      std::string ref_msg = "A compatible declaration shall be visible when an object or function with external linkage is defined";
+      issue = report->ReportIssue(MISRA, M_R_8_8, decl);
+      std::string ref_msg = "The static storage class specifier shall be used in all declarations of objects and functions that have internal linkage";
       issue->SetRefMsg(ref_msg);
     }
   }
