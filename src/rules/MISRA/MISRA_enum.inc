@@ -58,6 +58,7 @@
 #define M_R_12_2    "M_R_12_2"
 #define M_R_12_3    "M_R_12_3"
 
+#define M_R_13_2    "M_R_13_2"
 #define M_R_13_4    "M_R_13_4"
 #define M_R_13_5    "M_R_13_5"
 #define M_R_13_6    "M_R_13_6"

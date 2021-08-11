@@ -128,6 +128,17 @@ private:
   void CheckCommaStmt(const clang::BinaryOperator *stmt);
 
   /* MISRA
+   * Rule: 13.2
+   * The value of an expression and its persistent side
+   * effects shall be the same under all permitted evaluation orders
+   */
+  bool isInc(const clang::Expr *expr);
+  void CheckSideEffectWithOrder(const clang::BinaryOperator *stmt);
+  void CheckSideEffectWithOrder(const clang::ArraySubscriptExpr *stmt);
+  void CheckSideEffectWithOrder(const clang::CallExpr *stmt);
+  void ReportSideEffect(const clang::Stmt *stmt);
+
+  /* MISRA
    * Rule: 13.4
    * The result of an assignment operator should not be used
    */
@@ -276,6 +287,7 @@ public:
     CheckUsingAssignmentAsResult(stmt);
     CheckModifyParameters(stmt);
     CheckAddOrSubOnPointer(stmt);
+    CheckSideEffectWithOrder(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
@@ -294,6 +306,7 @@ public:
     CheckBsearchAndQsortInStdlib(stmt);
     CheckTimeFunctionInStdlib(stmt);
     CheckExceptionFeaturesInFenv(stmt);
+    CheckSideEffectWithOrder(stmt);
   }
 
   void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {
@@ -314,6 +327,7 @@ public:
 
   void VisitArraySubscriptExpr(const clang::ArraySubscriptExpr *stmt) {
     CheckUsingAssignmentAsResult(stmt);
+    CheckSideEffectWithOrder(stmt);
   }
 
   void VisitIfStmt(const clang::IfStmt *stmt) {

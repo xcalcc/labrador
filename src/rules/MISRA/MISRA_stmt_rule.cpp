@@ -437,6 +437,54 @@ void MISRAStmtRule::CheckCommaStmt(const clang::BinaryOperator *stmt) {
 }
 
 /* MISRA
+ * Rule: 13.2
+ * The value of an expression and its persistent side
+ * effects shall be the same under all permitted evaluation orders
+ */
+bool MISRAStmtRule::isInc(const clang::Expr *expr) {
+  if (expr == nullptr) return false;
+  if (auto unary = clang::dyn_cast<clang::UnaryOperator>(expr)) {
+    return unary->isPostfix() || unary->isPrefix();
+  }
+  return false;
+}
+
+
+void MISRAStmtRule::CheckSideEffectWithOrder(const clang::BinaryOperator *stmt) {
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+
+  if (isInc(lhs) && isInc(rhs)) {
+    ReportSideEffect(stmt);
+  }
+}
+
+void MISRAStmtRule::CheckSideEffectWithOrder(const clang::ArraySubscriptExpr *stmt) {
+  if (isInc(stmt->getIdx()->IgnoreParenImpCasts())) {
+    ReportSideEffect(stmt);
+  }
+}
+
+void MISRAStmtRule::CheckSideEffectWithOrder(const clang::CallExpr *stmt) {
+  for (const auto &args : stmt->arguments()) {
+    if (isInc(args)) {
+      ReportSideEffect(stmt);
+      break;
+    }
+  }
+}
+
+void MISRAStmtRule::ReportSideEffect(const clang::Stmt *stmt) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(MISRA, M_R_13_2, stmt);
+  std::string ref_msg = "The value of an expression and its persistent side effects"
+                        " shall be the same under all permitted evaluation orders";
+  issue->SetRefMsg(ref_msg);
+}
+
+
+/* MISRA
  * Rule: 13.4
  * The result of an assignment operator should not be used
  */

@@ -107,10 +107,14 @@ XcalReport::PrintVtxtIssue(const XcalIssue *issue)
     }
     // output path
     ploc = _source_mgr->getPresumedLoc(it->Start());
-    fe = _source_mgr->getFileEntryForID(ploc.getFileID());
-    fid = fe ? fe->getUID() : ploc.getFileID().getHashValue();
-    fprintf(_vtxt_file, "%d:%d:%d:%d",
-            fid + 1, ploc.getLine(), ploc.getColumn(), it->Kind());
+    if (ploc.isValid()) {
+      fe = _source_mgr->getFileEntryForID(ploc.getFileID());
+      fid = fe ? fe->getUID() : ploc.getFileID().getHashValue();
+      fprintf(_vtxt_file, "%d:%d:%d:%d",
+              fid + 1, ploc.getLine(), ploc.getColumn(), it->Kind());
+    } else {
+      fprintf(_vtxt_file, "%d:%d:%d:%d", 0, 0, 0, 0);
+    }
   }
 
   fprintf(_vtxt_file, "]\n");
