@@ -194,9 +194,35 @@ void MISRAStmtRule::CheckCompositeExprAssignToWiderTypeVar(const clang::BinaryOp
   if (!stmt->isAssignmentOp()) return;
 
   auto lhs_type = stmt->getLHS()->IgnoreParenImpCasts()->getType();
-  auto rhs_type = stmt->getRHS()->IgnoreParenImpCasts()->getType();
+  auto rhs_type = stmt->getRHS()->IgnoreCasts()->getType();
+  bool need_report = false;
 
-  if (rhs_type < lhs_type) {
+  if (rhs_type < lhs_type) need_report = true;
+  if (lhs_type->isIntegerType() && (rhs_type == lhs_type)) {
+    auto lhs_bt = clang::dyn_cast<clang::BuiltinType>(lhs_type);
+    auto rhs_bt = clang::dyn_cast<clang::BuiltinType>(rhs_type);
+
+    // convert signed type to unsigned type to compare size
+    auto resolve = [&](const clang::BuiltinType *type) -> clang::BuiltinType::Kind {
+      if (type->isUnsignedInteger()) {
+        return static_cast<clang::BuiltinType::Kind>(type->getKind() - clang::BuiltinType::Kind::Bool);
+      }
+      return type->getKind();
+    };
+
+    if (auto bin_sub = clang::dyn_cast<clang::BinaryOperator>(stmt->getRHS()->IgnoreCasts())) {
+      auto sub_lhs_type = bin_sub->getLHS()->IgnoreParenImpCasts()->getType();
+      auto sub_rhs_type = bin_sub->getRHS()->IgnoreParenImpCasts()->getType();
+      if (sub_lhs_type->isIntegerType() && sub_rhs_type->isIntegerType()) {
+        auto prim_kind = resolve(lhs_bt);
+        auto lhs_kind = resolve(clang::dyn_cast<clang::BuiltinType>(sub_lhs_type));
+        auto rhs_kind = resolve(clang::dyn_cast<clang::BuiltinType>(sub_rhs_type));
+        if (lhs_kind < prim_kind && rhs_kind < prim_kind) need_report = true;
+      }
+    }
+  }
+
+  if (need_report) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(MISRA, M_R_10_6, stmt);
