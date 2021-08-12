@@ -89,10 +89,10 @@ XcalReport::PrintVtxtIssue(const XcalIssue *issue)
     output_std = "GJB";
   }
 
-  fprintf(_vtxt_file, "[A10],[%s],[%s],[%d:%d],[Vul],[D],[RBC],[1,0,0],[%s],[%s],",
+  fprintf(_vtxt_file, "[A10],#%s#,[%s],[%d:%d],[Vul],[D],[RBC],[1,0,0],[%s],[%s],",
           key, ploc.getFilename(),
           fid + 1, ploc.getLine(), output_std.c_str(), issue->RuleName());
-  fprintf(_vtxt_file, "[%s],##,[", issue->DeclName());
+  fprintf(_vtxt_file, "#%s#,##,[", issue->DeclName());
 
   std::vector<XcalPathInfo>::const_iterator end = issue->PathInfo().end();
   bool append_comma = false;
