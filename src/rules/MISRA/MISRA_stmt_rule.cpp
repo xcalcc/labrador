@@ -918,6 +918,30 @@ void MISRAStmtRule::CheckExceptionFeaturesInFenv(const clang::CallExpr *stmt) {
   HasThisFunctionThenReport(fid_funcs, name, stmt, M_R_21_12, info);
 }
 
+/* MISRA
+ * Rule: 12-1-1
+ * ctor and dtor cannot use dynamic type
+ */
+void MISRAStmtRule::CheckDynamicTypeInCtorAndDtor(const clang::CXXMemberCallExpr *stmt) {
+  auto callee = stmt->getCalleeDecl();
+  stmt->dumpColor();
+  auto method_decl = clang::dyn_cast<clang::CXXMethodDecl>(callee);
+  if (callee == nullptr) return;
+  
+}
+
+
+void MISRAStmtRule::ReportDynamicInCTorAndDtor(const clang::Stmt *stmt)  {
+  bool is_ctor = clang::isa<clang::CXXConstructorDecl>(_current_function_decl);
+  bool is_dtor = clang::isa<clang::CXXDestructorDecl>(_current_function_decl);
+  if (is_ctor || is_dtor) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_12_1_1, stmt);
+    std::string ref_msg = "ctor and dtor cannot use dynamic type";
+    issue->SetRefMsg(ref_msg);
+  }
+}
 
 
 }

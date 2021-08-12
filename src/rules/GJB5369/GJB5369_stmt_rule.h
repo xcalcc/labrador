@@ -146,6 +146,12 @@ private:
   void CheckEmptyCaseStmt(const clang::SwitchCase *stmt);
 
   /*
+   * GJB5369: 4.4.1.2
+   * pointer's pointer nested more than two levels is forbidden
+   */
+  void CheckPointerNestedLevel(const clang::BinaryOperator *stmt);
+
+  /*
    * GJB5369: 4.4.2.1
    * comparing two pointer should be careful
    */
@@ -601,6 +607,7 @@ public:
     CheckMultiCallExprInSingleStmt(stmt);
     CheckPointerCast(stmt);
     CheckComparingRealNumber(stmt);
+    CheckPointerNestedLevel(stmt);
   }
 
   void VisitFunctionBody(const clang::Stmt *stmt) {

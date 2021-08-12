@@ -10,6 +10,7 @@
 // implement Decl related rules for MISRA
 //
 
+#include <unordered_set>
 #include "xsca_report.h"
 #include "MISRA_decl_rule.h"
 
@@ -517,6 +518,55 @@ void MISRADeclRule::CheckUnionKeyword(const clang::RecordDecl *decl) {
     issue = report->ReportIssue(MISRA, M_R_19_2, decl);
     std::string ref_msg = "The union keyword should not be used";
     issue->SetRefMsg(ref_msg);
+  }
+}
+
+/* MISRA
+ * Rule: 10_1_3
+ * base class should not be both virtual and non-virtual in the same hierarchy
+ */
+void MISRADeclRule::CheckDifferentVirtualInSameHierarchy(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasDefinition()) return;
+  if (decl->getNumBases() == 0) return;
+
+  bool need_report = false;
+  std::unordered_set<const clang::RecordDecl *> vbases;
+  std::unordered_set<const clang::RecordDecl *> sinks;
+
+  auto getParentClassDecl = [](const clang::QualType &type) -> const clang::CXXRecordDecl *{
+    auto record_type = clang::dyn_cast<clang::RecordType>(type);
+    if (record_type == nullptr) return nullptr;
+    auto parent_decl = clang::dyn_cast<clang::CXXRecordDecl>(record_type->getDecl());
+    return parent_decl;
+  };
+
+  for (const auto &parent : decl->bases()) {
+    auto parent_decl = getParentClassDecl(parent.getType());
+    if (parent_decl == nullptr) continue;
+    if (parent_decl->getNumBases() == 0) continue;
+
+    for (auto &super_class : parent_decl->bases()) {
+      auto super_decl = getParentClassDecl(super_class.getType());
+      if (super_decl == nullptr) continue;
+      if (!parent_decl->isVirtuallyDerivedFrom(super_decl)) {
+        if (vbases.find(super_decl) != vbases.end()) {
+          need_report = true;
+          sinks.insert(parent_decl);
+        }
+      } else {
+        vbases.insert(super_decl);
+      }
+    }
+
+  }
+
+  if (need_report) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_10_1_3, decl);
+    std::string ref_msg = "base class should not be both virtual and non-virtual in the same hierarchy";
+    issue->SetRefMsg(ref_msg);
+    for (const auto &it : sinks) issue->AddDecl(it);
   }
 }
 

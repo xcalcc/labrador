@@ -156,6 +156,12 @@ private:
    */
   void CheckUnionKeyword(const clang::RecordDecl *decl);
 
+  /* MISRA
+   * Rule: 10_1_3
+   * base class should not be both virtual and non-virtual in the same hierarchy
+   */
+  void CheckDifferentVirtualInSameHierarchy(const clang::CXXRecordDecl *decl);
+
 public:
   void Finalize() {
     CheckUnusedTypedef();
@@ -198,6 +204,10 @@ public:
     CheckInappropriateBitField(decl);
     CheckFlexibleArray(decl);
     CheckUnionKeyword(decl);
+  }
+
+  void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
+    CheckDifferentVirtualInSameHierarchy(decl);
   }
 
 

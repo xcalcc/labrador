@@ -23,6 +23,7 @@ public:
   ~MISRAStmtRule() = default;
 
 private:
+  const clang::FunctionDecl *_current_function_decl;
   std::unordered_set<const clang::Stmt *> _terminates;
 
   void HasThisFunctionThenReport(const std::vector<std::string> &fid_func, const std::string &str,
@@ -271,6 +272,17 @@ private:
    */
   void CheckExceptionFeaturesInFenv(const clang::CallExpr *stmt);
 
+  /* MISRA
+   * Rule: 12-1-1
+   * ctor and dtor cannot use dynamic type
+   */
+  template<typename TYPE>
+  void CheckDynamicTypeInCtorAndDtor(const TYPE *stmt) {
+    ReportDynamicInCTorAndDtor(stmt);
+  }
+  void CheckDynamicTypeInCtorAndDtor(const clang::CXXMemberCallExpr *stmt);
+  void ReportDynamicInCTorAndDtor(const clang::Stmt *stmt);
+
 
 public:
 
@@ -358,6 +370,23 @@ public:
   void VisitSwitchStmt(const clang::SwitchStmt *stmt) {
     CheckDefaultStmtPosition(stmt);
     CheckCaseStmtNum(stmt);
+  }
+
+  void VisitCXXTypeidExpr(const clang::CXXTypeidExpr *stmt) {
+    CheckDynamicTypeInCtorAndDtor(stmt);
+  }
+
+  void VisitCXXDynamicCastExpr(const clang::CXXDynamicCastExpr *stmt) {
+    CheckDynamicTypeInCtorAndDtor(stmt);
+  }
+
+  void VisitCXXMemberCallExpr(const clang::CXXMemberCallExpr *stmt) {
+    CheckDynamicTypeInCtorAndDtor(stmt);
+  }
+
+public:
+  void SetCurrentFunctionDecl(const clang::FunctionDecl *decl) {
+    _current_function_decl = decl;
   }
 
 }; // MISRAStmtRule

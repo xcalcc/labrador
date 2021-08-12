@@ -520,6 +520,25 @@ void GJB5369StmtRule::CheckEmptyCaseStmt(const clang::SwitchCase *stmt) {
 }
 
 /*
+ * GJB5369: 4.4.1.2
+ * pointer's pointer nested more than two levels is forbidden
+ */
+void GJB5369StmtRule::CheckPointerNestedLevel(const clang::BinaryOperator *stmt) {
+  if (!stmt->isAssignmentOp()) return;
+  auto lhs_type = clang::dyn_cast<clang::PointerType>(stmt->getLHS()->IgnoreParenImpCasts()->getType());
+  auto rhs_type = clang::dyn_cast<clang::PointerType>(stmt->getRHS()->IgnoreParenImpCasts()->getType());
+  if (lhs_type == nullptr || rhs_type == nullptr) return;
+  if (auto pointee_type = clang::dyn_cast<clang::PointerType>(rhs_type->getPointeeType())) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(GJB5369, G4_4_1_2, stmt);
+    std::string ref_msg = "Pointer's pointer nested more than two levels is forbidden";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+/*
  * GJB5369: 4.4.2.1
  * comparing two pointer should be careful
  */
