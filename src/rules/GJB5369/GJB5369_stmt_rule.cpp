@@ -532,7 +532,7 @@ void GJB5369StmtRule::CheckPointerNestedLevel(const clang::BinaryOperator *stmt)
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
 
-    issue = report->ReportIssue(GJB5369, G4_4_1_2, stmt);
+    issue = report->ReportIssue("MISRA", G4_4_1_2, stmt);
     std::string ref_msg = "Pointer's pointer nested more than two levels is forbidden";
     issue->SetRefMsg(ref_msg);
   }

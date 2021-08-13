@@ -32,7 +32,7 @@
 #define M_R_8_8     "M_R_8_8"
 #define M_R_8_10    "M_R_8_10"
 #define M_R_8_11    "M_R_8_11"
-#define M_R_8_12    "M_R_8_12"
+#define M_R_8_12    "M_R_8_12/M_R_8_5_3/A_7_2_4"
 #define M_R_8_13    "M_R_8_13"
 #define M_R_8_14    "M_R_8_14"
 
@@ -42,7 +42,7 @@
 #define M_R_10_2    "M_R_10_2"
 #define M_R_10_3    "M_R_10_3"
 #define M_R_10_4    "M_R_10_4"
-#define M_R_10_5    "M_R_10_5"
+#define M_R_10_5    "M_R_10_5/M_R_5_0_9/A_5_0_3"
 #define M_R_10_6    "M_R_10_6"
 #define M_R_10_7    "M_R_10_7"
 #define M_R_10_8    "M_R_10_8"

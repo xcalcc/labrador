@@ -787,7 +787,7 @@ void GJB5369DeclRule::CheckPointerNestedLevel(const clang::VarDecl *decl) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
 
-    issue = report->ReportIssue(GJB5369, G4_4_1_2, decl);
+    issue = report->ReportIssue("MISRA", G4_4_1_2, decl);
     std::string ref_msg = "Pointer's pointer nested more than two levels is forbidden: ";
     ref_msg += decl->getNameAsString();
     issue->SetRefMsg(ref_msg);
@@ -801,7 +801,7 @@ void GJB5369DeclRule::CheckPointerNestedLevel(const clang::FunctionDecl *decl) {
     auto param_type = it->getType();
     if (IsPointerNestedMoreThanTwoLevel(param_type)) {
       if (issue == nullptr) {
-        issue = report->ReportIssue(GJB5369, G4_4_1_2, decl);
+        issue = report->ReportIssue("MISRA", G4_4_1_2, decl);
         std::string ref_msg = "Pointer's pointer nested more than two levels is forbidden: ";
         ref_msg += decl->getNameAsString();
         issue->SetRefMsg(ref_msg);
@@ -812,7 +812,7 @@ void GJB5369DeclRule::CheckPointerNestedLevel(const clang::FunctionDecl *decl) {
 
   if (IsPointerNestedMoreThanTwoLevel(decl->getReturnType())) {
     if (issue == nullptr) {
-      issue = report->ReportIssue(GJB5369, G4_4_1_2, decl);
+      issue = report->ReportIssue("MISRA", G4_4_1_2, decl);
       std::string ref_msg = "Pointer's pointer(function return type) nested more than two levels is forbidden: ";
       ref_msg += decl->getNameAsString();
       issue->SetRefMsg(ref_msg);
@@ -829,7 +829,7 @@ void GJB5369DeclRule::CheckPointerNestedLevel(const clang::RecordDecl *decl) {
     auto field_type = it->getType();
     if (IsPointerNestedMoreThanTwoLevel(field_type)) {
       if (issue == nullptr) {
-        issue = report->ReportIssue(GJB5369, G4_4_1_2, decl);
+        issue = report->ReportIssue("MISRA", G4_4_1_2, decl);
         std::string ref_msg = "Pointer's pointer nested more than two levels is forbidden: ";
         ref_msg += decl->getNameAsString();
         issue->SetRefMsg(ref_msg);

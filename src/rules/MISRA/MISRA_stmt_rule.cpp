@@ -200,7 +200,7 @@ void MISRAStmtRule::CheckCompositeExprAssignToWiderTypeVar(const clang::BinaryOp
   if (rhs_type < lhs_type) need_report = true;
   if (lhs_type->isIntegerType() && (rhs_type == lhs_type)) {
     auto lhs_bt = clang::dyn_cast<clang::BuiltinType>(lhs_type);
-    auto rhs_bt = clang::dyn_cast<clang::BuiltinType>(rhs_type);
+    if (lhs_bt == nullptr) return;
 
     // convert signed type to unsigned type to compare size
     auto resolve = [&](const clang::BuiltinType *type) -> clang::BuiltinType::Kind {
@@ -215,8 +215,11 @@ void MISRAStmtRule::CheckCompositeExprAssignToWiderTypeVar(const clang::BinaryOp
       auto sub_rhs_type = bin_sub->getRHS()->IgnoreParenImpCasts()->getType();
       if (sub_lhs_type->isIntegerType() && sub_rhs_type->isIntegerType()) {
         auto prim_kind = resolve(lhs_bt);
-        auto lhs_kind = resolve(clang::dyn_cast<clang::BuiltinType>(sub_lhs_type));
-        auto rhs_kind = resolve(clang::dyn_cast<clang::BuiltinType>(sub_rhs_type));
+        auto sub_lhs_bt = clang::dyn_cast<clang::BuiltinType>(sub_lhs_type);
+        auto sub_rhs_bt = clang::dyn_cast<clang::BuiltinType>(sub_rhs_type);
+        if (sub_lhs_bt == nullptr || sub_rhs_bt == nullptr) return;
+        auto lhs_kind = resolve(sub_lhs_bt);
+        auto rhs_kind = resolve(sub_rhs_bt);
         if (lhs_kind < prim_kind && rhs_kind < prim_kind) need_report = true;
       }
     }
@@ -926,8 +929,10 @@ void MISRAStmtRule::CheckDynamicTypeInCtorAndDtor(const clang::CXXMemberCallExpr
   auto callee = stmt->getCalleeDecl();
   stmt->dumpColor();
   auto method_decl = clang::dyn_cast<clang::CXXMethodDecl>(callee);
-  if (callee == nullptr) return;
-  
+  if (method_decl == nullptr || !method_decl->isVirtual()) return;
+
+//  stmt->()->dumpColor();
+//  auto loc = stmt->ge
 }
 
 
