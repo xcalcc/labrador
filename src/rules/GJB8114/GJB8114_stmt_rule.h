@@ -38,6 +38,8 @@ private:
   std::vector<clang::QualType>
   RecordThrowObjectTypes(const clang::Stmt *stmt);
 
+  const clang::FunctionDecl *GetCalleeDecl(const clang::CallExpr *stmt);
+
   /*
    * GJB8114: 5.2.1.1
    * Loop body should be enclosed with brace

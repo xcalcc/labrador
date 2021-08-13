@@ -29,6 +29,13 @@ void MISRAStmtRule::HasThisFunctionThenReport(const std::vector<std::string> &fi
   }
 }
 
+const clang::FunctionDecl *MISRAStmtRule::GetCalleeDecl(const clang::CallExpr *stmt) {
+  auto callee = stmt->getCalleeDecl();
+  if (callee == nullptr) return nullptr;
+  auto decl = callee->getAsFunction();
+  return decl;
+}
+
 /* MISRA
  * Rule: 7.4
  * A string literal shall not be assigned to an object unless the object’s type is “pointer to const-qualified char”
@@ -57,11 +64,13 @@ void MISRAStmtRule::CheckStringLiteralToNonConstChar(const clang::BinaryOperator
 void MISRAStmtRule::CheckStringLiteralToNonConstChar(const clang::CallExpr *stmt) {
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
-  auto decl = stmt->getCalleeDecl()->getAsFunction();
+  auto decl = GetCalleeDecl(stmt);
+  if (decl == nullptr) return;
 
   int i = 0;
   for (const auto &it : stmt->arguments()) {
     if (it->IgnoreParenImpCasts()->getStmtClass() == clang::Stmt::StringLiteralClass) {
+      if (i >= decl->param_size()) break;
       auto param_decl = decl->getParamDecl(i);
       if (param_decl == nullptr) {
         i++;
@@ -714,7 +723,7 @@ void MISRAStmtRule::CheckCaseStmtNum(const clang::SwitchStmt *stmt) {
 void MISRAStmtRule::CheckArrayArgumentSize(const clang::CallExpr *stmt) {
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
-  auto decl = stmt->getCalleeDecl()->getAsFunction();
+  auto decl = GetCalleeDecl(stmt);
 
   // TODO: call function pointer would return nullptr
   if (decl == nullptr) return;
@@ -817,7 +826,9 @@ void MISRAStmtRule::CheckAddOrSubOnPointer(const clang::BinaryOperator *stmt) {
  * The memory allocation and deallocation functions of <stdlib.h> shall not be used
  */
 void MISRAStmtRule::CheckStdMemoryAllocationFunction(const clang::CallExpr *stmt) {
-  auto callee = stmt->getCalleeDecl()->getAsFunction();
+  auto callee = GetCalleeDecl(stmt);
+  if (callee == nullptr) return;
+
   // call function pointer would return nullptr
   if (callee == nullptr) return;
   auto name = callee->getNameAsString();
@@ -836,7 +847,7 @@ void MISRAStmtRule::CheckStdMemoryAllocationFunction(const clang::CallExpr *stmt
  * The Standard Library input/output functions shall not be used
  */
 void MISRAStmtRule::CheckIOFunctionInStdio(const clang::CallExpr *stmt) {
-  auto callee = stmt->getCalleeDecl()->getAsFunction();
+  auto callee = GetCalleeDecl(stmt);
   if (callee == nullptr) return;
   auto name = callee->getNameAsString();
   auto conf_mgr = XcalCheckerManager::GetConfigureManager();
@@ -855,7 +866,7 @@ void MISRAStmtRule::CheckIOFunctionInStdio(const clang::CallExpr *stmt) {
  */
 void MISRAStmtRule::CheckIntConvertFunctionInStdlib(const clang::CallExpr *stmt) {
   std::vector<std::string> fid_funcs = {"atoi", "atol", "atoll"};
-  auto callee = stmt->getCalleeDecl()->getAsFunction();
+  auto callee = GetCalleeDecl(stmt);
   if (callee == nullptr) return;
   auto name = callee->getNameAsString();
 
@@ -870,7 +881,7 @@ void MISRAStmtRule::CheckIntConvertFunctionInStdlib(const clang::CallExpr *stmt)
  */
 void MISRAStmtRule::CheckSystemFuncInStdlib(const clang::CallExpr *stmt) {
   std::vector<std::string> fid_funcs = {"abort", "exit", "getenv", "system"};
-  auto callee = stmt->getCalleeDecl()->getAsFunction();
+  auto callee = GetCalleeDecl(stmt);
   if (callee == nullptr) return;
   auto name = callee->getNameAsString();
 
@@ -884,7 +895,7 @@ void MISRAStmtRule::CheckSystemFuncInStdlib(const clang::CallExpr *stmt) {
  */
 void MISRAStmtRule::CheckBsearchAndQsortInStdlib(const clang::CallExpr *stmt) {
   std::vector<std::string> fid_funcs = {"bsearch", "qsort"};
-  auto callee = stmt->getCalleeDecl()->getAsFunction();
+  auto callee = GetCalleeDecl(stmt);
   if (callee == nullptr) return;
   auto name = callee->getNameAsString();
 
@@ -898,7 +909,7 @@ void MISRAStmtRule::CheckBsearchAndQsortInStdlib(const clang::CallExpr *stmt) {
  */
 void MISRAStmtRule::CheckTimeFunctionInStdlib(const clang::CallExpr *stmt) {
   std::vector<std::string> fid_funcs = {"wcsftime"};
-  auto callee = stmt->getCalleeDecl()->getAsFunction();
+  auto callee = GetCalleeDecl(stmt);
   if (callee == nullptr) return;
   auto name = callee->getNameAsString();
 
@@ -913,7 +924,7 @@ void MISRAStmtRule::CheckTimeFunctionInStdlib(const clang::CallExpr *stmt) {
 void MISRAStmtRule::CheckExceptionFeaturesInFenv(const clang::CallExpr *stmt) {
   std::vector<std::string> fid_funcs = {"feclearexcept", "fegetexceptflag", "feraiseexcept",
                                         "fesetexceptflag", "fetestexcept"};
-  auto callee = stmt->getCalleeDecl()->getAsFunction();
+  auto callee = GetCalleeDecl(stmt);
   if (callee == nullptr) return;
   auto name = callee->getNameAsString();
 
@@ -926,8 +937,7 @@ void MISRAStmtRule::CheckExceptionFeaturesInFenv(const clang::CallExpr *stmt) {
  * ctor and dtor cannot use dynamic type
  */
 void MISRAStmtRule::CheckDynamicTypeInCtorAndDtor(const clang::CXXMemberCallExpr *stmt) {
-  auto callee = stmt->getCalleeDecl();
-  stmt->dumpColor();
+  auto callee = GetCalleeDecl(stmt);
   auto method_decl = clang::dyn_cast<clang::CXXMethodDecl>(callee);
   if (method_decl == nullptr || !method_decl->isVirtual()) return;
 

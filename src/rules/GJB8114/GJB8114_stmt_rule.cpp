@@ -111,6 +111,13 @@ GJB8114StmtRule::RecordThrowObjectTypes(const clang::Stmt *stmt) {
   return std::move(obj_types);
 }
 
+const clang::FunctionDecl *GJB8114StmtRule::GetCalleeDecl(const clang::CallExpr *stmt) {
+  auto callee = stmt->getCalleeDecl();
+  if (callee == nullptr) return nullptr;
+  auto decl = callee->getAsFunction();
+  return decl;
+}
+
 
 /*
  * GJB8114: 5.1.2.6
@@ -349,11 +356,10 @@ void GJB8114StmtRule::CheckUsingEnumByOtherTypeVar(const clang::BinaryOperator *
  * TODO: need to refine
  */
 void GJB8114StmtRule::CheckUsingGetsFunction(const clang::CallExpr *stmt) {
-  if (stmt->getCalleeDecl() == nullptr ||
-      stmt->getCalleeDecl()->getAsFunction() == nullptr)
-    return;
+  auto callee = GetCalleeDecl(stmt);
+  if (callee == nullptr) return;
   auto conf_mgr = XcalCheckerManager::GetConfigureManager();
-  auto funcName = stmt->getCalleeDecl()->getAsFunction()->getNameAsString();
+  auto funcName = callee->getNameAsString();
   if (conf_mgr->IsDangerFunction(funcName)) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
@@ -401,15 +407,11 @@ void GJB8114StmtRule::CheckUsingStrcat(const clang::CallExpr *stmt) {
  * void is required as the function which has return value is called but the return value is not used
  */
 void GJB8114StmtRule::CheckUnusedFunctionCast(const clang::CallExpr *stmt) {
-  if (stmt->getCalleeDecl() == nullptr)
-    return;
-  auto decl = stmt->getCalleeDecl()->getAsFunction();
-  if (decl == nullptr)
-    return;
+  auto decl = GetCalleeDecl(stmt);
+  if (decl == nullptr) return;
   auto ret_type = decl->getReturnType();
 
-  if (ret_type->isVoidType())
-    return;
+  if (ret_type->isVoidType()) return;
 
   bool need_report = false;
   if (IsSingleStmt(stmt)) {
@@ -991,7 +993,7 @@ void GJB8114StmtRule::CheckConstLenghtArrayPassToFunction(const clang::CallExpr 
   int index = 0;  // record the index of arguments
   for (const auto &arg : stmt->arguments()) {
     if (arg->IgnoreParenImpCasts()->getType()->isConstantArrayType()) {
-      auto callee = stmt->getCalleeDecl()->getAsFunction();
+      auto callee = GetCalleeDecl(stmt);
       if (callee == nullptr || callee->param_empty()) {
         index++;
         continue;

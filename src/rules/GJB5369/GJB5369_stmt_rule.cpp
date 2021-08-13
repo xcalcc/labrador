@@ -115,6 +115,13 @@ clang::BuiltinType::Kind GJB5369StmtRule::GetBuiltinTypeKind(const clang::QualTy
   return kind;
 }
 
+const clang::FunctionDecl *GJB5369StmtRule::GetCalleeDecl(const clang::CallExpr *stmt) {
+  auto callee = stmt->getCalleeDecl();
+  if (callee == nullptr) return nullptr;
+  auto decl = callee->getAsFunction();
+  return decl;
+}
+
 /*
  * GJB5369 4.1.1.4
  * Check multiple consecutive labels.
@@ -595,10 +602,7 @@ void GJB5369StmtRule::CheckGotoStmt(const clang::GotoStmt *stmt) {
  * setjmp/longjmp is forbidden
  */
 void GJB5369StmtRule::CheckSetjumpAndLongjump(const clang::CallExpr *stmt) {
-  auto callee = stmt->getCalleeDecl();
-  if (callee == nullptr)
-    return;
-  auto func_decl = callee->getAsFunction();
+  auto func_decl = GetCalleeDecl(stmt);
   auto conf_mgr = XcalCheckerManager::GetConfigureManager();
 
   if (func_decl == nullptr) return;
@@ -999,7 +1003,7 @@ void GJB5369StmtRule::CheckMultiCallExprInSingleStmt(const clang::BinaryOperator
  */
 void GJB5369StmtRule::CheckVoidReturnType(const clang::CallExpr *stmt) {
 #if 0
-  auto func_decl = stmt->getCalleeDecl()->getAsFunction();
+  auto func_decl = GetCalleeDecl(stmt);
   auto ret_type = func_decl->getReturnType();
   if (ret_type->isVoidType()) {
     auto location = stmt->getBeginLoc();
@@ -1020,7 +1024,7 @@ void GJB5369StmtRule::CheckParamTypeMismatch(const clang::CallExpr *stmt) {
   if (!stmt->getNumArgs()) return;
 
   int param_index = 0;
-  auto func_decl = stmt->getCalleeDecl()->getAsFunction();
+  auto func_decl = GetCalleeDecl(stmt);
   if (func_decl == nullptr) return;
 
   XcalIssue *issue = nullptr;
@@ -1030,8 +1034,16 @@ void GJB5369StmtRule::CheckParamTypeMismatch(const clang::CallExpr *stmt) {
     auto formal_param_type = it->getType();
     if (formal_param_type->isBuiltinType()) {
       auto real_param_type = stmt->getArg(param_index)->IgnoreParenImpCasts()->getType();
-      auto real_param_kind = real_param_type->getAs<clang::BuiltinType>()->getKind();
-      auto formal_param_kind = formal_param_type->getAs<clang::BuiltinType>()->getKind();
+
+      auto real_bt = clang::dyn_cast<clang::BuiltinType>(real_param_type);
+      auto formal_bt = clang::dyn_cast<clang::BuiltinType>(formal_param_type);
+      if (real_bt == nullptr || formal_bt == nullptr) {
+        param_index++;
+        if (param_index >= stmt->getNumArgs()) break;
+        continue;
+      }
+      auto real_param_kind = real_bt->getKind();
+      auto formal_param_kind = formal_bt->getKind();
       if (real_param_kind != formal_param_kind) {
         if (issue == nullptr) {
           issue = report->ReportIssue(GJB5369, G4_7_1_9, stmt);
@@ -1041,6 +1053,8 @@ void GJB5369StmtRule::CheckParamTypeMismatch(const clang::CallExpr *stmt) {
         issue->AddDecl(&(*(it)));
       }
     }
+
+
     param_index++;
     if (param_index >= stmt->getNumArgs()) break;
   }
@@ -1070,10 +1084,8 @@ void GJB5369StmtRule::CheckUsingFunctionNotByCalling(const clang::IfStmt *stmt) 
  * use abort/exit carefully
  */
 void GJB5369StmtRule::CheckExitAndAbortFunction(const clang::CallExpr *stmt) {
-  const clang::Decl *calleeDecl;
-  const clang::FunctionDecl *decl;
-  if ((calleeDecl = stmt->getCalleeDecl()) == nullptr) return;
-  if ((decl = calleeDecl->getAsFunction()) == nullptr) return;
+  auto decl = GetCalleeDecl(stmt);
+  if (decl == nullptr) return;
 
   auto conf_mgr = XcalCheckerManager::GetConfigureManager();
 
@@ -1268,6 +1280,7 @@ void GJB5369StmtRule::CheckLoopVariable(const clang::ForStmt *stmt) {
     }
 
   } else if (auto decl_stmt = clang::dyn_cast<clang::DeclStmt>(init_stmt)) {
+    if (!decl_stmt->isSingleDecl()) return;
     auto decl = decl_stmt->getSingleDecl();
     if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
       if (!var_decl->getType()->isIntegerType()) {

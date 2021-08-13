@@ -55,6 +55,8 @@ private:
   // get builtin type
   clang::BuiltinType::Kind GetBuiltinTypeKind(const clang::QualType type);
 
+  const clang::FunctionDecl * GetCalleeDecl(const clang::CallExpr *stmt);
+
   /*
    * GJB5369 4.1.1.4
    * Check multiple consecutive labels.

@@ -29,6 +29,8 @@ private:
   void HasThisFunctionThenReport(const std::vector<std::string> &fid_func, const std::string &str,
                                  const clang::Stmt *stmt, const std::string &std_id, const std::string &info);
 
+  const clang::FunctionDecl *GetCalleeDecl(const clang::CallExpr *stmt);
+
   /* MISRA
    * Rule: 7.4
    * A string literal shall not be assigned to an object unless the object’s
