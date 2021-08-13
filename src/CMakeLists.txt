@@ -39,8 +39,8 @@ else ()
 endif ()
 
 set (LANG_CXX_FLAGS "-fno-exceptions -fno-rtti -pthread -no-pie")
-set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OPT_FLAGS}  -fsanitize=address")
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LANG_CXX_FLAGS} ${OPT_FLAGS}  -fsanitize=address")
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OPT_FLAGS}")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LANG_CXX_FLAGS} ${OPT_FLAGS}")
 
 include_directories (
   ${XSCA_INCS}
