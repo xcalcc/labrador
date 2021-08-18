@@ -27,8 +27,19 @@
 #include "xsca_report.h"
 #include "xsca_checker_manager.h"
 #include "clang/Basic/FileManager.h"
+#include "clang/Basic/SourceManagerInternals.h"
 
 namespace xsca {
+
+// XcalReport::GetFileIdFromLineTable
+// Get file index used in vtxt file table from file name in LineTable
+unsigned
+XcalReport::GetFileIdFromLineTable(const char *fname)
+{
+  llvm::StringRef strr(fname);
+  clang::LineTableInfo &line_table = const_cast<clang::SourceManager*>(_source_mgr)->getLineTable();
+  return _line_table_offset + line_table.getLineTableFilenameID(fname);
+}
 
 // XcalReport::PrintVtxtFileList
 // Print file list to vtxt file to map file id to file name
@@ -55,6 +66,25 @@ XcalReport::PrintVtxtFileList()
     fprintf(_vtxt_file, "  {\n    \"fid\" : %d,\n    \"path\" : \"%s\"\n  }",
             it->first->getUID() + 1,
             it->first->getName().rtrim(".i").rtrim(".ii").str().c_str());
+    ++ _line_table_offset;
+  }
+
+  clang::LineTableInfo &line_table = const_cast<clang::SourceManager*>(_source_mgr)->getLineTable();
+  for (unsigned int i = 0; i < line_table.getNumFilenames(); ++i) {
+    llvm::StringRef fname = line_table.getFilename(i);
+    // ignore special names
+    if (fname[0] == '<')
+      continue;
+    // output comma if necessary
+    if (append_comma) {
+      fprintf(_vtxt_file, ",\n");
+    }
+    else {
+      append_comma = true;
+    }
+    // output file entry
+    fprintf(_vtxt_file, "  {\n    \"fid\" : %d,\n    \"path\" : \"%s\"\n  }",
+            i + _line_table_offset, fname.data());
   }
 
   fprintf(_vtxt_file, "\n]\n");
@@ -74,7 +104,7 @@ XcalReport::PrintVtxtIssue(const XcalIssue *issue)
   clang::SourceLocation loc = issue->GetLocation();
   clang::PresumedLoc ploc = _source_mgr->getPresumedLoc(loc);
   const clang::FileEntry *fe = _source_mgr->getFileEntryForID(ploc.getFileID());
-  unsigned fid = fe ? fe->getUID() : ploc.getFileID().getHashValue();
+  unsigned fid = fe ? fe->getUID() + 1 : GetFileIdFromLineTable(ploc.getFilename());
 
   char key[1024];
   snprintf(key, sizeof(key), "%s@%s@%s:%d",
@@ -91,7 +121,7 @@ XcalReport::PrintVtxtIssue(const XcalIssue *issue)
 
   fprintf(_vtxt_file, "[A10],[%s],[%s],[%d:%d],[Vul],[D],[RBC],[1,0,0],[%s],[%s],",
           key, ploc.getFilename(),
-          fid + 1, ploc.getLine(), output_std.c_str(), issue->RuleName());
+          fid, ploc.getLine(), output_std.c_str(), issue->RuleName());
   fprintf(_vtxt_file, "[%s],##,[", issue->DeclName());
 
   std::vector<XcalPathInfo>::const_iterator end = issue->PathInfo().end();
@@ -109,9 +139,9 @@ XcalReport::PrintVtxtIssue(const XcalIssue *issue)
     ploc = _source_mgr->getPresumedLoc(it->Start());
     if (ploc.isValid()) {
       fe = _source_mgr->getFileEntryForID(ploc.getFileID());
-      fid = fe ? fe->getUID() : ploc.getFileID().getHashValue();
+      fid = fe ? fe->getUID() + 1 : GetFileIdFromLineTable(ploc.getFilename());
       fprintf(_vtxt_file, "%d:%d:%d:%d",
-              fid + 1, ploc.getLine(), ploc.getColumn(), it->Kind());
+              fid, ploc.getLine(), ploc.getColumn(), it->Kind());
     } else {
       fprintf(_vtxt_file, "%d:%d:%d:%d", 0, 0, 0, 0);
     }

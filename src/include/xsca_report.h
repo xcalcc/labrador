@@ -26,10 +26,14 @@ private:
   std::vector< std::unique_ptr<XcalIssue> > _issue_vec;
   const clang::SourceManager *_source_mgr;  // clang source manager
   FILE *_vtxt_file;                         // .vtxt file
+  unsigned _line_table_offset;              // file id offset for files from line table
   bool  _vtxt_enabled;                      // write to vtxt file?
   bool  _stdout_enabled;                    // write to stdout?
 
 protected:
+  // get file id from line table
+  unsigned GetFileIdFromLineTable(const char *fname);
+
   // print file list for vtxt
   void PrintVtxtFileList();
 
@@ -42,7 +46,7 @@ protected:
 
 public:
   // cconstructor
-  XcalReport() : _source_mgr(NULL), _vtxt_file(NULL),
+  XcalReport() : _source_mgr(NULL), _vtxt_file(NULL), _line_table_offset(1),
                  _vtxt_enabled(true), _stdout_enabled(true) {
   }
 
