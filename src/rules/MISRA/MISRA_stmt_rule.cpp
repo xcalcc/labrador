@@ -196,7 +196,6 @@ void MISRAStmtRule::CheckInappropriateCast(const clang::CStyleCastExpr *stmt) {
       need_report = true;
     }
   } else if (from_type->isSignedIntegerType()) {
-    from_type->dump();
     if (to_type->isEnumeralType()) {
       need_report = true;
     } else if (to_type->isBooleanType()) {
