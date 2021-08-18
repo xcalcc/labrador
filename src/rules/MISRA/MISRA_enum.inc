@@ -17,13 +17,13 @@
 #define M_R_2_6     "MSR_2_6"
 #define M_R_2_7     "MSR_2_7"
 
-#define M_R_5_1     "MsR_5_1"
-#define M_R_5_2     "MsR_5_2"
-#define M_R_5_3     "MsR_5_3"
-#define M_R_5_4     "MsR_5_4"
-#define M_R_5_5     "MsR_5_5"
-#define M_R_5_6     "MsR_5_6"
-#define M_R_5_7     "MsR_5_7"
+#define M_R_5_1     "MSR_5_1"
+#define M_R_5_2     "MSR_5_2"
+#define M_R_5_3     "MSR_5_3"
+#define M_R_5_4     "MSR_5_4"
+#define M_R_5_5     "MSR_5_5"
+#define M_R_5_6     "MSR_5_6"
+#define M_R_5_7     "MSR_5_7"
 
 
 #define M_R_6_1     "MSR_6_1"

@@ -99,9 +99,30 @@ void MISRAStmtRule::CheckStringLiteralToNonConstChar(const clang::CallExpr *stmt
 void MISRAStmtRule::CheckAddOrSubOnCharacter(const clang::BinaryOperator *stmt) {
   if (!stmt->isAdditiveOp()) return;
 
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+
+  auto lhs_char = clang::dyn_cast<clang::CharacterLiteral>(lhs);
+  auto rhs_char = clang::dyn_cast<clang::CharacterLiteral>(rhs);
+  if ((lhs_char == nullptr) && (rhs_char == nullptr)) return;
+
+  bool need_report = false;
   auto lhs_type = stmt->getLHS()->IgnoreParenImpCasts()->getType();
   auto rhs_type = stmt->getRHS()->IgnoreParenImpCasts()->getType();
-  if (lhs_type->isCharType() || rhs_type->isCharType()) {
+  if (lhs_type->isCharType() != rhs_type->isCharType()) {
+    need_report = true;
+  } else {
+    if (lhs_char) {
+      auto value = lhs_char->getValue();
+      if (value < '0' || value > '9') need_report = true;
+    }
+
+    if (rhs_char) {
+      auto value = rhs_char->getValue();
+      if (value < '0' || value > '9') need_report = true;
+    }
+  }
+  if (need_report) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(MISRA, M_R_10_2, stmt);
