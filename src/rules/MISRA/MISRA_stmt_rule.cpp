@@ -196,8 +196,24 @@ void MISRAStmtRule::CheckInappropriateCast(const clang::CStyleCastExpr *stmt) {
       need_report = true;
     }
   } else if (from_type->isSignedIntegerType()) {
-    if (to_type->isBooleanType() || to_type->isEnumeralType()) {
+    from_type->dump();
+    if (to_type->isEnumeralType()) {
       need_report = true;
+    } else if (to_type->isBooleanType()) {
+      if (auto literal = clang::dyn_cast<clang::IntegerLiteral>(stmt->getSubExpr()->IgnoreParenImpCasts())) {
+        auto ctx = XcalCheckerManager::GetAstContext();
+        int value;
+        clang::Expr::EvalResult eval_result;
+
+        // try to fold the const expr
+        if (literal->EvaluateAsInt(eval_result, *ctx)) {
+          value = eval_result.Val.getInt().getZExtValue();
+        } else {
+          value = literal->getValue().getZExtValue();
+        }
+
+        if (value != 0 && value != 1) need_report = true;
+      }
     }
   } else if (from_type->isUnsignedIntegerType()) {
     if (to_type->isBooleanType() || to_type->isEnumeralType()) {
