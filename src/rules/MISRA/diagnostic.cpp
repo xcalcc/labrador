@@ -16,6 +16,9 @@ void MISRADiagnostic::HandleDiagnostic(clang::DiagnosticsEngine::Level diagnosti
   auto msg = diagnosticMessage.c_str();
 
   switch (diagnosticInfo.getID()) {
+    case 2594:  // MISRA 11.4
+      AddIssue(M_R_11_4, msg, location);
+      break;
     case 5705:  // MISRA 9.4
       AddIssue(M_R_9_4, msg, location);
       break;
