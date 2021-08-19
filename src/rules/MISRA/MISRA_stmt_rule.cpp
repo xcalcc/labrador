@@ -1040,5 +1040,43 @@ void MISRAStmtRule::CheckBitwiseWithOutParen(const clang::BinaryOperator *stmt) 
 }
 
 
+/* MISRA
+ * Rule: 12.4
+ * Evaluation of constant expressions should not lead to unsigned integer wrap-around
+ */
+void MISRAStmtRule::CheckUnsignedIntWrapAround(const clang::BinaryOperator *stmt) {
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+  if (!lhs->getType()->isUnsignedIntegerType() || !rhs->getType()->isUnsignedIntegerType()) return;
+
+  auto lhs_literal = clang::dyn_cast<clang::IntegerLiteral>(lhs);
+  auto rhs_literal = clang::dyn_cast<clang::IntegerLiteral>(rhs);
+  if (!lhs_literal || !rhs_literal) return;
+
+  const auto UN_MAX = 0xffffffffu;
+  using Opcode = clang::BinaryOperator::Opcode;
+
+  bool need_report = false;
+  auto opcode = stmt->getOpcode();
+  auto lhs_val = lhs_literal->getValue().getZExtValue();
+  auto rhs_val = rhs_literal->getValue().getZExtValue();
+  if (opcode == Opcode::BO_Add || opcode == Opcode::BO_AddAssign) {
+    if ((lhs_val + rhs_val) > UN_MAX) need_report = true;
+  } else if (opcode == Opcode::BO_Mul || opcode == Opcode::BO_MulAssign) {
+    if ((lhs_val * rhs_val) > UN_MAX) need_report = true;
+  } else if (opcode == Opcode::BO_Shl || opcode == Opcode::BO_ShlAssign) {
+    if ((lhs_val << rhs_val) > UN_MAX) need_report = true;
+  }
+
+  if (need_report) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_12_4, stmt);
+    std::string ref_msg = "Evaluation of constant expressions should not lead to unsigned integer wrap-around";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+
 }
 }

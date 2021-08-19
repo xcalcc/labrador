@@ -285,6 +285,12 @@ private:
   void CheckDynamicTypeInCtorAndDtor(const clang::CXXMemberCallExpr *stmt);
   void ReportDynamicInCTorAndDtor(const clang::Stmt *stmt);
 
+  /* MISRA
+   * Rule: 12.4
+   * Evaluation of constant expressions should not lead to unsigned integer wrap-around
+   */
+  void CheckUnsignedIntWrapAround(const clang::BinaryOperator *stmt);
+
   /*
    * QUAN ZHI temp
    */
@@ -308,6 +314,7 @@ public:
     CheckAddOrSubOnPointer(stmt);
     CheckSideEffectWithOrder(stmt);
     CheckBitwiseWithOutParen(stmt);
+    CheckUnsignedIntWrapAround(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
