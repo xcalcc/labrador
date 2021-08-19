@@ -95,3 +95,6 @@
 // misra cpp
 #define M_R_10_1_3   "MSR_10_1_3"
 #define M_R_12_1_1   "MSR_12_1_1"
+
+
+#define M_R_99_99_99   "MSR_99_99_99"

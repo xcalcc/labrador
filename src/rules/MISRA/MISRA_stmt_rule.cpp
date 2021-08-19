@@ -994,6 +994,25 @@ void MISRAStmtRule::ReportDynamicInCTorAndDtor(const clang::Stmt *stmt)  {
   }
 }
 
+/*
+ * QUAN ZHI temp
+ */
+void MISRAStmtRule::CheckBitwiseWithOutParen(const clang::BinaryOperator *stmt) {
+  if (!stmt->isBitwiseOp()) return;
+
+  auto ctx = XcalCheckerManager::GetAstContext();
+  auto parents = ctx->getParents(*stmt);
+  if (parents.empty()) return;
+  auto parent = parents[0].get<clang::Stmt>();
+
+  if (parent && clang::isa<clang::ParenExpr>(parent)) return;
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(MISRA, M_R_99_99_99, stmt);
+  std::string ref_msg = "Parentheses is required with bitwise operator";
+  issue->SetRefMsg(ref_msg);
+}
+
 
 }
 }

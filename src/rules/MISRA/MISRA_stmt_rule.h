@@ -285,6 +285,11 @@ private:
   void CheckDynamicTypeInCtorAndDtor(const clang::CXXMemberCallExpr *stmt);
   void ReportDynamicInCTorAndDtor(const clang::Stmt *stmt);
 
+  /*
+   * QUAN ZHI temp
+   */
+  void CheckBitwiseWithOutParen(const clang::BinaryOperator *stmt);
+
 
 public:
 
@@ -302,6 +307,7 @@ public:
     CheckModifyParameters(stmt);
     CheckAddOrSubOnPointer(stmt);
     CheckSideEffectWithOrder(stmt);
+    CheckBitwiseWithOutParen(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
