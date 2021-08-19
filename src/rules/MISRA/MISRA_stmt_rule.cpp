@@ -386,9 +386,29 @@ void MISRAStmtRule::CheckVoidPointerToOtherTypePointer(const clang::CastExpr *st
  */
 void MISRAStmtRule::CheckArithTypeCastToVoidPointerType(const clang::CastExpr *stmt) {
   auto type = stmt->IgnoreParenImpCasts()->getType();
-  auto sub_type = stmt->getSubExpr()->IgnoreParenImpCasts()->getType();
+
+  auto sub_expr = stmt->getSubExpr()->IgnoreParenImpCasts();
+  if (auto literal = clang::dyn_cast<clang::IntegerLiteral>(sub_expr)) {
+    int value;
+    auto ctx = XcalCheckerManager::GetAstContext();
+    clang::Expr::EvalResult eval_result;
+
+    // try to fold the const expr
+    if (literal->EvaluateAsInt(eval_result, *ctx)) {
+      value = eval_result.Val.getInt().getZExtValue();
+    } else {
+      value = literal->getValue().getZExtValue();
+    }
+
+    if (value == 0) return;
+
+  }
+
+  auto sub_type = sub_expr->IgnoreParenImpCasts()->getType();
+
 
   if (sub_type->isIntegerType() && type->isVoidPointerType()) {
+    stmt->dumpColor();
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(MISRA, M_R_11_6, stmt);
