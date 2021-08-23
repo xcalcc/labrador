@@ -188,13 +188,6 @@ private:
     CheckMultiTerminate(stmt->getBody());
   }
 
-
-  void CheckMultiTerminate(const clang::IfStmt *stmt) {
-    _terminates.clear();
-    CheckMultiTerminate(stmt->getThen());
-    CheckMultiTerminate(stmt->getElse());
-  }
-
   /* MISRA
    * Rule: 16.5
    * A default label shall appear as either the first or the last switch label of a switch statement
@@ -359,7 +352,6 @@ public:
 
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckControlStmt(stmt);
-    CheckMultiTerminate(stmt);
   }
 
   void VisitWhileStmt(const clang::WhileStmt *stmt) {

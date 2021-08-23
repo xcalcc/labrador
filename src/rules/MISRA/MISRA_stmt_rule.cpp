@@ -714,6 +714,12 @@ void MISRAStmtRule::CheckLabelNotEncloseWithGoto(const clang::GotoStmt *stmt) {
  */
 void MISRAStmtRule::CollectTerminate(const clang::Stmt *stmt) {
   if (stmt == nullptr) return;
+  if ((stmt->getStmtClass() == clang::Stmt::BreakStmtClass) ||
+      (stmt->getStmtClass() == clang::Stmt::GotoStmtClass)) {
+    _terminates.insert(stmt);
+    if (_terminates.size() >= 2) return;
+  }
+
   for (const auto &it : stmt->children()) {
     if (it == nullptr) continue;
     if ((it->getStmtClass() == clang::Stmt::BreakStmtClass) ||
@@ -1008,7 +1014,7 @@ void MISRAStmtRule::CheckDynamicTypeInCtorAndDtor(const clang::CXXMemberCallExpr
 }
 
 
-void MISRAStmtRule::ReportDynamicInCTorAndDtor(const clang::Stmt *stmt)  {
+void MISRAStmtRule::ReportDynamicInCTorAndDtor(const clang::Stmt *stmt) {
   bool is_ctor = clang::isa<clang::CXXConstructorDecl>(_current_function_decl);
   bool is_dtor = clang::isa<clang::CXXDestructorDecl>(_current_function_decl);
   if (is_ctor || is_dtor) {
