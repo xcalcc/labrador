@@ -374,23 +374,38 @@ void MISRADeclRule::CheckImplicitSizeWithExternalArray(const clang::VarDecl *dec
  * Within an enumerator list, the value of an implicitly-specified enumeration constant shall be unique
  */
 void MISRADeclRule::CheckUniqueImplicitEnumerator(const clang::EnumDecl *decl) {
-  bool has_implicit = false;
+  bool need_report = false;
+  const clang::EnumConstantDecl *sink = nullptr;
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
 
+  std::unordered_map<long long unsigned, const clang::EnumConstantDecl *> inits;
   for (const auto &it : decl->enumerators()) {
+    auto val = it->getInitVal().getZExtValue();
     if (it->getInitExpr() == nullptr) {
-      if (has_implicit) {
-        if (issue == nullptr) {
-          issue = report->ReportIssue(MISRA, M_R_8_12, decl);
-          std::string ref_msg = "When an array with external linkage is declared, its size should be explicitly specified";
-          issue->SetRefMsg(ref_msg);
+      auto res = inits.find(val);
+      if (res != inits.end()) {
+        need_report = true;
+        sink = it;
+        break;
+      }
+    } else {
+      auto res = inits.find(val);
+      if (res != inits.end()) {
+        if (res->second->getInitExpr() == nullptr) {
+          need_report = true;
+          sink = res->second;
         }
-        issue->AddDecl(it);
-      } else {
-        has_implicit = true;
       }
     }
+    inits.insert({val, it});
+  }
+
+  if (need_report) {
+    issue = report->ReportIssue(MISRA, M_R_8_12, decl);
+    std::string ref_msg = "the value of an implicitly-specified enumeration constant shall be unique";
+    issue->SetRefMsg(ref_msg);
+    issue->AddDecl(sink);
   }
 }
 
