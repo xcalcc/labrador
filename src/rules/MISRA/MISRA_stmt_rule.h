@@ -152,6 +152,13 @@ private:
   void CheckUsingAssignmentAsResult(const clang::BinaryOperator *stmt);
 
   /* MISRA
+   * Rule: 14.1
+   * A loop counter shall not have essentially floating type
+   */
+  void CheckLoopVariable(const clang::ForStmt *stmt);
+
+
+  /* MISRA
    * Rule: 14.4
    * The controlling expression of an if statement and the controlling expression
    * of an iteration-statement shall have essentially Boolean type
@@ -367,6 +374,7 @@ public:
   void VisitForStmt(const clang::ForStmt *stmt) {
     CheckControlStmt(stmt);
     CheckMultiTerminate(stmt);
+    CheckLoopVariable(stmt);
   }
 
   void VisitGotoStmt(const clang::GotoStmt *stmt) {

@@ -1252,7 +1252,7 @@ void GJB5369StmtRule::CheckReturnType(const clang::ReturnStmt *stmt) {
  * loop value should be local value
  */
 void GJB5369StmtRule::CheckLoopVariable(const clang::ForStmt *stmt) {
-  bool need_report_1 = false, need_report_2 = false;
+  bool need_report = false;
   auto init_stmt = stmt->getInit();
 
   if (init_stmt == nullptr) { return; }
@@ -1262,16 +1262,11 @@ void GJB5369StmtRule::CheckLoopVariable(const clang::ForStmt *stmt) {
     if (bin_init_stmt->isAssignmentOp() || bin_init_stmt->isCompoundAssignmentOp()) {
       auto lhs_type = lhs->getType();
 
-      // 4.11.1.1
-      if (!lhs_type->isIntegerType()) {
-        need_report_1 = true;
-      }
-
       // 4.11.1.2
       if (auto lhs_ref = clang::dyn_cast<clang::DeclRefExpr>(lhs)) {
         if (auto var_decl = clang::dyn_cast<clang::VarDecl>(lhs_ref->getDecl())) {
           if (!var_decl->isLocalVarDeclOrParm()) {
-            need_report_2 = true;
+            need_report = true;
           }
         } else {
           DBG_WARN(1, "Unknown LHS Decl class");
@@ -1279,27 +1274,9 @@ void GJB5369StmtRule::CheckLoopVariable(const clang::ForStmt *stmt) {
       }
     }
 
-  } else if (auto decl_stmt = clang::dyn_cast<clang::DeclStmt>(init_stmt)) {
-    if (!decl_stmt->isSingleDecl()) return;
-    auto decl = decl_stmt->getSingleDecl();
-    if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
-      if (!var_decl->getType()->isIntegerType()) {
-        need_report_1 = true;
-      }
-    }
   }
 
-  if (need_report_1) {
-    XcalIssue *issue = nullptr;
-    XcalReport *report = XcalCheckerManager::GetReport();
-
-    issue = report->ReportIssue(GJB5369, G4_11_1_1, stmt);
-    std::string ref_msg = "Inappropriate loop value type is forbidden";
-    issue->SetRefMsg(ref_msg);
-    issue->AddStmt(init_stmt);
-  }
-
-  if (need_report_2) {
+  if (need_report) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
 
