@@ -320,6 +320,7 @@ public:
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
     CheckArithmeticWithDifferentType(stmt);
     CheckAddOrSubOnPointer(stmt);
+    CheckModifyParameters(stmt);
   }
 
   void VisitCallExpr(const clang::CallExpr *stmt) {

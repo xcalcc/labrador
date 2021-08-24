@@ -904,7 +904,7 @@ void MISRAStmtRule::CheckModifyParameters(const clang::BinaryOperator *stmt) {
     if (decl->getKind() == clang::Decl::Kind::ParmVar) {
       XcalIssue *issue = nullptr;
       XcalReport *report = XcalCheckerManager::GetReport();
-      issue = report->ReportIssue(MISRA, M_R_17_7, stmt);
+      issue = report->ReportIssue(MISRA, M_R_17_8, stmt);
       std::string ref_msg = "A function parameter should not be modified";
       issue->SetRefMsg(ref_msg);
     }
