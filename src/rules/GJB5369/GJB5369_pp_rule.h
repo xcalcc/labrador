@@ -100,7 +100,6 @@ private:
    * header file name contain ' \ /* is forbidden
    */
   void CheckIncludeName(clang::SourceLocation, llvm::StringRef IncludedFilename);
-
 public:
   void MacroDefined(const clang::Token &MacroNameTok,
                     const clang::MacroDirective *MD) {
@@ -135,6 +134,12 @@ public:
                    clang::SrcMgr::CharacteristicKind FileType,
                    clang::FileID PrevFID) {
 
+  }
+
+  void MacroExpands(const clang::Token &MacroNameTok,
+                    const clang::MacroDefinition &MD,
+                    clang::SourceRange Range,
+                    const clang::MacroArgs *Args) {
   }
 
 }; // GJB5369PPRule

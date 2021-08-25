@@ -85,6 +85,7 @@
 #define M_R_18_8    "MSR_18_8"
 #define M_R_19_2    "MSR_19_2"
 #define M_R_21_3    "MSR_21_3"
+#define M_R_21_4    "MSR_21_4"
 #define M_R_21_5    "MSR_21_5"
 #define M_R_21_6    "MSR_21_6"
 #define M_R_21_7    "MSR_21_7"
