@@ -53,11 +53,20 @@ void MISRADeclRule::CheckUnusedTypedef(const clang::VarDecl *decl) {
   }
 }
 
-void MISRADeclRule::CheckUnusedTypedef(const clang::TypedefDecl *decl) {
-  auto type = clang::dyn_cast<clang::TypedefType>(decl->getUnderlyingType());
-  if (type) {
-    auto typedecl = type->getDecl();
+void MISRADeclRule::CheckUnusedTypedef(const clang::FieldDecl *decl) {
+  auto type = decl->getType();
+  if (auto typedefType = clang::dyn_cast<clang::TypedefType>(type)) {
+    auto typedecl = typedefType->getDecl();
     _used_typedef.insert(typedecl);
+  }
+}
+
+void MISRADeclRule::CheckUnusedTypedef(const clang::TypedefDecl *decl) {
+  auto type = decl->getTypeSourceInfo()->getType();
+  if (auto typedef_type = clang::dyn_cast<clang::TypedefType>(type)) {
+    auto typedef_decl = typedef_type->getDecl();
+    _used_typedef.insert(typedef_decl);
+    typedef_decl->dumpColor();
   }
 }
 
@@ -533,6 +542,20 @@ void MISRADeclRule::CheckUnionKeyword(const clang::RecordDecl *decl) {
     issue = report->ReportIssue(MISRA, M_R_19_2, decl);
     std::string ref_msg = "The union keyword should not be used";
     issue->SetRefMsg(ref_msg);
+  }
+}
+
+void MISRADeclRule::CheckUnionKeyword(const clang::TypedefDecl *decl) {
+  auto type = decl->getTypeSourceInfo()->getType();
+  if (auto elaborated_type = clang::dyn_cast<clang::ElaboratedType>(type)) {
+    auto named_type = elaborated_type->getNamedType();
+    if (named_type->isUnionType()) {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+      issue = report->ReportIssue(MISRA, M_R_19_2, decl);
+      std::string ref_msg = "The union keyword should not be used";
+      issue->SetRefMsg(ref_msg);
+    }
   }
 }
 

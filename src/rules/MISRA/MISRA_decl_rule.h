@@ -33,7 +33,7 @@ private:
      * A project should not contain unused type declarations
      */
   void CheckUnusedTypedef(const clang::VarDecl *decl);
-
+  void CheckUnusedTypedef(const clang::FieldDecl *decl);
   void CheckUnusedTypedef(const clang::TypedefDecl *decl);
 
   void CheckUnusedTypedef();
@@ -155,6 +155,7 @@ private:
    * The union keyword should not be used
    */
   void CheckUnionKeyword(const clang::RecordDecl *decl);
+  void CheckUnionKeyword(const clang::TypedefDecl *decl);
 
   /* MISRA
    * Rule: 8-5-3
@@ -198,6 +199,7 @@ public:
 
   void VisitTypedef(const clang::TypedefDecl *decl) {
     CheckUnusedTypedef(decl);
+    CheckUnionKeyword(decl);
   }
 
   void VisitFunction(const clang::FunctionDecl *decl) {
@@ -205,6 +207,10 @@ public:
     CheckStaticSpecifier(decl);
     CheckInlineFunctionWithExternalLinkage(decl);
     CheckStaticBetweenBracket(decl);
+  }
+
+  void VisitField(const clang::FieldDecl *decl) {
+    CheckUnusedTypedef(decl);
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {
