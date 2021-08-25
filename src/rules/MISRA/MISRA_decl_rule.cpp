@@ -66,7 +66,6 @@ void MISRADeclRule::CheckUnusedTypedef(const clang::TypedefDecl *decl) {
   if (auto typedef_type = clang::dyn_cast<clang::TypedefType>(type)) {
     auto typedef_decl = typedef_type->getDecl();
     _used_typedef.insert(typedef_decl);
-    typedef_decl->dumpColor();
   }
 }
 
@@ -523,6 +522,28 @@ void MISRADeclRule::CheckVariableAsArrayLength(const clang::VarDecl *decl) {
   auto array_type = clang::dyn_cast<clang::ArrayType>(type);
   if (!array_type) return;
   if (array_type->hasSizedVLAType()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_18_8, decl);
+    std::string ref_msg = "Variable-length array types shall not be used";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+void MISRADeclRule::CheckVariableAsArrayLength(const clang::FieldDecl *decl) {
+  auto type = decl->getType();
+  if (!type->isArrayType()) return;
+  auto array_type = clang::dyn_cast<clang::ArrayType>(type);
+  if (!array_type) return;
+  bool need_report = false;
+  if (array_type->hasSizedVLAType()) {
+    need_report = true;
+  } else if (auto const_array_type = clang::dyn_cast<clang::ConstantArrayType>(array_type)) {
+    auto size = const_array_type->getSize().getZExtValue();
+    if (size == 0) need_report = true;
+  }
+
+  if (need_report) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(MISRA, M_R_18_8, decl);

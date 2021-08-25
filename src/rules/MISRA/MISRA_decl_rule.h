@@ -149,6 +149,7 @@ private:
    * Variable-length array types shall not be used
    */
   void CheckVariableAsArrayLength(const clang::VarDecl *decl);
+  void CheckVariableAsArrayLength(const clang::FieldDecl *decl);
 
   /* MISRA
    * Rule: 19.2
@@ -211,6 +212,7 @@ public:
 
   void VisitField(const clang::FieldDecl *decl) {
     CheckUnusedTypedef(decl);
+    CheckVariableAsArrayLength(decl);
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {
