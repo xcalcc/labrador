@@ -239,12 +239,6 @@ private:
   void CheckRegisterVariable(const clang::VarDecl *decl);
 
   /*
-   * GJB5369: 4.13.1.1
-   * initial value is a must for the enum
-   */
-  void CheckEnumDeclInit(const clang::EnumDecl *decl);
-
-  /*
    * GJB5369: 4.13.1.3
    * nested structure should stay the same with the struct
    */
@@ -364,9 +358,7 @@ public:
     CheckIandOUsedAsVariable(decl);
   }
 
-  void VisitEnum(const clang::EnumDecl *decl) {
-    CheckEnumDeclInit(decl);
-  }
+  void VisitEnum(const clang::EnumDecl *decl) {}
 
 }; // GJB5369DeclRule
 }  // rule

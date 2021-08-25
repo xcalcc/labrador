@@ -157,6 +157,12 @@ private:
   void CheckUnionKeyword(const clang::RecordDecl *decl);
 
   /* MISRA
+   * Rule: 8-5-3
+   * initial value is a must for the enum
+   */
+  void CheckEnumDeclInit(const clang::EnumDecl *decl);
+
+  /* MISRA
    * Rule: 10_1_3
    * base class should not be both virtual and non-virtual in the same hierarchy
    */
@@ -187,6 +193,7 @@ public:
 
   void VisitEnum(const clang::EnumDecl *decl) {
     CheckUniqueImplicitEnumerator(decl);
+    CheckEnumDeclInit(decl);
   }
 
   void VisitTypedef(const clang::TypedefDecl *decl) {
