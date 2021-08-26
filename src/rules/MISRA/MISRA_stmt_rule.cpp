@@ -17,15 +17,16 @@ namespace xsca {
 namespace rule {
 
 void MISRAStmtRule::HasThisFunctionThenReport(const std::vector<std::string> &fid_func, const std::string &str,
-                                              const clang::Stmt *stmt, const std::string &std_id,
+                                              const clang::CallExpr *stmt, const char *std_id,
                                               const std::string &info) {
   auto res = std::find(fid_func.begin(), fid_func.end(), str);
   if (res != fid_func.end()) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
-    issue = report->ReportIssue(MISRA, std_id.c_str(), stmt);
-    std::string ref_msg = info;
-    issue->SetRefMsg(ref_msg);
+    issue = report->ReportIssue(MISRA, std_id, stmt);
+    auto callee = GetCalleeDecl(stmt);
+    if (callee) issue->SetName(callee->getNameAsString());
+    issue->SetRefMsg(info);
   }
 }
 
@@ -408,7 +409,6 @@ void MISRAStmtRule::CheckArithTypeCastToVoidPointerType(const clang::CastExpr *s
 
 
   if (sub_type->isIntegerType() && type->isVoidPointerType()) {
-    stmt->dumpColor();
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(MISRA, M_R_11_6, stmt);
@@ -1047,9 +1047,6 @@ void MISRAStmtRule::CheckDynamicTypeInCtorAndDtor(const clang::CXXMemberCallExpr
   auto callee = GetCalleeDecl(stmt);
   auto method_decl = clang::dyn_cast<clang::CXXMethodDecl>(callee);
   if (method_decl == nullptr || !method_decl->isVirtual()) return;
-
-//  stmt->()->dumpColor();
-//  auto loc = stmt->ge
 }
 
 
