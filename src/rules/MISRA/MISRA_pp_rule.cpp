@@ -35,6 +35,8 @@ void MISRAPPRule::CheckFidHeaderFile(clang::SourceLocation Loc, llvm::StringRef 
       issue = report->ReportIssue(MISRA, M_R_21_11, Loc);
     else if (IncludedFilename.str() == "setjmp.h")
       issue = report->ReportIssue(MISRA, M_R_21_4, Loc);
+    else if (IncludedFilename.str() == "time.h")
+      issue = report->ReportIssue(MISRA, M_R_21_10, Loc);
 
     std::string ref_msg = "The features of " + IncludedFilename.str() + " shall not be used";
     issue->SetRefMsg(ref_msg);
