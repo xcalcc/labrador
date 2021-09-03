@@ -49,7 +49,7 @@ XcalReport::PrintVtxtFileList()
   DBG_ASSERT(_vtxt_file, "vtxt file not initialized");
   DBG_ASSERT(_source_mgr, "source manager is null");
 
-  fprintf(_vtxt_file, "{\"V\", A, 0.7.1, 0000000000000000000000000000000000000000000000000000000000000000}\n[\n");
+  fprintf(_vtxt_file, "{\"V\", A, 0.7.2, 0000000000000000000000000000000000000000000000000000000000000000}\n[\n");
 
   clang::SourceManager::fileinfo_iterator end = _source_mgr->fileinfo_end();
   bool append_comma = false;
@@ -122,7 +122,7 @@ XcalReport::PrintVtxtIssue(const XcalIssue *issue)
   fprintf(_vtxt_file, "[A10],[%s],[%s],[%d:%d],[Vul],[D],[RBC],[1,0,0],[%s],[%s],",
           key, ploc.getFilename(),
           fid, ploc.getLine(), output_std.c_str(), issue->RuleName());
-  fprintf(_vtxt_file, "[%s],##,[", issue->DeclName());
+  fprintf(_vtxt_file, "[%s],[],[", issue->DeclName());
 
   std::vector<XcalPathInfo>::const_iterator end = issue->PathInfo().end();
   bool append_comma = false;
