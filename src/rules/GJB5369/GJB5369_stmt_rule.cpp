@@ -1182,6 +1182,8 @@ void GJB5369StmtRule::CheckReturnStmt(const clang::Stmt *stmt, bool initial) {
   if (initial) {
     if (_current_function_decl->getReturnType()->isVoidType()) {
       _func_has_return_stmt = true;
+    } else if (!_current_function_decl->doesThisDeclarationHaveABody()) {
+      _func_has_return_stmt = true;
     } else {
       _func_has_return_stmt = false;
     }
@@ -1193,11 +1195,12 @@ void GJB5369StmtRule::CheckReturnStmt(const clang::Stmt *stmt, bool initial) {
   }
 
   if (!_func_has_return_stmt) {
+    stmt->dumpColor();
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
 
     issue = report->ReportIssue(GJB5369, G4_9_1_1, stmt);
-    std::string ref_msg = "Return statement is necessary for a function: ";
+    std::string ref_msg = "Return statement is necessary for a function";
     issue->SetRefMsg(ref_msg);
   }
 }

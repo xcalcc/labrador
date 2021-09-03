@@ -65,7 +65,7 @@ void MISRAPPRule::CheckIOFunctionInStdio(const clang::Token &MacroNameTok, const
       "stdin",
       "stdout"
   };
-  auto name =  MacroNameTok.getIdentifierInfo()->getName();
+  auto name = MacroNameTok.getIdentifierInfo()->getName();
   if (std::find(fid_macro.begin(), fid_macro.end(), name) != fid_macro.end()) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
