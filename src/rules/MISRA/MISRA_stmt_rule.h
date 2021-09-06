@@ -275,6 +275,12 @@ private:
   void CheckExceptionFeaturesInFenv(const clang::CallExpr *stmt);
 
   /* MISRA
+   * Rule: 5-2-3
+   * cast from base class to derived class cannot have polymorphic type
+   */
+  void CheckDownCastToDerivedClass(const clang::CastExpr *stmt);
+
+  /* MISRA
    * Rule: 12-1-1
    * ctor and dtor cannot use dynamic type
    */
@@ -394,7 +400,12 @@ public:
 
   void VisitCXXDynamicCastExpr(const clang::CXXDynamicCastExpr *stmt) {
     CheckDynamicTypeInCtorAndDtor(stmt);
+    CheckDownCastToDerivedClass(stmt);
   }
+
+  void VisitCXXStaticCastExpr(const clang::CXXStaticCastExpr *stmt) {
+    CheckDownCastToDerivedClass(stmt);
+  };
 
   void VisitCXXMemberCallExpr(const clang::CXXMemberCallExpr *stmt) {
     CheckDynamicTypeInCtorAndDtor(stmt);
