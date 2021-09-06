@@ -159,6 +159,14 @@ private:
   void CheckUnionKeyword(const clang::TypedefDecl *decl);
 
   /* MISRA
+   * Rule: 8-3-1
+   * Parameters in an overriding virtual function shall either use the
+   * same default arguments as the function they override, or else
+   * shall not specify any default arguments.
+   */
+  void CheckOverriddenVirtualFuncHasDiffParam(const clang::CXXRecordDecl *decl);
+
+  /* MISRA
    * Rule: 8-5-3
    * initial value is a must for the enum
    */
@@ -223,6 +231,7 @@ public:
 
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
     CheckDifferentVirtualInSameHierarchy(decl);
+    CheckOverriddenVirtualFuncHasDiffParam(decl);
   }
 
 

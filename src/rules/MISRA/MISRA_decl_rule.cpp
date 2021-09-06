@@ -11,6 +11,7 @@
 //
 
 #include <unordered_set>
+#include <clang/AST/ASTContext.h>
 #include "xsca_report.h"
 #include "MISRA_decl_rule.h"
 
@@ -581,6 +582,66 @@ void MISRADeclRule::CheckUnionKeyword(const clang::TypedefDecl *decl) {
 }
 
 /* MISRA
+ * Rule: 8-3-1
+ * Parameters in an overriding virtual function shall either use the
+ * same default arguments as the function they override, or else
+ * shall not specify any default arguments.
+ */
+void MISRADeclRule::CheckOverriddenVirtualFuncHasDiffParam(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasDefinition()) return;
+  if (decl->methods().empty()) return;
+
+  auto ctx = XcalCheckerManager::GetAstContext();
+
+  bool need_report = false;
+  std::vector<const clang::Decl *> sinks;
+  for (const auto &method : decl->methods()) {
+    if (!method->isVirtual()) continue;
+    for (const auto &origin_method : method->overridden_methods()) {
+      const auto size = origin_method->param_size();
+      if (size != method->param_size()) continue;
+      for (auto i = 0; i < size; i++) {
+        auto o_param = origin_method->getParamDecl(i);
+        auto c_param = method->getParamDecl(i);
+        if (c_param->hasDefaultArg()) {
+          auto o_default = o_param->getDefaultArg();
+          auto c_default = c_param->getDefaultArg();
+          clang::Expr::EvalResult o_val, c_val;
+          o_default->EvaluateAsRValue(o_val, *ctx);
+          c_default->EvaluateAsRValue(c_val, *ctx);
+
+          // TODO: only check builtin type here
+          if (c_val.Val.isInt()) {
+            if (c_val.Val.getInt() == o_val.Val.getInt()) {
+              continue;
+            }
+          } else if (c_val.Val.isFloat()) {
+            if (c_val.Val.getFloat() == o_val.Val.getFloat()) continue;
+          } else {
+            continue;;
+          }
+
+          need_report = true;
+          sinks.push_back(c_param);
+          sinks.push_back(o_param);
+        }
+      }
+    }
+  }
+
+  if (need_report) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_8_3_1, decl);
+    std::string ref_msg = "Parameter init value of virtual overridden function should keep same";
+    issue->SetRefMsg(ref_msg);
+    for (const auto &it : sinks) {
+      issue->AddDecl(it);
+    }
+  }
+}
+
+/* MISRA
  * Rule: 8-5-3
  * initial value is a must for the enum
  */
@@ -638,7 +699,7 @@ void MISRADeclRule::CheckEnumDeclInit(const clang::EnumDecl *decl) {
 }
 
 /* MISRA
- * Rule: 10_1_3
+ * Rule: 10-1-3
  * base class should not be both virtual and non-virtual in the same hierarchy
  */
 void MISRADeclRule::CheckDifferentVirtualInSameHierarchy(const clang::CXXRecordDecl *decl) {
@@ -649,7 +710,7 @@ void MISRADeclRule::CheckDifferentVirtualInSameHierarchy(const clang::CXXRecordD
   std::unordered_set<const clang::RecordDecl *> vbases;
   std::unordered_set<const clang::RecordDecl *> sinks;
 
-  auto getParentClassDecl = [](const clang::QualType &type) -> const clang::CXXRecordDecl *{
+  auto getParentClassDecl = [](const clang::QualType &type) -> const clang::CXXRecordDecl * {
     auto record_type = clang::dyn_cast<clang::RecordType>(type);
     if (record_type == nullptr) return nullptr;
     auto parent_decl = clang::dyn_cast<clang::CXXRecordDecl>(record_type->getDecl());
