@@ -1119,6 +1119,39 @@ void MISRAStmtRule::CheckUnsignedIntWrapAround(const clang::BinaryOperator *stmt
   }
 }
 
+/* MISRA
+ * Rule: 5-2-3
+ * cast from base class to derived class cannot have polymorphic type
+ */
+void MISRAStmtRule::CheckDownCastToDerivedClass(const clang::CastExpr *stmt) {
+  auto origin_type = stmt->getSubExpr()->getType();
+  auto target_type = stmt->getType();
+  if (origin_type->isPointerType() && target_type->isPointerType()) {
+    origin_type = origin_type->getPointeeType();
+    target_type = target_type->getPointeeType();
+  }
+  if (!origin_type->isRecordType() || !target_type->isRecordType()) return;
+
+  auto origin_record_ty = clang::dyn_cast<clang::RecordType>(origin_type);
+  auto target_record_ty = clang::dyn_cast<clang::RecordType>(target_type);
+  if (!origin_record_ty->isClassType() || !target_record_ty->isClassType()) return;
+
+  auto origin_class = clang::dyn_cast<clang::CXXRecordDecl>(origin_record_ty->getDecl());
+  auto target_class = clang::dyn_cast<clang::CXXRecordDecl>(target_record_ty->getDecl());
+  if (!origin_class || !target_class) return;
+
+  // check if this class is polymorphic
+  if (!origin_class->isPolymorphic()) return;
+
+  if (target_class->isDerivedFrom(origin_class)) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_5_2_3, stmt);
+    std::string ref_msg = "Cast from base class to derived class cannot have polymorphic type";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }
