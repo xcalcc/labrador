@@ -1134,6 +1134,7 @@ void MISRAStmtRule::CheckDownCastToDerivedClass(const clang::CastExpr *stmt) {
 
   auto origin_record_ty = clang::dyn_cast<clang::RecordType>(origin_type);
   auto target_record_ty = clang::dyn_cast<clang::RecordType>(target_type);
+  if (!origin_record_ty || !target_record_ty) return;
   if (!origin_record_ty->isClassType() || !target_record_ty->isClassType()) return;
 
   auto origin_class = clang::dyn_cast<clang::CXXRecordDecl>(origin_record_ty->getDecl());
