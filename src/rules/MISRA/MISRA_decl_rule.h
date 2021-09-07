@@ -28,6 +28,8 @@ private:
 
   bool IsExplicitSign(const std::string &type_name);
 
+  const clang::CXXRecordDecl *GetBaseDecl(const clang::CXXBaseSpecifier &BS);
+
     /* MISRA
      * Rule: 2.3
      * A project should not contain unused type declarations
@@ -173,10 +175,16 @@ private:
   void CheckEnumDeclInit(const clang::EnumDecl *decl);
 
   /* MISRA
-   * Rule: 10_1_3
+   * Rule: 10-1-3
    * base class should not be both virtual and non-virtual in the same hierarchy
    */
   void CheckDifferentVirtualInSameHierarchy(const clang::CXXRecordDecl *decl);
+
+  /* MISRA
+   * Rule: 10-2-1
+   * all visible names within a inheritance hierarchy must be unique
+   */
+  void CheckUniqueNameInHierarchy(const clang::CXXRecordDecl *decl);
 
 public:
   void Finalize() {
@@ -232,6 +240,7 @@ public:
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
     CheckDifferentVirtualInSameHierarchy(decl);
     CheckOverriddenVirtualFuncHasDiffParam(decl);
+    CheckUniqueNameInHierarchy(decl);
   }
 
 

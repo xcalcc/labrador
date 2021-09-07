@@ -42,6 +42,17 @@ bool MISRADeclRule::IsExplicitSign(const std::string &type_name) {
   return false;
 };
 
+const clang::CXXRecordDecl *MISRADeclRule::GetBaseDecl(const clang::CXXBaseSpecifier &BS) {
+  auto record_type = clang::dyn_cast<clang::RecordType>(BS.getType());
+  if (!record_type) return nullptr;
+  auto record_decl = record_type->getAsCXXRecordDecl();
+  if (!record_decl) return nullptr;
+
+  if (!record_decl->hasDefinition()) return nullptr;
+
+  return record_decl;
+}
+
 /* MISRA
  * Rule: 2.3
  * A project should not contain unused type declarations
@@ -745,6 +756,55 @@ void MISRADeclRule::CheckDifferentVirtualInSameHierarchy(const clang::CXXRecordD
     issue->SetRefMsg(ref_msg);
     for (const auto &it : sinks) issue->AddDecl(it);
   }
+}
+
+/* MISRA
+ * Rule: 10-2-1
+ * all visible names within a inheritance hierarchy must be unique
+ */
+void MISRADeclRule::CheckUniqueNameInHierarchy(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasDefinition()) return;
+  if (decl->getNumBases() < 2) return;
+
+  std::unordered_set<const clang::Decl *> sinks;
+  std::unordered_map<std::string, const clang::FieldDecl *> field_records;
+  std::unordered_map<std::string, const clang::CXXMethodDecl *> method_records;
+
+  for (const auto &it : decl->bases()) {
+    auto base = GetBaseDecl(it);
+    if (base == nullptr) continue;
+    for (const auto &field : base->fields()) {
+      auto field_name = field->getNameAsString();
+      auto res = field_records.find(field_name);
+      if (res != field_records.end()) {
+        sinks.insert(field);
+        sinks.insert(res->second);
+      } else {
+        field_records.insert({field_name, field});
+      }
+    }
+
+    for (const auto &method : base->methods()) {
+      auto method_name = method->getNameAsString();
+      auto res = method_records.find(method_name);
+      if (res != method_records.end()) {
+        sinks.insert(method);
+        sinks.insert(res->second);
+      } else {
+        method_records.insert({method_name, method});
+      }
+    }
+  }
+
+  if (!sinks.empty()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_10_2_1, decl);
+    std::string ref_msg = "All visible names within a inheritance hierarchy must be unique";
+    issue->SetRefMsg(ref_msg);
+    for (const auto &it : sinks) issue->AddDecl(it);
+  }
+
 }
 
 
