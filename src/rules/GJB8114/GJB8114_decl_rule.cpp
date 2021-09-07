@@ -597,7 +597,7 @@ void GJB8114DeclRule::CheckDiamondDerivativeWithoutVirtual(const clang::CXXRecor
     auto base = record_decl->bases_begin()->getType()->getAsCXXRecordDecl();
     if (!base) return;
 
-    // continue if record is virtully derived from base class
+    // continue if record is virtually derived from base class
     if (record_decl->isVirtuallyDerivedFrom(base)) continue;
     bases.insert({record_decl, base});
   }
