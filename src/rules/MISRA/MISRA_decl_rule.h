@@ -192,6 +192,12 @@ private:
    */
   void CheckOverriddenVirtualFunction(const clang::CXXRecordDecl *decl);
 
+  /* MISRA
+   * Rule: 11-0-1
+   * Member data in non-POD class types shall be private.
+   */
+  void CheckNonPrivateFieldsInNormalClass(const clang::CXXRecordDecl *decl);
+
 public:
   void Finalize() {
     CheckUnusedTypedef();
@@ -248,6 +254,7 @@ public:
     CheckOverriddenVirtualFuncHasDiffParam(decl);
     CheckUniqueNameInHierarchy(decl);
     CheckOverriddenVirtualFunction(decl);
+    CheckNonPrivateFieldsInNormalClass(decl);
   }
 
 
