@@ -104,6 +104,7 @@
 #define M_R_10_1_3   "MSR_10_1_3"
 #define M_R_10_2_1   "MSR_10_2_1"
 #define M_R_10_3_2   "MSR_10_3_2"
+#define M_R_11_0_1   "MSR_11_0_1"
 #define M_R_12_1_1   "MSR_12_1_1"
 
 

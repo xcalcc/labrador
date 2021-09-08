@@ -11,6 +11,7 @@
 //
 
 #include <unordered_set>
+#include <clang/AST/Decl.h>
 #include <clang/AST/ASTContext.h>
 #include "xsca_report.h"
 #include "MISRA_decl_rule.h"
@@ -838,6 +839,29 @@ void MISRADeclRule::CheckOverriddenVirtualFunction(const clang::CXXRecordDecl *d
         }
       }
     }
+  }
+}
+
+/* MISRA
+ * Rule: 11-0-1
+ * Member data in non-POD class types shall be private.
+ */
+void MISRADeclRule::CheckNonPrivateFieldsInNormalClass(const clang::CXXRecordDecl *decl) {
+  if (decl->isPOD()) return;
+
+  std::unordered_set<const clang::Decl *> sinks;
+  for (const auto &field : decl->fields()) {
+    if(field->getAccess() == clang::AccessSpecifier::AS_private) continue;
+    sinks.insert(field);
+  }
+
+  if (!sinks.empty()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_11_0_1, decl);
+    std::string ref_msg = "Member data in non-POD class types shall be private.";
+    issue->SetRefMsg(ref_msg);
+    for (const auto &it : sinks) issue->AddDecl(it);
   }
 }
 
