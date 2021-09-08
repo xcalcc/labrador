@@ -60,12 +60,18 @@ void GJB5369DeclRule::GetFunctionTokens(const clang::FunctionDecl *decl,
   auto src_mgr = XcalCheckerManager::GetSourceManager();
   auto func_loc = decl->getLocation();
   auto func_raw_chars = src_mgr->getCharacterData(func_loc);
+  auto end_loc = decl->getEndLoc();
+  auto end = src_mgr->getCharacterData(end_loc);
+
+  if (func_raw_chars == end) return;
 
   std::string token;
 
   // eat function name
-  while (*func_raw_chars != '(')
+  while (*func_raw_chars != '(') {
+    if (func_raw_chars == end) break;
     func_raw_chars++;
+  }
 
   /* Maybe there are some APIs for getting tokens of parameter decl.
    * Such as clang::SourceRange and clang::Lexer.
@@ -73,18 +79,21 @@ void GJB5369DeclRule::GetFunctionTokens(const clang::FunctionDecl *decl,
    */
   do {
     *func_raw_chars++; // eat '(' or  ',' or ' '
+    if (func_raw_chars == end) break;
     while ((*func_raw_chars != ',') && (!std::isspace(*func_raw_chars)) &&
            (*func_raw_chars != ')')) {
       token += *func_raw_chars;
       func_raw_chars++;
+      if (func_raw_chars == end) break;
     }
+
 
     if (!token.empty()) {
       tokens.push_back(token);
       token = "";
     }
 
-  } while (*func_raw_chars != ')');
+  } while (func_raw_chars == end || *func_raw_chars != ')');
 }
 
 /* Check if the parameter list is empty

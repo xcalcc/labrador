@@ -764,11 +764,20 @@ void MISRADeclRule::CheckDifferentVirtualInSameHierarchy(const clang::CXXRecordD
  */
 void MISRADeclRule::CheckUniqueNameInHierarchy(const clang::CXXRecordDecl *decl) {
   if (!decl->hasDefinition()) return;
-  if (decl->getNumBases() < 2) return;
+  if (decl->getNumBases() < 1) return;
 
   std::unordered_set<const clang::Decl *> sinks;
   std::unordered_map<std::string, const clang::FieldDecl *> field_records;
   std::unordered_map<std::string, const clang::CXXMethodDecl *> method_records;
+
+  for (const auto &it : decl->fields()) {
+    field_records.insert({it->getNameAsString(), it});
+  }
+
+  for (const auto &it : decl->methods()) {
+    method_records.insert({it->getNameAsString(), it});
+    if (it->isDefaulted()) continue;
+  }
 
   for (const auto &it : decl->bases()) {
     auto base = GetBaseDecl(it);
@@ -785,6 +794,7 @@ void MISRADeclRule::CheckUniqueNameInHierarchy(const clang::CXXRecordDecl *decl)
     }
 
     for (const auto &method : base->methods()) {
+      if (method->isDefaulted()) continue;
       auto method_name = method->getNameAsString();
       auto res = method_records.find(method_name);
       if (res != method_records.end()) {

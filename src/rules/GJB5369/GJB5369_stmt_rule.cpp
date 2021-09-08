@@ -1195,7 +1195,6 @@ void GJB5369StmtRule::CheckReturnStmt(const clang::Stmt *stmt, bool initial) {
   }
 
   if (!_func_has_return_stmt) {
-    stmt->dumpColor();
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
 
