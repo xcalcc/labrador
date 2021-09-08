@@ -186,6 +186,12 @@ private:
    */
   void CheckUniqueNameInHierarchy(const clang::CXXRecordDecl *decl);
 
+  /* MISRA
+   * Rule: 10-3-2
+   * Overridden virtual functions in derived class should be noted with virtual
+   */
+  void CheckOverriddenVirtualFunction(const clang::CXXRecordDecl *decl);
+
 public:
   void Finalize() {
     CheckUnusedTypedef();
@@ -241,6 +247,7 @@ public:
     CheckDifferentVirtualInSameHierarchy(decl);
     CheckOverriddenVirtualFuncHasDiffParam(decl);
     CheckUniqueNameInHierarchy(decl);
+    CheckOverriddenVirtualFunction(decl);
   }
 
 

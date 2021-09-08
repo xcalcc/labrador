@@ -817,6 +817,30 @@ void MISRADeclRule::CheckUniqueNameInHierarchy(const clang::CXXRecordDecl *decl)
 
 }
 
+/* MISRA
+ * Rule: 10-3-2
+ * Overridden virtual functions in derived class should be noted with virtual
+ */
+void MISRADeclRule::CheckOverriddenVirtualFunction(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasDefinition()) return;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  for (const auto &method : decl->methods()) {
+    if (method->isVirtualAsWritten()) continue;
+    for (const auto &it : method->overridden_methods()) {
+      if (it->isVirtual()) {
+        if (issue == nullptr) {
+          issue = report->ReportIssue(MISRA, M_R_10_3_2, decl);
+          std::string ref_msg = "Overridden virtual functions in derived class should be noted with virtual";
+          issue->SetRefMsg(ref_msg);
+          issue->AddDecl(method);
+        }
+      }
+    }
+  }
+}
+
 
 }
 }

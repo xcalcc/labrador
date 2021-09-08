@@ -207,8 +207,8 @@ private:
   /*
    * GJB8114: 6.4.1.2
    * Overridden virtual functions in derived class should be noted with virtual
+   * MOVEd to MISRA-2008
    */
-  void CheckOverriddenVirtualFunction(const clang::CXXRecordDecl *decl);
 
   /*
    * GJB8114: 6.4.1.3
@@ -284,7 +284,6 @@ public:
     CheckDerivedClassContainConstructorOfBaseClass(decl);
     CheckVirtualDestructor(decl);
     CheckDefaultParamChangedInDerivedClassVirtualMethod(decl);
-    CheckOverriddenVirtualFunction(decl);
     CheckLocationOfMethodsDefination(decl);
   }
 
