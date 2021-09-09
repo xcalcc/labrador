@@ -411,6 +411,11 @@ public:
     CheckDynamicTypeInCtorAndDtor(stmt);
   }
 
+  void VisitAtFunctionExit(const clang::Stmt *stmt) {
+    _current_function_decl = nullptr;
+    XcalCheckerManager::SetCurrentFunction(nullptr);
+  }
+
 public:
   void SetCurrentFunctionDecl(const clang::FunctionDecl *decl) {
     _current_function_decl = decl;

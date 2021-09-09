@@ -84,27 +84,9 @@ public:
   // check if source is std library
   static bool IsStdLibrary(clang::SourceLocation location);
 
-  XcalIssue *ReportIssue(const char *std, const char *rule, const clang::Decl *decl) {
-    auto issue = std::make_unique<XcalIssue>(std, rule, decl);
+  XcalIssue *ReportIssue(const char *std, const char *rule, const clang::Decl *decl);
 
-    // ignore this issue if it is std source
-    if (IsStdLibrary(decl->getLocation())) issue->SetIgnore(true);
-
-    XcalIssue *issue_ptr = issue.get();
-    _issue_vec.push_back(std::move(issue));
-    return issue_ptr;
-  }
-
-  XcalIssue *ReportIssue(const char *std, const char *rule, const clang::Stmt *stmt) {
-    auto issue = std::make_unique<XcalIssue>(std, rule, stmt);
-
-    // ignore this issue if it is std source
-    if (IsStdLibrary(stmt->getBeginLoc())) issue->SetIgnore(true);
-
-    XcalIssue *issue_ptr = issue.get();
-    _issue_vec.push_back(std::move(issue));
-    return issue_ptr;
-  }
+  XcalIssue *ReportIssue(const char *std, const char *rule, const clang::Stmt *stmt);
 
   XcalIssue *ReportIssue(const char *std, const char *rule, const clang::SourceLocation location) {
     auto issue = std::make_unique<XcalIssue>(std, rule, location);

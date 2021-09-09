@@ -24,6 +24,7 @@
 // filename.c:line:column: GJB5369:4.1.1.1 msg
 //
 
+
 #include "xsca_report.h"
 #include "xsca_checker_manager.h"
 #include "clang/Basic/FileManager.h"
@@ -122,7 +123,7 @@ XcalReport::PrintVtxtIssue(const XcalIssue *issue)
   fprintf(_vtxt_file, "[A10],[%s],[%s],[%d:%d],[SML],[D],[RBC],[1,0,0],[%s],[%s],",
           key, ploc.getFilename(),
           fid, ploc.getLine(), output_std.c_str(), issue->RuleName());
-  fprintf(_vtxt_file, "[%s],[],[", issue->DeclName());
+  fprintf(_vtxt_file, "[%s],[%s],[", issue->DeclName(), issue->FuncName());
 
   std::vector<XcalPathInfo>::const_iterator end = issue->PathInfo().end();
   bool append_comma = false;
@@ -183,6 +184,36 @@ bool XcalReport::IsStdLibrary(clang::SourceLocation location) {
     return true;
   }
   return false;
+}
+
+XcalIssue *XcalReport::ReportIssue(const char *std, const char *rule, const clang::Stmt *stmt) {
+  auto issue = std::make_unique<XcalIssue>(std, rule, stmt);
+
+  if (auto func = XcalCheckerManager::GetCurrentFunction()) {
+    issue->SetFuncName(func->getNameAsString());
+  }
+
+  // ignore this issue if it is std source
+  if (IsStdLibrary(stmt->getBeginLoc())) issue->SetIgnore(true);
+
+  XcalIssue *issue_ptr = issue.get();
+  _issue_vec.push_back(std::move(issue));
+  return issue_ptr;
+}
+
+XcalIssue *XcalReport::ReportIssue(const char *std, const char *rule, const clang::Decl *decl) {
+  auto issue = std::make_unique<XcalIssue>(std, rule, decl);
+
+  if (auto func = XcalCheckerManager::GetCurrentFunction()) {
+    issue->SetFuncName(func->getNameAsString());
+  }
+
+  // ignore this issue if it is std source
+  if (IsStdLibrary(decl->getLocation())) issue->SetIgnore(true);
+
+  XcalIssue *issue_ptr = issue.get();
+  _issue_vec.push_back(std::move(issue));
+  return issue_ptr;
 }
 
 }  // namespace xsca

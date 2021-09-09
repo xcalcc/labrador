@@ -22,6 +22,7 @@
 #include "diagnostic_dispatcher.h"
 #include <memory>
 #include <vector>
+#include <clang/AST/ASTContext.h>
 
 namespace xsca {
 
@@ -46,6 +47,7 @@ private:
   std::vector< std::unique_ptr<XcalCheckerFactory> >    _factories;
   std::unique_ptr<clang::DiagnosticConsumer>            _diagnostic_mgr;
 
+  const clang::FunctionDecl                            *_current_func;
   clang::SourceManager                                 *_source_mgr;
 
   clang::ASTContext                                    *_ast_context;
@@ -104,6 +106,15 @@ public:
   GetAstContext() {
     DBG_ASSERT(_instance._ast_context != nullptr, "astcontext is null");
     return  _instance._ast_context;
+  }
+
+  static void SetCurrentFunction(const clang::FunctionDecl *decl) {
+    _instance._current_func = decl;
+  }
+
+  static const clang::FunctionDecl *
+  GetCurrentFunction() {
+    return _instance._current_func;
   }
 
   static std::unique_ptr<clang::ASTConsumer>

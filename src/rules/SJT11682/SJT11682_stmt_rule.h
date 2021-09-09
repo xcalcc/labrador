@@ -19,9 +19,14 @@ public:
   ~SJT11682StmtRule() {}
 
 private:
+  const clang::FunctionDecl *_current_function_decl;
 
 public:
 
+  void VisitAtFunctionExit(const clang::Stmt *stmt) {
+    _current_function_decl = nullptr;
+    XcalCheckerManager::SetCurrentFunction(nullptr);
+  }
 }; // SJT11682StmtRule
 
 }

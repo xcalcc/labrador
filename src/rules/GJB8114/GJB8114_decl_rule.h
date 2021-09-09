@@ -13,6 +13,7 @@
 #include "xsca_report.h"
 #include "scope_manager.h"
 #include "decl_null_handler.h"
+#include "xsca_checker_manager.h"
 //#include <clang/AST/Decl.h>
 //#include <vector>
 
@@ -292,6 +293,7 @@ public:
   }
 
   void VisitFunction(const clang::FunctionDecl *decl) {
+    XcalCheckerManager::SetCurrentFunction(decl);
     CheckExternVariableInFunction(decl);
     CheckVariableDeclPosition(decl);
     CheckVoidPointer(decl);

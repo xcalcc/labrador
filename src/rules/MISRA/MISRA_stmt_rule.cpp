@@ -1047,6 +1047,7 @@ void MISRAStmtRule::CheckDynamicTypeInCtorAndDtor(const clang::CXXMemberCallExpr
   auto callee = GetCalleeDecl(stmt);
   auto method_decl = clang::dyn_cast<clang::CXXMethodDecl>(callee);
   if (method_decl == nullptr || !method_decl->isVirtual()) return;
+  ReportDynamicInCTorAndDtor(stmt);
 }
 
 

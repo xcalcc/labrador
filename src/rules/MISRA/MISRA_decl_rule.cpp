@@ -847,11 +847,12 @@ void MISRADeclRule::CheckOverriddenVirtualFunction(const clang::CXXRecordDecl *d
  * Member data in non-POD class types shall be private.
  */
 void MISRADeclRule::CheckNonPrivateFieldsInNormalClass(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasDefinition()) return;
   if (decl->isPOD()) return;
 
   std::unordered_set<const clang::Decl *> sinks;
   for (const auto &field : decl->fields()) {
-    if(field->getAccess() == clang::AccessSpecifier::AS_private) continue;
+    if (field->getAccess() == clang::AccessSpecifier::AS_private) continue;
     sinks.insert(field);
   }
 

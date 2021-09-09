@@ -13,11 +13,13 @@
 #ifndef XSCA_ISSUE_INCLUDED
 #define XSCA_ISSUE_INCLUDED
 
-#include "clang/Basic/SourceLocation.h"
+#include "xsca_defs.h"
 #include "clang/AST/Decl.h"
 #include "clang/AST/Stmt.h"
+#include "clang/Basic/SourceLocation.h"
 #include <vector>
 #include <string>
+
 
 namespace xsca {
 
@@ -64,9 +66,14 @@ private:
   const char               *_rule_name;   // rule name, say "4.1.1.1", "Rule 1.1"
   std::string               _decl_name;   // decl name for function, variable, type
   std::string               _ref_msg;     // message for reference
+  std::string               _func_name;   // function name for issue
   std::vector<XcalPathInfo> _path_info;   // path info for this path
 
   bool                      _need_ignore; // ignore if it is std library
+
+private:
+  void setFunctionName(const clang::Stmt *stmt);
+  void setFunctionName(const clang::Decl *stmt);
 
 public:
   XcalIssue(const char *std, const char *rule)
@@ -78,6 +85,9 @@ public:
     _path_info.push_back(XcalPathInfo(decl));
     if (clang::isa<clang::NamedDecl>(decl)) {
       _decl_name = clang::cast<clang::NamedDecl>(decl)->getNameAsString();
+      if (clang::isa<clang::FunctionDecl>(decl)) {
+        _func_name = clang::cast<clang::FunctionDecl>(decl)->getNameAsString();
+      }
     }
   }
 
@@ -104,6 +114,10 @@ public:
     _need_ignore = ignore;
   }
 
+  void SetFuncName(const std::string &name) {
+    _func_name = name;
+  }
+
   void AddDecl(const clang::Decl *decl) {
     _path_info.push_back(XcalPathInfo(decl));
   }
@@ -127,6 +141,10 @@ public:
 
   const char *RefMessage() const {
     return _ref_msg.c_str();
+  }
+
+  const char *FuncName() const {
+    return _func_name.c_str();
   }
 
   bool IsIgnore() const {
