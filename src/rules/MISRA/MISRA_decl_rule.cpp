@@ -796,6 +796,9 @@ void MISRADeclRule::CheckUniqueNameInHierarchy(const clang::CXXRecordDecl *decl)
 
     for (const auto &method : base->methods()) {
       if (method->isDefaulted()) continue;
+      if (clang::isa<clang::CXXConstructorDecl>(method) ||
+          clang::isa<clang::CXXDestructorDecl>(method))
+        continue;
       auto method_name = method->getNameAsString();
       auto res = method_records.find(method_name);
       if (res != method_records.end()) {
