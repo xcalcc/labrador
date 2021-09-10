@@ -777,66 +777,6 @@ void GJB8114DeclRule::CheckInitFieldsInConstructor(const clang::CXXRecordDecl *d
 }
 
 /*
- * GJB8114: 6.2.1.5
- * Derived class should contain constructor of base class
- */
-void GJB8114DeclRule::CheckDerivedClassContainConstructorOfBaseClass(const clang::CXXRecordDecl *decl) {
-  if (!decl->hasDefinition()) return;
-  if (decl->getNumBases() == 0) return;
-
-  // get base class
-  std::unordered_set<clang::CXXRecordDecl *> bases;
-  for (const auto &base : decl->bases()) {
-    const clang::RecordType *base_type = clang::dyn_cast<clang::RecordType>(base.getType());
-    if (base_type && base_type->getAsCXXRecordDecl())
-      bases.insert(base_type->getAsCXXRecordDecl());
-  }
-
-  bool need_report = false;
-  std::vector<clang::CXXConstructorDecl *> sinks;
-  if (!decl->hasUserDeclaredConstructor()) {
-    need_report = true;
-  } else {
-    for (const auto &method : decl->methods()) {
-      auto tmp = bases;
-      if (auto constructor = clang::dyn_cast<clang::CXXConstructorDecl>(method)) {
-        for (const auto init : constructor->inits()) {
-          auto expr = init->getInit();
-          if (expr == nullptr) continue;
-          if (auto constructor_expr = clang::dyn_cast<clang::CXXConstructExpr>(expr)) {
-
-            // check if this is implicit default constructor
-            if (constructor_expr->getBeginLoc() == constructor_expr->getEndLoc()) {
-              continue;
-            }
-
-            auto parent = constructor_expr->getConstructor()->getParent();
-            auto it = tmp.find(parent);
-            if (it != tmp.end()) tmp.erase(it);
-          }
-        }
-
-        if (!tmp.empty()) {
-          need_report = true;
-          sinks.push_back(constructor);
-        }
-      }
-    }
-  }
-
-  if (need_report) {
-    XcalIssue *issue = nullptr;
-    XcalReport *report = XcalCheckerManager::GetReport();
-    issue = report->ReportIssue(GJB8114, G6_2_1_5, decl);
-    std::string ref_msg = "Derived class should contain constructor of base class";
-    issue->SetRefMsg(ref_msg);
-    for (const auto &sink : sinks) {
-      issue->AddDecl(sink);
-    }
-  }
-}
-
-/*
  * GJB8114: 6.3.1.1
  * Destruct function of classes which contain the virtual functions should be virtual
  */

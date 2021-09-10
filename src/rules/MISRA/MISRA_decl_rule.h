@@ -198,6 +198,12 @@ private:
    */
   void CheckNonPrivateFieldsInNormalClass(const clang::CXXRecordDecl *decl);
 
+  /*
+ * MISRA: 12-1-2
+ * Derived class should contain constructor of base class
+ */
+  void CheckDerivedClassContainConstructorOfBaseClass(const clang::CXXRecordDecl *decl);
+
 public:
   void Finalize() {
     CheckUnusedTypedef();
@@ -256,6 +262,7 @@ public:
     CheckUniqueNameInHierarchy(decl);
     CheckOverriddenVirtualFunction(decl);
     CheckNonPrivateFieldsInNormalClass(decl);
+    CheckDerivedClassContainConstructorOfBaseClass(decl);
   }
 
 

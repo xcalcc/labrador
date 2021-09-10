@@ -190,8 +190,8 @@ private:
   /*
    * GJB8114: 6.2.1.5
    * Derived class should contain constructor of base class
+   * MOVED TO MISRA
    */
-  void CheckDerivedClassContainConstructorOfBaseClass(const clang::CXXRecordDecl *decl);
 
   /*
    * GJB8114: 6.3.1.1
@@ -282,7 +282,6 @@ public:
     CheckDerivedFromAbstractClass(decl);
     CheckExplictConstructor(decl);
     CheckInitFieldsInConstructor(decl);
-    CheckDerivedClassContainConstructorOfBaseClass(decl);
     CheckVirtualDestructor(decl);
     CheckDefaultParamChangedInDerivedClassVirtualMethod(decl);
     CheckLocationOfMethodsDefination(decl);
