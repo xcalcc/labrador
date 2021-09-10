@@ -199,12 +199,18 @@ private:
   void CheckNonPrivateFieldsInNormalClass(const clang::CXXRecordDecl *decl);
 
   /*
- * MISRA: 12-1-2
- * Derived class should contain constructor of base class
- */
+   * MISRA: 12-1-2
+   * Derived class should contain constructor of base class
+   */
   void CheckDerivedClassContainConstructorOfBaseClass(const clang::CXXRecordDecl *decl);
 
-public:
+  /*
+ * MISRA: 12-1-3
+ * All constructors that are callable with a single argument of fundamental type shall be declared explicit.
+ */
+  void CheckExplicitConstructorWithSingleParam(const clang::FunctionDecl *decl);
+
+    public:
   void Finalize() {
     CheckUnusedTypedef();
     CheckUnusedLabelInFunction();
@@ -243,6 +249,7 @@ public:
     CheckStaticSpecifier(decl);
     CheckInlineFunctionWithExternalLinkage(decl);
     CheckStaticBetweenBracket(decl);
+    CheckExplicitConstructorWithSingleParam(decl);
   }
 
   void VisitField(const clang::FieldDecl *decl) {

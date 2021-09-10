@@ -178,8 +178,8 @@ private:
   /*
    * GJB8114: 6.2.1.3
    * Construct functions which contains only one parameter should be note by "explicit"
+   * MOVED TO MISRA
    */
-  void CheckExplicitConstructorWithSingleParam(const clang::FunctionDecl *decl);
 
   /*
    * GJB8114: 6.2.1.4
@@ -298,7 +298,6 @@ public:
     CheckVoidPointer(decl);
     CheckTooManyParams(decl);
     CheckInlineFunction(decl);
-    CheckExplicitConstructorWithSingleParam(decl);
     CheckOverloadingLogicOperator(decl);
   }
 

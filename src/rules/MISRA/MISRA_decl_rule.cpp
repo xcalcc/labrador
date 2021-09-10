@@ -931,6 +931,23 @@ void MISRADeclRule::CheckDerivedClassContainConstructorOfBaseClass(const clang::
 }
 
 
+/*
+ * MISRA: 12-1-3
+ * All constructors that are callable with a single argument of fundamental type shall be declared explicit.
+ */
+void MISRADeclRule::CheckExplicitConstructorWithSingleParam(const clang::FunctionDecl *decl) {
+  if (auto constructor = clang::dyn_cast<clang::CXXConstructorDecl>(decl)) {
+    if (constructor->param_size() != 1) return;
+
+    if (constructor->isExplicit()) return;
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_12_1_3, decl);
+    std::string ref_msg = "Construct functions which contains only one parameter should be note by \"explicit\"";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }

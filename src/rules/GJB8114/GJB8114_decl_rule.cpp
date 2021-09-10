@@ -693,23 +693,6 @@ void GJB8114DeclRule::CheckExplictConstructor(const clang::CXXRecordDecl *decl) 
 }
 
 /*
- * GJB8114: 6.2.1.3
- * Construct functions which contains only one parameter should be note by "explicit"
- */
-void GJB8114DeclRule::CheckExplicitConstructorWithSingleParam(const clang::FunctionDecl *decl) {
-  if (auto constructor = clang::dyn_cast<clang::CXXConstructorDecl>(decl)) {
-    if (constructor->param_size() != 1) return;
-
-    if (constructor->isExplicit()) return;
-    XcalIssue *issue = nullptr;
-    XcalReport *report = XcalCheckerManager::GetReport();
-    issue = report->ReportIssue(GJB8114, G6_2_1_3, decl);
-    std::string ref_msg = "Construct functions which contains only one parameter should be note by \"explicit\"";
-    issue->SetRefMsg(ref_msg);
-  }
-}
-
-/*
  * GJB8114: 6.2.1.4
  * All class members should be initialized in constructor
  */
