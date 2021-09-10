@@ -948,6 +948,30 @@ void MISRADeclRule::CheckExplicitConstructorWithSingleParam(const clang::Functio
   }
 }
 
+/*
+ * MISRA: 12-8-2
+ * The copy assignment operator shall be declared protected or private in an abstract class.
+ */
+void MISRADeclRule::CheckUnPrivateCopyAssigmentOpOfAbstractClass(const clang::CXXRecordDecl *decl) {
+  if (!decl->isAbstract()) return;
+
+  std::unordered_set<const clang::Decl *> sinks;
+  for (const auto &it : decl->methods()) {
+    if (!it->isCopyAssignmentOperator()) continue;
+    if(it->getAccess() == clang::AS_public) {
+      sinks.insert(it);
+    }
+  }
+
+  if (!sinks.empty()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_12_8_2, decl);
+    std::string ref_msg = "The copy assignment operator shall be declared protected or private in an abstract class.";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }

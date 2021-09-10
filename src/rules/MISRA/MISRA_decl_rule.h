@@ -205,10 +205,16 @@ private:
   void CheckDerivedClassContainConstructorOfBaseClass(const clang::CXXRecordDecl *decl);
 
   /*
- * MISRA: 12-1-3
- * All constructors that are callable with a single argument of fundamental type shall be declared explicit.
- */
+   * MISRA: 12-1-3
+   * All constructors that are callable with a single argument of fundamental type shall be declared explicit.
+   */
   void CheckExplicitConstructorWithSingleParam(const clang::FunctionDecl *decl);
+
+  /*
+   * MISRA: 12-8-2
+   * The copy assignment operator shall be declared protected or private in an abstract class.
+   */
+  void CheckUnPrivateCopyAssigmentOpOfAbstractClass(const clang::CXXRecordDecl *decl);
 
     public:
   void Finalize() {
@@ -270,6 +276,7 @@ private:
     CheckOverriddenVirtualFunction(decl);
     CheckNonPrivateFieldsInNormalClass(decl);
     CheckDerivedClassContainConstructorOfBaseClass(decl);
+    CheckUnPrivateCopyAssigmentOpOfAbstractClass(decl);
   }
 
 
