@@ -302,8 +302,13 @@ private:
    */
   void CheckBitwiseWithOutParen(const clang::BinaryOperator *stmt);
 
+  /*
+   * MISRA: 15-0-2
+   * An exception object should not have pointer type.
+   */
+  void CheckThrowPointer(const clang::CXXThrowExpr *stmt);
 
-public:
+  public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
     CheckStringLiteralToNonConstChar(stmt);
@@ -414,6 +419,10 @@ public:
   void VisitAtFunctionExit(const clang::Stmt *stmt) {
     _current_function_decl = nullptr;
     XcalCheckerManager::SetCurrentFunction(nullptr);
+  }
+
+  void VisitCXXThrowExpr(const clang::CXXThrowExpr *stmt) {
+    CheckThrowPointer(stmt);
   }
 
 public:

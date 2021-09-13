@@ -1109,20 +1109,6 @@ void GJB8114StmtRule::CheckTryWithoutDefaultCatch(const clang::CXXTryStmt *stmt)
   issue->SetRefMsg(ref_msg);
 }
 
-/*
- * GJB8114: 6.8.2.2
- * Throwing pointer carefully
- */
-void GJB8114StmtRule::CheckThrowPointer(const clang::CXXThrowExpr *stmt) {
-  if (stmt->getSubExpr()->IgnoreParenImpCasts()->getType()->isPointerType()) {
-    XcalIssue *issue = nullptr;
-    XcalReport *report = XcalCheckerManager::GetReport();
-
-    issue = report->ReportIssue(GJB8114, G6_8_2_2, stmt);
-    std::string ref_msg = "Throwing pointer carefully";
-    issue->SetRefMsg(ref_msg);
-  }
-}
 
 
 }

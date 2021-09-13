@@ -1154,6 +1154,21 @@ void MISRAStmtRule::CheckDownCastToDerivedClass(const clang::CastExpr *stmt) {
   }
 }
 
+/*
+ * MISRA: 15-0-2
+ * An exception object should not have pointer type.
+ */
+void MISRAStmtRule::CheckThrowPointer(const clang::CXXThrowExpr *stmt) {
+  if (stmt->getSubExpr()->IgnoreParenImpCasts()->getType()->isPointerType()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(MISRA, M_R_15_0_2, stmt);
+    std::string ref_msg = "An exception object should not have pointer type.";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }
