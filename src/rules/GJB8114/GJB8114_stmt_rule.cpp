@@ -1079,7 +1079,7 @@ void GJB8114StmtRule::CheckCatchTypeNotReference(const clang::CXXCatchStmt *stmt
  * Throwing NULL is forbidden
  */
 void GJB8114StmtRule::CheckThrowNullExpr(const clang::CXXThrowExpr *stmt) {
-  if (stmt->getSubExpr()->getStmtClass() == clang::Stmt::GNUNullExprClass) {
+  if (stmt->getSubExpr()->IgnoreParenImpCasts()->getStmtClass() == clang::Stmt::GNUNullExprClass) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
 

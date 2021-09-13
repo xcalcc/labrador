@@ -976,6 +976,7 @@ void MISRADeclRule::CheckExplicitConstructorWithSingleParam(const clang::Functio
  * The copy assignment operator shall be declared protected or private in an abstract class.
  */
 void MISRADeclRule::CheckUnPrivateCopyAssigmentOpOfAbstractClass(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasDefinition()) return;
   if (!decl->isAbstract()) return;
 
   std::unordered_set<const clang::Decl *> sinks;
