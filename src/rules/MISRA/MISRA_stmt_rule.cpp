@@ -1169,6 +1169,37 @@ void MISRAStmtRule::CheckThrowPointer(const clang::CXXThrowExpr *stmt) {
   }
 }
 
+/*
+ * MISRA: 15-1-1
+ * The assignment-expression of a throw statement shall not itself cause an exception to be thrown.
+ */
+void MISRAStmtRule::CheckThrowExceptionItselfHasThrow(const clang::CXXThrowExpr *stmt) {
+  auto sub_expr = stmt->getSubExpr();
+  if (auto tmp_obj = clang::dyn_cast<clang::CXXConstructExpr>(sub_expr)) {
+    std::vector<const clang::Stmt *> sinks;
+
+    auto record_decl = tmp_obj->getConstructor()->getParent();
+    for (const auto &ctor : record_decl->ctors()) {
+      if (!ctor->doesThisDeclarationHaveABody()) continue;
+      for (const auto &it : ctor->getBody()->children()) {
+        if (clang::isa<clang::CXXThrowExpr>(it)) {
+          sinks.push_back(it);
+        }
+      }
+    }
+
+    if (!sinks.empty()) {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+
+      issue = report->ReportIssue(MISRA, M_R_15_1_1, stmt);
+      std::string ref_msg = "The assignment-expression of a throw statement shall not itself cause an exception to be thrown.";
+      issue->SetRefMsg(ref_msg);
+      for (const auto &sink : sinks) issue->AddStmt(sink);
+    }
+  }
+}
+
 
 }
 }

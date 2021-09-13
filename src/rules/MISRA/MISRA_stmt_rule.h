@@ -308,7 +308,13 @@ private:
    */
   void CheckThrowPointer(const clang::CXXThrowExpr *stmt);
 
-  public:
+  /*
+   * MISRA: 15-1-1
+   * The assignment-expression of a throw statement shall not itself cause an exception to be thrown.
+   */
+  void CheckThrowExceptionItselfHasThrow(const clang::CXXThrowExpr *stmt);
+
+public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
     CheckStringLiteralToNonConstChar(stmt);
@@ -423,6 +429,7 @@ private:
 
   void VisitCXXThrowExpr(const clang::CXXThrowExpr *stmt) {
     CheckThrowPointer(stmt);
+    CheckThrowExceptionItselfHasThrow(stmt);
   }
 
 public:
