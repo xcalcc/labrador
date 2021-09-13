@@ -55,6 +55,29 @@ const clang::CXXRecordDecl *MISRADeclRule::GetBaseDecl(const clang::CXXBaseSpeci
   return record_decl;
 }
 
+/*
+ * check if a function has a single parameter whose type is template type
+ */
+bool MISRADeclRule::IsSingleTemplateTypeParamFunction(const clang::Decl *decl) {
+  if (!decl->isTemplateDecl()) return false;
+  if (auto func_tp = clang::dyn_cast<clang::FunctionTemplateDecl>(decl)) {
+    auto func = func_tp->getTemplatedDecl();
+    if (func->param_size() != 1) return false;
+    auto param = func->getParamDecl(0);
+    auto param_tp = param->getType();
+
+    // check if it is reference type
+    if (param_tp->isLValueReferenceType()) {
+      auto lref = clang::dyn_cast<clang::LValueReferenceType>(param_tp);
+      param_tp = lref->getPointeeType();
+    }
+
+    // check if it is template type
+    if (param_tp->isTemplateTypeParmType()) return true;
+  }
+  return false;
+}
+
 /* MISRA
  * Rule: 2.3
  * A project should not contain unused type declarations
@@ -982,21 +1005,9 @@ void MISRADeclRule::CheckCTorWithTemplateWithoutCopyCtor(const clang::CXXRecordD
 
   bool flag = false;
   for (const auto &method : decl->decls()) {
-    if (!method->isTemplateDecl()) continue;
-    if (auto func_tp = clang::dyn_cast<clang::FunctionTemplateDecl>(method)) {
-      auto func = func_tp->getTemplatedDecl();
-      if (func->param_size() != 1) continue;
-      auto param = func->getParamDecl(0);
-      auto param_tp = param->getType();
-
-      // check if it is reference type
-      if (param_tp->isLValueReferenceType()) {
-        auto lref = clang::dyn_cast<clang::LValueReferenceType>(param_tp);
-        param_tp = lref->getPointeeType();
-      }
-
-      // check if it is template type
-      if (param_tp->isTemplateTypeParmType()) {
+    if (IsSingleTemplateTypeParamFunction(method)) {
+      auto func = clang::cast<clang::FunctionTemplateDecl>(method)->getTemplatedDecl();
+      if (clang::isa<clang::CXXConstructorDecl>(func)) {
         flag = true;
         break;
       }
@@ -1009,6 +1020,35 @@ void MISRADeclRule::CheckCTorWithTemplateWithoutCopyCtor(const clang::CXXRecordD
     issue = report->ReportIssue(MISRA, M_R_14_5_2, decl);
     std::string ref_msg = "A copy constructor shall be declared when there is a template constructor"
                           " with a single parameter that is a generic parameter.";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+/*
+ * MISRA: 14-5-3
+ * A copy assignment operator shall be declared when there is a template
+ * assignment operator with a parameter that is a generic parameter.
+ */
+void MISRADeclRule::CheckCopyAssignmentWithTemplate(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasDefinition()) return;
+
+  bool flag = false;
+  for (const auto &method : decl->decls()) {
+    if (IsSingleTemplateTypeParamFunction(method)) {
+      auto func = clang::cast<clang::FunctionTemplateDecl>(method)->getTemplatedDecl();
+      if (func->getNameAsString() == "operator=") {
+        flag = true;
+        break;
+      }
+    }
+  }
+
+  if (flag == true && !decl->hasUserDeclaredCopyAssignment()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_14_5_3, decl);
+    std::string ref_msg = "A copy assignment operator shall be declared when there is a template assignment "
+                          "operator with a parameter that is a generic parameter.";
     issue->SetRefMsg(ref_msg);
   }
 }

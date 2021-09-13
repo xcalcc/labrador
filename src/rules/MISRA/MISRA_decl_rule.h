@@ -30,6 +30,8 @@ private:
 
   const clang::CXXRecordDecl *GetBaseDecl(const clang::CXXBaseSpecifier &BS);
 
+  bool IsSingleTemplateTypeParamFunction(const clang::Decl *decl);
+
     /* MISRA
      * Rule: 2.3
      * A project should not contain unused type declarations
@@ -223,6 +225,12 @@ private:
    */
   void CheckCTorWithTemplateWithoutCopyCtor(const clang::CXXRecordDecl *decl);
 
+  /*
+   * MISRA: 14-5-3
+   * A copy assignment operator shall be declared when there is a template
+   * assignment operator with a parameter that is a generic parameter.
+   */
+  void CheckCopyAssignmentWithTemplate(const clang::CXXRecordDecl *decl);
 
     public:
   void Finalize() {
@@ -286,6 +294,7 @@ private:
     CheckDerivedClassContainConstructorOfBaseClass(decl);
     CheckUnPrivateCopyAssigmentOpOfAbstractClass(decl);
     CheckCTorWithTemplateWithoutCopyCtor(decl);
+    CheckCopyAssignmentWithTemplate(decl);
   }
 
 
