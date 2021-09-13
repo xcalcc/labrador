@@ -216,6 +216,14 @@ private:
    */
   void CheckUnPrivateCopyAssigmentOpOfAbstractClass(const clang::CXXRecordDecl *decl);
 
+  /*
+   * MISRA: 14-5-2
+   * A copy constructor shall be declared when there is a template constructor with
+   * a single parameter that is a generic parameter.
+   */
+  void CheckCTorWithTemplateWithoutCopyCtor(const clang::CXXRecordDecl *decl);
+
+
     public:
   void Finalize() {
     CheckUnusedTypedef();
@@ -277,6 +285,7 @@ private:
     CheckNonPrivateFieldsInNormalClass(decl);
     CheckDerivedClassContainConstructorOfBaseClass(decl);
     CheckUnPrivateCopyAssigmentOpOfAbstractClass(decl);
+    CheckCTorWithTemplateWithoutCopyCtor(decl);
   }
 
 

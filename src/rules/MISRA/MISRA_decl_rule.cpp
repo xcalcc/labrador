@@ -958,7 +958,7 @@ void MISRADeclRule::CheckUnPrivateCopyAssigmentOpOfAbstractClass(const clang::CX
   std::unordered_set<const clang::Decl *> sinks;
   for (const auto &it : decl->methods()) {
     if (!it->isCopyAssignmentOperator()) continue;
-    if(it->getAccess() == clang::AS_public) {
+    if (it->getAccess() == clang::AS_public) {
       sinks.insert(it);
     }
   }
@@ -968,6 +968,47 @@ void MISRADeclRule::CheckUnPrivateCopyAssigmentOpOfAbstractClass(const clang::CX
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(MISRA, M_R_12_8_2, decl);
     std::string ref_msg = "The copy assignment operator shall be declared protected or private in an abstract class.";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+/*
+ * MISRA: 14-5-2
+ * A copy constructor shall be declared when there is a template constructor with
+ * a single parameter that is a generic parameter.
+ */
+void MISRADeclRule::CheckCTorWithTemplateWithoutCopyCtor(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasDefinition()) return;
+
+  bool flag = false;
+  for (const auto &method : decl->decls()) {
+    if (!method->isTemplateDecl()) continue;
+    if (auto func_tp = clang::dyn_cast<clang::FunctionTemplateDecl>(method)) {
+      auto func = func_tp->getTemplatedDecl();
+      if (func->param_size() != 1) continue;
+      auto param = func->getParamDecl(0);
+      auto param_tp = param->getType();
+
+      // check if it is reference type
+      if (param_tp->isLValueReferenceType()) {
+        auto lref = clang::dyn_cast<clang::LValueReferenceType>(param_tp);
+        param_tp = lref->getPointeeType();
+      }
+
+      // check if it is template type
+      if (param_tp->isTemplateTypeParmType()) {
+        flag = true;
+        break;
+      }
+    }
+  }
+
+  if (flag == true && !decl->hasUserDeclaredCopyConstructor()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_14_5_2, decl);
+    std::string ref_msg = "A copy constructor shall be declared when there is a template constructor"
+                          " with a single parameter that is a generic parameter.";
     issue->SetRefMsg(ref_msg);
   }
 }

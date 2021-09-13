@@ -110,6 +110,7 @@
 #define M_R_12_1_3   "MSR_12_1_3"
 #define M_R_12_8_1   "MSR_12_8_1"
 #define M_R_12_8_2   "MSR_12_8_2"
+#define M_R_14_5_2   "MSR_14_5_2"
 
 
 #define M_R_99_99_99   "MSR_99_99_99"
