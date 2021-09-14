@@ -315,6 +315,12 @@ private:
   void CheckThrowExceptionItselfHasThrow(const clang::CXXThrowExpr *stmt);
 
   /*
+   * MISRA: 15-1-2
+   * NULL shall not be thrown explicitly.
+   */
+  void CheckThrowNullExpr(const clang::CXXThrowExpr *stmt);
+
+  /*
    * MISRA: 15-1-3
    * An empty throw (throw;) shall only be used in the compound-statement of a catch handler.
    */
@@ -436,6 +442,7 @@ public:
   void VisitCXXThrowExpr(const clang::CXXThrowExpr *stmt) {
     CheckThrowPointer(stmt);
     CheckThrowExceptionItselfHasThrow(stmt);
+    CheckThrowNullExpr(stmt);
     CheckEmptyThrowInNonCatchBlock(stmt);
   }
 

@@ -329,8 +329,8 @@ private:
   /*
    * GJB8114: 6.8.1.5
    * Throwing NULL is forbidden
+   * MOVED TO MISRA
    */
-  void CheckThrowNullExpr(const clang::CXXThrowExpr *stmt);
 
   /*
    * GJB8114: 6.8.2.1
@@ -434,7 +434,6 @@ public:
   }
 
   void VisitCXXThrowExpr(const clang::CXXThrowExpr *stmt) {
-    CheckThrowNullExpr(stmt);
   }
 
 public:

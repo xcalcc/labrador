@@ -1203,6 +1203,22 @@ void MISRAStmtRule::CheckThrowExceptionItselfHasThrow(const clang::CXXThrowExpr 
 }
 
 /*
+ * MISRA: 15-1-2
+ * NULL shall not be thrown explicitly.
+ */
+void MISRAStmtRule::CheckThrowNullExpr(const clang::CXXThrowExpr *stmt) {
+  auto sub_expr = stmt->getSubExpr()->IgnoreParenImpCasts();
+  if (sub_expr && (sub_expr->getStmtClass() == clang::Stmt::GNUNullExprClass)) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(MISRA, M_R_15_1_2, stmt);
+    std::string ref_msg = "NULL shall not be thrown explicitly.";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+/*
  * MISRA: 15-1-3
  * An empty throw (throw;) shall only be used in the compound-statement of a catch handler.
  */

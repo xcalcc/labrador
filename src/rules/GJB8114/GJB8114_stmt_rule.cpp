@@ -1078,22 +1078,6 @@ void GJB8114StmtRule::CheckCatchTypeNotReference(const clang::CXXCatchStmt *stmt
 }
 
 /*
- * GJB8114: 6.8.1.5
- * Throwing NULL is forbidden
- */
-void GJB8114StmtRule::CheckThrowNullExpr(const clang::CXXThrowExpr *stmt) {
-  auto sub_expr = stmt->getSubExpr()->IgnoreParenImpCasts();
-  if (sub_expr && (sub_expr->getStmtClass() == clang::Stmt::GNUNullExprClass)) {
-    XcalIssue *issue = nullptr;
-    XcalReport *report = XcalCheckerManager::GetReport();
-
-    issue = report->ReportIssue(GJB8114, G6_8_1_5, stmt);
-    std::string ref_msg = "Throwing NULL is forbidden";
-    issue->SetRefMsg(ref_msg);
-  }
-}
-
-/*
  * GJB8114: 6.8.2.1
  * Using default catch after other catches to avoid omitting
  */
