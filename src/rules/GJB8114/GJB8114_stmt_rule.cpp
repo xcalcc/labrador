@@ -96,12 +96,15 @@ bool GJB8114StmtRule::IsInCPPFile(clang::SourceLocation location) {
 }
 
 // collect object types within try block
-std::vector<clang::QualType>
+std::vector <clang::QualType>
 GJB8114StmtRule::RecordThrowObjectTypes(const clang::Stmt *stmt) {
-  std::vector<clang::QualType> obj_types;
+  std::vector <clang::QualType> obj_types;
   if (auto throw_stmt = clang::dyn_cast<clang::CXXThrowExpr>(stmt)) {
-    auto obj_type = throw_stmt->getSubExpr()->IgnoreParenImpCasts()->getType();
-    obj_types.push_back(obj_type);
+    auto sub_stmt = throw_stmt->getSubExpr()->IgnoreParenImpCasts();
+    if (sub_stmt != nullptr) {
+      auto obj_type = sub_stmt->getType();
+      obj_types.push_back(obj_type);
+    }
   } else {
     for (const auto &it : stmt->children()) {
       auto sub_res = RecordThrowObjectTypes(it);
@@ -1079,7 +1082,8 @@ void GJB8114StmtRule::CheckCatchTypeNotReference(const clang::CXXCatchStmt *stmt
  * Throwing NULL is forbidden
  */
 void GJB8114StmtRule::CheckThrowNullExpr(const clang::CXXThrowExpr *stmt) {
-  if (stmt->getSubExpr()->IgnoreParenImpCasts()->getStmtClass() == clang::Stmt::GNUNullExprClass) {
+  auto sub_expr = stmt->getSubExpr()->IgnoreParenImpCasts();
+  if (sub_expr && (sub_expr->getStmtClass() == clang::Stmt::GNUNullExprClass)) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
 
@@ -1108,7 +1112,6 @@ void GJB8114StmtRule::CheckTryWithoutDefaultCatch(const clang::CXXTryStmt *stmt)
   std::string ref_msg = "Using default catch after other catches to avoid omitting";
   issue->SetRefMsg(ref_msg);
 }
-
 
 
 }

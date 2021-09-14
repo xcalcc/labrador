@@ -1159,7 +1159,8 @@ void MISRAStmtRule::CheckDownCastToDerivedClass(const clang::CastExpr *stmt) {
  * An exception object should not have pointer type.
  */
 void MISRAStmtRule::CheckThrowPointer(const clang::CXXThrowExpr *stmt) {
-  if (stmt->getSubExpr()->IgnoreParenImpCasts()->getType()->isPointerType()) {
+  auto sub_expr = stmt->getSubExpr()->IgnoreParenImpCasts();
+  if (sub_expr && sub_expr->getType()->isPointerType()) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
 
@@ -1175,6 +1176,7 @@ void MISRAStmtRule::CheckThrowPointer(const clang::CXXThrowExpr *stmt) {
  */
 void MISRAStmtRule::CheckThrowExceptionItselfHasThrow(const clang::CXXThrowExpr *stmt) {
   auto sub_expr = stmt->getSubExpr();
+  if (sub_expr == nullptr) return;
   if (auto tmp_obj = clang::dyn_cast<clang::CXXConstructExpr>(sub_expr)) {
     std::vector<const clang::Stmt *> sinks;
 
@@ -1198,6 +1200,34 @@ void MISRAStmtRule::CheckThrowExceptionItselfHasThrow(const clang::CXXThrowExpr 
       for (const auto &sink : sinks) issue->AddStmt(sink);
     }
   }
+}
+
+/*
+ * MISRA: 15-1-3
+ * An empty throw (throw;) shall only be used in the compound-statement of a catch handler.
+ */
+void MISRAStmtRule::CheckEmptyThrowInNonCatchBlock(const clang::CXXThrowExpr *stmt) {
+  auto sub_expr = stmt->getSubExpr()->IgnoreParenImpCasts();
+  if (sub_expr) return;
+
+  auto ctx = XcalCheckerManager::GetAstContext();
+  auto parents = ctx->getParents(*stmt);
+  while (!parents.empty()) {
+    auto parent = parents[0];
+    if (parent.get<clang::Decl>()) break;
+    else {
+      auto expr = parent.get<clang::Stmt>();
+      if (clang::isa<clang::CXXCatchStmt>(expr)) return;
+      else parents = ctx->getParents(*expr);
+    }
+  }
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  issue = report->ReportIssue(MISRA, M_R_15_1_3, stmt);
+  std::string ref_msg = "An empty throw (throw;) shall only be used in the compound-statement of a catch handler.";
+  issue->SetRefMsg(ref_msg);
 }
 
 

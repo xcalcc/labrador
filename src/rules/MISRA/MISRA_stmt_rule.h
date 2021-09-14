@@ -314,6 +314,12 @@ private:
    */
   void CheckThrowExceptionItselfHasThrow(const clang::CXXThrowExpr *stmt);
 
+  /*
+   * MISRA: 15-1-3
+   * An empty throw (throw;) shall only be used in the compound-statement of a catch handler.
+   */
+  void CheckEmptyThrowInNonCatchBlock(const clang::CXXThrowExpr *stmt);
+
 public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -430,6 +436,7 @@ public:
   void VisitCXXThrowExpr(const clang::CXXThrowExpr *stmt) {
     CheckThrowPointer(stmt);
     CheckThrowExceptionItselfHasThrow(stmt);
+    CheckEmptyThrowInNonCatchBlock(stmt);
   }
 
 public:
