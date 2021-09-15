@@ -34,10 +34,6 @@ private:
   // check if this node is in cpp or hpp file
   bool IsInCPPFile(clang::SourceLocation location);
 
-  // collect object types within try block
-  std::vector<clang::QualType>
-  RecordThrowObjectTypes(const clang::Stmt *stmt);
-
   const clang::FunctionDecl *GetCalleeDecl(const clang::CallExpr *stmt);
 
   /*
@@ -317,8 +313,8 @@ private:
   /*
    * GJB8114: 6.8.1.2
    * Each specified throw must have a matching catch
+   * MOVED TO MISRA
    */
-  void CheckMissingCatchStmt(const clang::CXXTryStmt *stmt);
 
   /*
    * GJB8114: 6.8.1.3
@@ -425,7 +421,6 @@ public:
   }
 
   void VisitCXXTryStmt(const clang::CXXTryStmt *stmt) {
-    CheckMissingCatchStmt(stmt);
   }
 
   void VisitCXXCatchStmt(const clang::CXXCatchStmt *stmt) {

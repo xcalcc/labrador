@@ -31,6 +31,9 @@ private:
 
   const clang::FunctionDecl *GetCalleeDecl(const clang::CallExpr *stmt);
 
+  // collect object types within try block
+  std::vector <clang::QualType> RecordThrowObjectTypes(const clang::Stmt *stmt);
+
   /* MISRA
    * Rule: 7.4
    * A string literal shall not be assigned to an object unless the object’s
@@ -332,6 +335,13 @@ private:
    */
   void CheckTryWithoutDefaultCatch(const clang::CXXTryStmt *stmt);
 
+  /*
+   * MISRA: 15-3-4
+   * Each specified throw must have a matching catch
+   */
+  void CheckMissingCatchStmt(const clang::CXXTryStmt *stmt);
+
+
 public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -454,6 +464,7 @@ public:
 
   void VisitCXXTryStmt(const clang::CXXTryStmt *stmt) {
     CheckTryWithoutDefaultCatch(stmt);
+    CheckMissingCatchStmt(stmt);
   }
 
 public:

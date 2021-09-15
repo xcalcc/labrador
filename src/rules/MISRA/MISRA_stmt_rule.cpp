@@ -93,6 +93,25 @@ void MISRAStmtRule::CheckStringLiteralToNonConstChar(const clang::CallExpr *stmt
   }
 }
 
+// collect object types within try block
+std::vector <clang::QualType>
+MISRAStmtRule::RecordThrowObjectTypes(const clang::Stmt *stmt) {
+  std::vector <clang::QualType> obj_types;
+  if (auto throw_stmt = clang::dyn_cast<clang::CXXThrowExpr>(stmt)) {
+    auto sub_stmt = throw_stmt->getSubExpr()->IgnoreParenImpCasts();
+    if (sub_stmt != nullptr) {
+      auto obj_type = sub_stmt->getType();
+      obj_types.push_back(obj_type);
+    }
+  } else {
+    for (const auto &it : stmt->children()) {
+      auto sub_res = RecordThrowObjectTypes(it);
+      obj_types.insert(obj_types.begin(), sub_res.begin(), sub_res.end());
+    }
+  }
+  return std::move(obj_types);
+}
+
 /* MISRA
  * Rule: 10.2
  * Expressions of essentially character type shall not be used inappropriately in addition and subtraction operations
@@ -1264,6 +1283,57 @@ void MISRAStmtRule::CheckTryWithoutDefaultCatch(const clang::CXXTryStmt *stmt) {
   issue = report->ReportIssue(MISRA, M_R_15_3_2, stmt);
   std::string ref_msg = "There should be at least one exception handler to catch all otherwise unhandled exceptions";
   issue->SetRefMsg(ref_msg);
+}
+
+/*
+ * MISRA: 15-3-4
+ * Each specified throw must have a matching catch
+ * TODO: need refine
+ */
+void MISRAStmtRule::CheckMissingCatchStmt(const clang::CXXTryStmt *stmt) {
+  auto obj_types = RecordThrowObjectTypes(stmt->getTryBlock());
+  for (const auto &it : stmt->children()) {
+    if (it == stmt->getTryBlock()) continue;
+    if (auto catch_case = clang::dyn_cast<clang::CXXCatchStmt>(it)) {
+      if (!catch_case->getExceptionDecl()) continue;
+
+      auto catch_type = catch_case->getCaughtType();
+      if (auto ref_type = clang::dyn_cast<clang::ReferenceType>(catch_type)) {
+        catch_type = ref_type->getPointeeType();
+      } else if (auto pointer_type = clang::dyn_cast<clang::PointerType>(catch_type)) {
+        catch_type = pointer_type->getPointeeType();
+      }
+
+
+      auto res = std::find_if(obj_types.begin(), obj_types.end(), [&catch_type](clang::QualType type) {
+//        bool qual = catch_type.getQualifiers() == type.getQualifiers();
+        bool res = false;
+        if (catch_type->isBuiltinType()) {
+          if (catch_type->getTypeClass() == type->getTypeClass()) res = true;
+        } else if (catch_type->isRecordType()) {
+          auto catch_record_tp = clang::cast<clang::RecordType>(catch_type);
+          if (auto record_tp = clang::dyn_cast<clang::RecordType>(type)) {
+            if (record_tp->getDecl()->getNameAsString() == catch_record_tp->getDecl()->getNameAsString()) {
+              res = true;
+            }
+          }
+        }
+        return res;
+      });
+
+      if (res != obj_types.end()) obj_types.erase(res);
+
+    }
+  }
+
+  if (!obj_types.empty()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(MISRA, M_R_15_3_4, stmt);
+    std::string ref_msg = "Each specified throw must have a matching catch";
+    issue->SetRefMsg(ref_msg);
+  }
 }
 
 
