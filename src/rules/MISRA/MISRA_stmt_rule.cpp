@@ -1337,5 +1337,23 @@ void MISRAStmtRule::CheckMissingCatchStmt(const clang::CXXTryStmt *stmt) {
 }
 
 
+/*
+ * MISRA: 15-3-5
+ * A class type exception shall always be caught by reference.
+ */
+void MISRAStmtRule::CheckCatchTypeNotReference(const clang::CXXCatchStmt *stmt) {
+  if (!stmt->getExceptionDecl()) return;
+
+  if (!stmt->getCaughtType()->isReferenceType()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(MISRA, M_R_15_3_5, stmt);
+    std::string ref_msg = "Exception objects should be catched as reference";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+
 }
 }

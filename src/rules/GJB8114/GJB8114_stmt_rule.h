@@ -318,9 +318,9 @@ private:
 
   /*
    * GJB8114: 6.8.1.3
-   * Exception objects should be catched as reference
+   * Exception objects should be caught as reference
+   * MOVED TO MISRA
    */
-  void CheckCatchTypeNotReference(const clang::CXXCatchStmt *stmt);
 
   /*
    * GJB8114: 6.8.1.5
@@ -424,7 +424,6 @@ public:
   }
 
   void VisitCXXCatchStmt(const clang::CXXCatchStmt *stmt) {
-    CheckCatchTypeNotReference(stmt);
   }
 
   void VisitCXXThrowExpr(const clang::CXXThrowExpr *stmt) {

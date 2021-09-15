@@ -341,6 +341,11 @@ private:
    */
   void CheckMissingCatchStmt(const clang::CXXTryStmt *stmt);
 
+  /*
+   * MISRA: 15-3-5
+   * A class type exception shall always be caught by reference.
+   */
+  void CheckCatchTypeNotReference(const clang::CXXCatchStmt *stmt);
 
 public:
 
@@ -465,6 +470,10 @@ public:
   void VisitCXXTryStmt(const clang::CXXTryStmt *stmt) {
     CheckTryWithoutDefaultCatch(stmt);
     CheckMissingCatchStmt(stmt);
+  }
+
+  void VisitCXXCatchStmt(const clang::CXXCatchStmt *stmt) {
+    CheckCatchTypeNotReference(stmt);
   }
 
 public:
