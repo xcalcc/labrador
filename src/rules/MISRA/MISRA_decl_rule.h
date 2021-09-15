@@ -232,7 +232,14 @@ private:
    */
   void CheckCopyAssignmentWithTemplate(const clang::CXXRecordDecl *decl);
 
-    public:
+  /*
+   * MISRA: 15-4-1
+   * If a function is declared with an exception-specification, then all declarations of the same
+   * function (in other translation units) shall be declared with the same set of type-ids.
+   */
+  void CheckExceptionSpecification(const clang::FunctionDecl *decl);
+
+public:
   void Finalize() {
     CheckUnusedTypedef();
     CheckUnusedLabelInFunction();
@@ -272,6 +279,7 @@ private:
     CheckInlineFunctionWithExternalLinkage(decl);
     CheckStaticBetweenBracket(decl);
     CheckExplicitConstructorWithSingleParam(decl);
+    CheckExceptionSpecification(decl);
   }
 
   void VisitField(const clang::FieldDecl *decl) {

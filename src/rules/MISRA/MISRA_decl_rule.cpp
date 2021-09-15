@@ -1054,6 +1054,53 @@ void MISRADeclRule::CheckCopyAssignmentWithTemplate(const clang::CXXRecordDecl *
   }
 }
 
+/*
+ * MISRA: 15-4-1
+ * If a function is declared with an exception-specification, then all declarations of the same
+ * function (in other translation units) shall be declared with the same set of type-ids.
+ */
+void MISRADeclRule::CheckExceptionSpecification(const clang::FunctionDecl *decl) {
+  if (decl->isThisDeclarationADefinition()) {
+    auto canonical_decl = decl->getCanonicalDecl();
+    auto func_tp = decl->getType()->getAs<clang::FunctionProtoType>();
+    auto canonical_tp = canonical_decl->getType()->getAs<clang::FunctionProtoType>();
+    bool need_report = false;
+    if (func_tp && canonical_tp) {
+      std::vector<clang::QualType> types;
+      for (auto type : func_tp->exceptions()) {
+        types.push_back(type);
+      }
+
+      if (canonical_tp->exceptions().size() != types.size()) {
+        need_report = true;
+      } else {
+        for (const auto &it : canonical_tp->exceptions()) {
+          auto res = std::find_if(types.begin(), types.end(), [&it](const clang::QualType &type) {
+            return type == it;
+          });
+          if (res != types.end()) {
+            types.erase(res);
+          } else {
+            need_report = true;
+            break;
+          }
+        }
+
+        if (!types.empty()) need_report = true;
+      }
+    }
+
+    if (need_report) {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+      issue = report->ReportIssue(MISRA, M_R_14_5_3, decl);
+      std::string ref_msg = "Exception specifier should keep same.";
+      issue->SetRefMsg(ref_msg);
+    }
+  }
+
+}
+
 
 }
 }
