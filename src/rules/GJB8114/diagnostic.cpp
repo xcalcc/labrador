@@ -73,7 +73,7 @@ void GJB8114Diagnostic::HandleDiagnostic(clang::DiagnosticsEngine::Level diagnos
       AddIssue(G6_8_1_1, msg, location);
       break;
     case 2937:  // GJB8114 6.8.1.4
-      AddIssue(G6_8_1_4, msg, location);
+      /* MOVED TO MISRA*/
       break;
     default: {
       break;
