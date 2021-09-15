@@ -1077,26 +1077,6 @@ void GJB8114StmtRule::CheckCatchTypeNotReference(const clang::CXXCatchStmt *stmt
   }
 }
 
-/*
- * GJB8114: 6.8.2.1
- * Using default catch after other catches to avoid omitting
- */
-void GJB8114StmtRule::CheckTryWithoutDefaultCatch(const clang::CXXTryStmt *stmt) {
-  for (const auto it : stmt->children()) {
-    if (it == stmt->getTryBlock()) continue;
-    if (auto catch_case = clang::dyn_cast<clang::CXXCatchStmt>(it)) {
-      if (catch_case->getExceptionDecl() == nullptr) return;
-    }
-  }
-
-  XcalIssue *issue = nullptr;
-  XcalReport *report = XcalCheckerManager::GetReport();
-
-  issue = report->ReportIssue(GJB8114, G6_8_2_1, stmt);
-  std::string ref_msg = "Using default catch after other catches to avoid omitting";
-  issue->SetRefMsg(ref_msg);
-}
-
 
 }
 }

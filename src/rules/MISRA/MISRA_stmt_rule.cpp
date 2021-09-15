@@ -1246,6 +1246,26 @@ void MISRAStmtRule::CheckEmptyThrowInNonCatchBlock(const clang::CXXThrowExpr *st
   issue->SetRefMsg(ref_msg);
 }
 
+/*
+ * MISRA: 15-3-2
+ * There should be at least one exception handler to catch all otherwise unhandled exceptions
+ */
+void MISRAStmtRule::CheckTryWithoutDefaultCatch(const clang::CXXTryStmt *stmt) {
+  for (const auto it : stmt->children()) {
+    if (it == stmt->getTryBlock()) continue;
+    if (auto catch_case = clang::dyn_cast<clang::CXXCatchStmt>(it)) {
+      if (catch_case->getExceptionDecl() == nullptr) return;
+    }
+  }
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  issue = report->ReportIssue(MISRA, M_R_15_3_2, stmt);
+  std::string ref_msg = "There should be at least one exception handler to catch all otherwise unhandled exceptions";
+  issue->SetRefMsg(ref_msg);
+}
+
 
 }
 }

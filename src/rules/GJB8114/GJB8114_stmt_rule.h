@@ -335,8 +335,8 @@ private:
   /*
    * GJB8114: 6.8.2.1
    * Using default catch after other catches to avoid omitting
+   * MOVED TO MISRA
    */
-  void CheckTryWithoutDefaultCatch(const clang::CXXTryStmt *stmt);
 
   /*
    * GJB8114: 6.8.2.2
@@ -426,7 +426,6 @@ public:
 
   void VisitCXXTryStmt(const clang::CXXTryStmt *stmt) {
     CheckMissingCatchStmt(stmt);
-    CheckTryWithoutDefaultCatch(stmt);
   }
 
   void VisitCXXCatchStmt(const clang::CXXCatchStmt *stmt) {

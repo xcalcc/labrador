@@ -326,6 +326,12 @@ private:
    */
   void CheckEmptyThrowInNonCatchBlock(const clang::CXXThrowExpr *stmt);
 
+  /*
+   * MISRA: 15-3-2
+   * There should be at least one exception handler to catch all otherwise unhandled exceptions
+   */
+  void CheckTryWithoutDefaultCatch(const clang::CXXTryStmt *stmt);
+
 public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -444,6 +450,10 @@ public:
     CheckThrowExceptionItselfHasThrow(stmt);
     CheckThrowNullExpr(stmt);
     CheckEmptyThrowInNonCatchBlock(stmt);
+  }
+
+  void VisitCXXTryStmt(const clang::CXXTryStmt *stmt) {
+    CheckTryWithoutDefaultCatch(stmt);
   }
 
 public:
