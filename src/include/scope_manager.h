@@ -282,11 +282,15 @@ private:
   using LexicalScopeVec = std::vector<LexicalScopePtr>;
   // unique pointer for IdentifierManager
   using IdentifierManagerPtr = std::unique_ptr<IdentifierManager>;
+  // Exceptions specifier map
+  using ExceptMap = std::unordered_map<const clang::FunctionDecl *, std::vector<clang::QualType>>;
 
   ScopeId              _scope;        // current scope
   LexicalScope        *_parent;       // parent scope
   LexicalScopeVec      _children;     // children scopes
   IdentifierManagerPtr _identifiers;  // identifiers in this scope
+  ExceptMap            _except_map;   // exception-specification of functions;
+  ExceptMap            _throw_tp_map; // exception-specification of functions;
 
   LexicalScope(const LexicalScope&)
   = delete;
@@ -361,6 +365,18 @@ public:
 
   /* Check if source location in the function define range. */
   bool InFunctionRange(clang::SourceLocation Loc) const;
+
+  /* Add exception specifications of functions */
+  void AddExceptionSpec(const clang::FunctionDecl *decl, clang::QualType type);
+
+  /* Add thrown types of functions */
+  void AddThrowType(const clang::FunctionDecl *decl, clang::QualType type);
+
+  /* Get exception specifications of functions */
+  std::vector<clang::QualType> GetExceptionSpec(const clang::FunctionDecl *decl);
+
+  /* Get thrown types of functions */
+  std::vector<clang::QualType> GetThrowType(const clang::FunctionDecl *decl);
 
 public:
   // Create new child scope started by _NODE, add to children vector

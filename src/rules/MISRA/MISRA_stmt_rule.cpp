@@ -1389,6 +1389,27 @@ void MISRAStmtRule::CheckDTorExitWithThrow(const clang::CXXThrowExpr *stmt) {
   issue->SetRefMsg(ref_msg);
 }
 
+/*
+ * MISRA: 15-5-2
+ * Where a function’s declaration includes an exception- specification, the function
+ * shall only be capable of throwing exceptions of the indicated type(s).
+ */
+void MISRAStmtRule::CollectThrowType(const clang::CXXThrowExpr *stmt) {
+  if (!_current_function_decl) return;
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto sub_expr = stmt->getSubExpr();
+  if (sub_expr) scope_mgr->GlobalScope()->AddThrowType(_current_function_decl, sub_expr->getType());
+}
+
+void MISRAStmtRule::CollectThrowType(const clang::CallExpr *stmt) {
+  auto callee = GetCalleeDecl(stmt);
+  if (!callee) return;
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+
+  auto callee_thrown_types = scope_mgr->GlobalScope()->GetThrowType(callee);
+  for (const auto &it : callee_thrown_types) scope_mgr->GlobalScope()->AddThrowType(_current_function_decl, it);
+}
+
 
 }
 }

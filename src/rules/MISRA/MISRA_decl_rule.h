@@ -239,6 +239,13 @@ private:
    */
   void CheckExceptionSpecification(const clang::FunctionDecl *decl);
 
+  /*
+   * MISRA: 15-5-2
+   * Where a function’s declaration includes an exception- specification, the function
+   * shall only be capable of throwing exceptions of the indicated type(s).
+   */
+  void CheckThrownUnSpecifiedType();
+
 public:
   void Finalize() {
     CheckUnusedTypedef();
@@ -246,6 +253,7 @@ public:
     CheckUndistinctExternalIdent();
     CheckIdentifierNameConflict();
     CheckTypedefUnique();
+    CheckThrownUnSpecifiedType();
   }
 
   void VisitVar(const clang::VarDecl *decl) {

@@ -1101,6 +1101,43 @@ void MISRADeclRule::CheckExceptionSpecification(const clang::FunctionDecl *decl)
 
 }
 
+/*
+ * MISRA: 15-5-2
+ * Where a function’s declaration includes an exception- specification, the function
+ * shall only be capable of throwing exceptions of the indicated type(s).
+ */
+void MISRADeclRule::CheckThrownUnSpecifiedType() {
+
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+  constexpr uint32_t kind = IdentifierManager::FUNCTION;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  top_scope->TraverseAll<kind,
+      const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+      [&issue, &report, &top_scope](const std::string &x, const clang::Decl *decl, IdentifierManager *id_mgr) -> void {
+        bool need_report = false;
+        auto func = clang::cast<clang::FunctionDecl>(decl);
+        auto except_types = top_scope->GetExceptionSpec(func);
+        auto thrown_types = top_scope->GetThrowType(func);
+        if (except_types.empty()) return;
+        for (const auto &thrown : thrown_types) {
+          if (std::find(except_types.begin(), except_types.end(), thrown) == except_types.end()) {
+            need_report = true;
+            break;
+          }
+        }
+
+        if (need_report) {
+          issue = report->ReportIssue(MISRA, M_R_15_5_2, decl);
+          std::string ref_msg = "Function decl with exception spec, throw exception can be of indicated type in its decl";
+          issue->SetRefMsg(ref_msg);
+        }
+      }, true);
+}
+
 
 }
 }

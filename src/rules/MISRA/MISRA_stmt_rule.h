@@ -353,6 +353,14 @@ private:
    */
   void CheckDTorExitWithThrow(const clang::CXXThrowExpr *stmt);
 
+  /*
+   * MISRA: 15-5-2
+   * Where a function’s declaration includes an exception- specification, the function
+   * shall only be capable of throwing exceptions of the indicated type(s).
+   */
+  void CollectThrowType(const clang::CXXThrowExpr *stmt);
+  void CollectThrowType(const clang::CallExpr *stmt);
+
 public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -391,6 +399,7 @@ public:
     CheckTimeFunctionInStdlib(stmt);
     CheckExceptionFeaturesInFenv(stmt);
     CheckSideEffectWithOrder(stmt);
+    CollectThrowType(stmt);
   }
 
   void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {
@@ -472,6 +481,7 @@ public:
     CheckThrowNullExpr(stmt);
     CheckEmptyThrowInNonCatchBlock(stmt);
     CheckDTorExitWithThrow(stmt);
+    CollectThrowType(stmt);
   }
 
   void VisitCXXTryStmt(const clang::CXXTryStmt *stmt) {

@@ -44,5 +44,32 @@ bool LexicalScope::InFunctionRange(clang::SourceLocation Loc) const {
   return _identifiers->InFunctionRange(Loc);
 }
 
+/* Add exception specifications of functions */
+void LexicalScope::AddExceptionSpec(const clang::FunctionDecl *decl, clang::QualType type) {
+  auto func = decl;
+  if (decl->isThisDeclarationADefinition()) func = decl->getCanonicalDecl();
+  _except_map[func].push_back(type);
+}
+
+/* Add thrown types of functions */
+void LexicalScope::AddThrowType(const clang::FunctionDecl *decl, clang::QualType type) {
+  auto func = decl;
+  if (decl->isThisDeclarationADefinition()) func = decl->getCanonicalDecl();
+  _throw_tp_map[func].push_back(type);
+}
+
+std::vector<clang::QualType> LexicalScope::GetExceptionSpec(const clang::FunctionDecl *decl) {
+  auto func = decl;
+  if (decl->isThisDeclarationADefinition()) func = decl;
+  return _except_map[func];
+}
+
+std::vector<clang::QualType> LexicalScope::GetThrowType(const clang::FunctionDecl *decl) {
+  auto func = decl;
+  if (decl->isThisDeclarationADefinition()) func = decl;
+  return _throw_tp_map[func];
+}
+
+
 }; // namespace xsca
 

@@ -52,6 +52,15 @@ public:
             clang::dyn_cast<clang::VarDecl>(it));
       }
     }
+
+    /* Collect exception-specifications of functions */
+    auto func_type = decl->getType()->getAs<clang::FunctionProtoType>();
+    if (func_type) {
+      if (!func_type->hasExceptionSpec()) return;
+      for (const auto &it : func_type->exceptions()) {
+        scope_mgr->GlobalScope()->AddExceptionSpec(decl, it);
+      }
+    }
   }
 
   void VisitVar(const clang::VarDecl *decl) {
