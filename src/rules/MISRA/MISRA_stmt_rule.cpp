@@ -94,9 +94,9 @@ void MISRAStmtRule::CheckStringLiteralToNonConstChar(const clang::CallExpr *stmt
 }
 
 // collect object types within try block
-std::vector <clang::QualType>
+std::vector<clang::QualType>
 MISRAStmtRule::RecordThrowObjectTypes(const clang::Stmt *stmt) {
-  std::vector <clang::QualType> obj_types;
+  std::vector<clang::QualType> obj_types;
   if (auto throw_stmt = clang::dyn_cast<clang::CXXThrowExpr>(stmt)) {
     auto sub_stmt = throw_stmt->getSubExpr()->IgnoreParenImpCasts();
     if (sub_stmt != nullptr) {
@@ -1352,6 +1352,41 @@ void MISRAStmtRule::CheckCatchTypeNotReference(const clang::CXXCatchStmt *stmt) 
     std::string ref_msg = "Exception objects should be catched as reference";
     issue->SetRefMsg(ref_msg);
   }
+}
+
+/*
+ * MISRA: 15-5-1
+ * A class destructor shall not exit with an exception.
+ */
+void MISRAStmtRule::CheckDTorExitWithThrow(const clang::CXXThrowExpr *stmt) {
+  if (!_current_function_decl) return;
+  auto dtor = clang::dyn_cast<clang::CXXDestructorDecl>(_current_function_decl);
+  if (!dtor) return;
+
+  auto ctx = XcalCheckerManager::GetAstContext();
+  auto parents = ctx->getParents(*stmt);
+  while (!parents.empty()) {
+    auto parent = parents.begin();
+    if (parent->get<clang::Decl>()) break;
+    if (auto p_expr = parent->get<clang::Stmt>()) {
+      if (clang::isa<clang::CXXTryStmt>(p_expr)) {
+        auto try_stmt = clang::cast<clang::CXXTryStmt>(p_expr);
+        if (try_stmt->getNumHandlers() == 0) {
+          break;
+        }
+        return;
+      } else {
+        parents = ctx->getParents(*p_expr);
+      }
+    }
+  }
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  issue = report->ReportIssue(MISRA, M_R_15_5_1, stmt);
+  std::string ref_msg = "A class destructor shall not exit with an exception.";
+  issue->SetRefMsg(ref_msg);
 }
 
 

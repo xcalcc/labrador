@@ -347,6 +347,12 @@ private:
    */
   void CheckCatchTypeNotReference(const clang::CXXCatchStmt *stmt);
 
+  /*
+   * MISRA: 15-5-1
+   * A class destructor shall not exit with an exception.
+   */
+  void CheckDTorExitWithThrow(const clang::CXXThrowExpr *stmt);
+
 public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -465,6 +471,7 @@ public:
     CheckThrowExceptionItselfHasThrow(stmt);
     CheckThrowNullExpr(stmt);
     CheckEmptyThrowInNonCatchBlock(stmt);
+    CheckDTorExitWithThrow(stmt);
   }
 
   void VisitCXXTryStmt(const clang::CXXTryStmt *stmt) {
