@@ -35,10 +35,15 @@ XcalCheckerManager::InitCheckers(clang::CompilerInstance &CI,
 
   char *fileptr = filebuf.get();
   strncpy(fileptr, InFile.data(), InFile.size());
-  fileptr[InFile.size()] = '\0';
-  char *filename = basename(fileptr);
-  strcat(filename, ".fe.vtxt");
-  _report->Initialize(_source_mgr, filename);
+  char *dotptr = &fileptr[InFile.size() - 1];
+  while (dotptr > fileptr && *dotptr != '.') {
+    dotptr--;
+  }
+  if (dotptr == fileptr) {
+    dotptr = &fileptr[InFile.size()];
+  }
+  strcpy(dotptr, ".fe.vtxt");
+  _report->Initialize(_source_mgr, fileptr);
 
   // initializer consumers and ppcallbacks
   std::vector<std::unique_ptr<clang::ASTConsumer> > consumers;
