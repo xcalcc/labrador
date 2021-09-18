@@ -31,19 +31,9 @@ XcalCheckerManager::InitCheckers(clang::CompilerInstance &CI,
 
   // initialize report
   _report = std::make_unique<XcalReport>();
-  auto filebuf = std::make_unique<char []>(InFile.size() + 16);
-
-  char *fileptr = filebuf.get();
-  strncpy(fileptr, InFile.data(), InFile.size());
-  char *dotptr = &fileptr[InFile.size() - 1];
-  while (dotptr > fileptr && *dotptr != '.') {
-    dotptr--;
-  }
-  if (dotptr == fileptr) {
-    dotptr = &fileptr[InFile.size()];
-  }
-  strcpy(dotptr, ".fe.vtxt");
-  _report->Initialize(_source_mgr, fileptr);
+  auto file = CI.getSourceManager().fileinfo_begin()->getFirst()->tryGetRealPathName()
+      .rtrim(".i").rtrim(".ii");
+  _report->Initialize(_source_mgr, basename(const_cast<char *>((file+".fe.vtxt").str().c_str())));
 
   // initializer consumers and ppcallbacks
   std::vector<std::unique_ptr<clang::ASTConsumer> > consumers;
