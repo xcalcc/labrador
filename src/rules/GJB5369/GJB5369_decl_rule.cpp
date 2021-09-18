@@ -736,13 +736,25 @@ void GJB5369DeclRule::CheckMainFunctionDefine(const clang::FunctionDecl *decl) {
   if (decl->param_empty()) {
     need_report = (tokens.empty());
   } else {
-    if (tokens.size() != 2) {
+    if (decl->param_size() != 2) {
       need_report = true;
     } else {
-      if (tokens[0] == "int" && tokens[1] == "char*[]") {
-        need_report = false;
-      } else {
-        need_report = true;
+      // check first parameter type
+      auto first = decl->getParamDecl(0);
+      if (!first->getType()->isIntegerType()) need_report = true;
+      else {
+        auto bt_first = clang::dyn_cast<clang::BuiltinType>(first->getType());
+        if (bt_first->getKind() != clang::BuiltinType::Int) need_report = true;
+      }
+
+      auto second = decl->getParamDecl(1);
+      if (!second->getType()->isPointerType()) need_report = true;
+      else {
+        auto pointee_tp = second->getType()->getPointeeType();
+        if (!pointee_tp->isPointerType()) need_report = true;
+        else {
+          if (!pointee_tp->getPointeeType()->isCharType()) need_report = true;
+        }
       }
     }
   }
