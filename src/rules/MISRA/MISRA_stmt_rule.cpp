@@ -686,6 +686,10 @@ void MISRAStmtRule::CheckLoopVariable(const clang::ForStmt *stmt) {
 void MISRAStmtRule::CheckControlStmt(const clang::Expr *stmt) {
   if (stmt == nullptr) return;
   if (!stmt->getType()->isBooleanType()) {
+    if (auto const_value = clang::dyn_cast<clang::IntegerLiteral>(stmt)) {
+      auto val = const_value->getValue().getZExtValue();
+      if (val == 1 || val == 0) return;
+    }
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(MISRA, M_R_14_4, stmt);
