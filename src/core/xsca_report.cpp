@@ -186,6 +186,13 @@ bool XcalReport::IsStdLibrary(clang::SourceLocation location) {
   return false;
 }
 
+bool XcalReport::IsXvsaFIle(clang::SourceLocation location) {
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  if (location.isInvalid()) return false;
+  auto filename = src_mgr->getFilename(location);
+  return filename.contains("__xvsa");
+}
+
 XcalIssue *XcalReport::ReportIssue(const char *std, const char *rule, const clang::Stmt *stmt) {
   auto issue = std::make_unique<XcalIssue>(std, rule, stmt);
 
@@ -194,7 +201,8 @@ XcalIssue *XcalReport::ReportIssue(const char *std, const char *rule, const clan
   }
 
   // ignore this issue if it is std source
-  if (IsStdLibrary(stmt->getBeginLoc())) issue->SetIgnore(true);
+  if (IsStdLibrary(stmt->getBeginLoc()) || IsXvsaFIle(stmt->getBeginLoc()))
+    issue->SetIgnore(true);
 
   XcalIssue *issue_ptr = issue.get();
   _issue_vec.push_back(std::move(issue));
@@ -209,7 +217,8 @@ XcalIssue *XcalReport::ReportIssue(const char *std, const char *rule, const clan
   }
 
   // ignore this issue if it is std source
-  if (IsStdLibrary(decl->getLocation())) issue->SetIgnore(true);
+  if (IsStdLibrary(decl->getLocation()) || IsXvsaFIle(decl->getLocation()))
+    issue->SetIgnore(true);
 
   XcalIssue *issue_ptr = issue.get();
   _issue_vec.push_back(std::move(issue));

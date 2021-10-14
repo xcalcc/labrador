@@ -84,6 +84,9 @@ public:
   // check if source is std library
   static bool IsStdLibrary(clang::SourceLocation location);
 
+  // check if source is start with '__xvsa'
+  static bool IsXvsaFIle(clang::SourceLocation location);
+
   XcalIssue *ReportIssue(const char *std, const char *rule, const clang::Decl *decl);
 
   XcalIssue *ReportIssue(const char *std, const char *rule, const clang::Stmt *stmt);
@@ -92,7 +95,7 @@ public:
     auto issue = std::make_unique<XcalIssue>(std, rule, location);
 
     // ignore this issue if it is std source
-    if (IsStdLibrary(location)) issue->SetIgnore(true);
+    if (IsStdLibrary(location) || IsXvsaFIle(location)) issue->SetIgnore(true);
 
     XcalIssue *issue_ptr = issue.get();
     _issue_vec.push_back(std::move(issue));
