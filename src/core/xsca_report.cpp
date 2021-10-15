@@ -31,6 +31,9 @@
 #include "clang/Basic/SourceManagerInternals.h"
 
 namespace xsca {
+llvm::cl::opt<std::string> XcalReport::_magic_opt(
+    "magic", llvm::cl::init("A"), llvm::cl::Hidden,
+    llvm::cl::desc("magic number of vtxt"));
 
 // XcalReport::GetFileIdFromLineTable
 // Get file index used in vtxt file table from file name in LineTable
@@ -50,7 +53,7 @@ XcalReport::PrintVtxtFileList()
   DBG_ASSERT(_vtxt_file, "vtxt file not initialized");
   DBG_ASSERT(_source_mgr, "source manager is null");
 
-  fprintf(_vtxt_file, "{\"V\", A, 0.7.2, 0000000000000000000000000000000000000000000000000000000000000000}\n[\n");
+  fprintf(_vtxt_file, "{\"V\", %s, 0.7.2, 0000000000000000000000000000000000000000000000000000000000000000}\n[\n", _magic_opt.getValue().c_str());
 
   clang::SourceManager::fileinfo_iterator end = _source_mgr->fileinfo_end();
   bool append_comma = false;
@@ -120,8 +123,8 @@ XcalReport::PrintVtxtIssue(const XcalIssue *issue)
     output_std = "GJB";
   }
 
-  fprintf(_vtxt_file, "[A10],[%s],[%s],[%d:%d],[SML],[D],[RBC],[1,0,0],[%s],[%s],",
-          key, ploc.getFilename(),
+  fprintf(_vtxt_file, "[%s],[%s],[%s],[%d:%d],[SML],[D],[RBC],[1,0,0],[%s],[%s],",
+          _magic_opt.getValue().c_str(), key, ploc.getFilename(),
           fid, ploc.getLine(), output_std.c_str(), issue->RuleName());
   fprintf(_vtxt_file, "[%s],[%s],[", issue->DeclName(), issue->FuncName());
 

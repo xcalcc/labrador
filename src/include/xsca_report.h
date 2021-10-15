@@ -17,6 +17,8 @@
 #include "xsca_issue.h"
 #include <vector>
 #include <memory>
+#include <llvm/Support/CommandLine.h>
+
 
 namespace xsca {
 
@@ -29,6 +31,8 @@ private:
   unsigned _line_table_offset;              // file id offset for files from line table
   bool  _vtxt_enabled;                      // write to vtxt file?
   bool  _stdout_enabled;                    // write to stdout?
+
+  static llvm::cl::opt<std::string> _magic_opt;
 
 protected:
   // get file id from line table
