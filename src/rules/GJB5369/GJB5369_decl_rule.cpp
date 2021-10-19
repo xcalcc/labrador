@@ -698,6 +698,7 @@ void GJB5369DeclRule::CheckUnionDecl(const clang::RecordDecl *decl) {
  * procedure must be enclosed in braces
  */
 void GJB5369DeclRule::CheckProcedureWithBraces(const clang::FunctionDecl *decl) {
+  if (!decl->isThisDeclarationADefinition()) return;
   if (decl->getDeclKind() == clang::Decl::Kind::CXXConstructor) return;
 
   auto src_mgr = XcalCheckerManager::GetSourceManager();
