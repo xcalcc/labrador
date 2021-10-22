@@ -23,6 +23,10 @@ class GJB8114StmtRule : public StmtNullHandler {
 public:
   ~GJB8114StmtRule() {}
 
+  GJB8114StmtRule() {
+    _disabled = XcalCheckerManager::GetDisableOption().getValue().find("GJB8114") != std::string::npos;
+  }
+
 private:
   const clang::FunctionDecl *_current_function_decl;
 

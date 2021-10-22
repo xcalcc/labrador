@@ -32,10 +32,10 @@ public:
   }
 
   // generate Visit* function from DeclNodes.inc
-  #define DECL(DERIVED, BASE) \
+  #define DECL(DERIVED, BASE)                                 \
       void Visit##DERIVED(const clang::DERIVED##Decl *decl) { \
-        _first.Visit##DERIVED(decl); \
-        _rest.Visit##DERIVED(decl); \
+        if (!_first.Disabled()) _first.Visit##DERIVED(decl);  \
+        _rest.Visit##DERIVED(decl);                           \
       }
   #define ABSTRACT_DECL(DECL)
   # include "clang/AST/DeclNodes.inc"
@@ -59,7 +59,7 @@ public:
   // generate Visit* function from DeclNodes.inc
   #define DECL(DERIVED, BASE) \
       void Visit##DERIVED(const clang::DERIVED##Decl *decl) { \
-        _first.Visit##DERIVED(decl); \
+        if (!_first.Disabled()) _first.Visit##DERIVED(decl);  \
       }
   #define ABSTRACT_DECL(DECL)
   # include "clang/AST/DeclNodes.inc"

@@ -27,8 +27,12 @@ namespace xsca {
 
 // class StmtNullHandler
 class StmtNullHandler {
+protected:
+  bool _disabled;
 
 public:
+  inline bool Disabled() const { return _disabled; }
+
   // generate function prototype from StmtNodes.inc
   #define STMT(CLASS, PARENT) \
       void Visit##CLASS(const clang::CLASS *stmt) { \

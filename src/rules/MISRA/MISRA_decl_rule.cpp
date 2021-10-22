@@ -684,6 +684,7 @@ void MISRADeclRule::CheckOverriddenVirtualFuncHasDiffParam(const clang::CXXRecor
 void MISRADeclRule::CheckEnumDeclInit(const clang::EnumDecl *decl) {
   auto enum_begin = decl->enumerator_begin();
   auto enum_end = decl->enumerator_end();
+  if (decl->enumerators().empty()) return;
   auto init_expr = enum_begin->getInitExpr();
 
   bool need_report = false;

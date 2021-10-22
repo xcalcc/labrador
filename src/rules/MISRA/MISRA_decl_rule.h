@@ -21,6 +21,10 @@ class MISRADeclRule : public DeclNullHandler {
 public:
   ~MISRADeclRule() = default;
 
+  MISRADeclRule() {
+    _disabled = XcalCheckerManager::GetDisableOption().getValue().find("MISRA") != std::string::npos;
+  }
+
 private:
   std::set<const clang::TypedefNameDecl *> _used_typedef;
 

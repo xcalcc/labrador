@@ -20,6 +20,10 @@ namespace xsca {
 
 XcalCheckerManager XcalCheckerManager::_instance;
 
+llvm::cl::opt<std::string> XcalCheckerManager::_disable_opt(
+    "disable", llvm::cl::init(""), llvm::cl::Hidden,
+    llvm::cl::desc("switch of rule sets"));
+
 std::unique_ptr<clang::ASTConsumer>
 XcalCheckerManager::InitCheckers(clang::CompilerInstance &CI,
                                  llvm::StringRef InFile) {

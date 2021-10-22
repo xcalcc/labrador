@@ -23,7 +23,12 @@ class GJB5369PPRule : public PPNullHandler {
 public:
   ~GJB5369PPRule() {}
 
+  GJB5369PPRule() {
+    _disabled = XcalCheckerManager::GetDisableOption().getValue().find("GJB5369") != std::string::npos;
+  }
+
 private:
+
   /* GJB5369: 4.1.1.11
    * Using '#' and '##' in the same macro is forbidden
    * GJB5369: 4.15.2.2
@@ -133,7 +138,6 @@ public:
                    clang::PPCallbacks::FileChangeReason Reason,
                    clang::SrcMgr::CharacteristicKind FileType,
                    clang::FileID PrevFID) {
-
   }
 
   void MacroExpands(const clang::Token &MacroNameTok,

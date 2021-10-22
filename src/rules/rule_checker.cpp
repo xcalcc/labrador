@@ -31,7 +31,7 @@ using RuleChecker = xsca::XcalCheckerTmpl<RuleDeclHandler, RuleStmtHandler,
 class RuleCheckerFactory : public XcalCheckerFactory {
 public:
   std::unique_ptr<XcalChecker>
-  CreateChecker(XcalCheckerManager *mgr) {
+  CreateChecker(XcalCheckerManager *mgr) override {
     return std::make_unique<RuleChecker>(mgr);
   }
 };

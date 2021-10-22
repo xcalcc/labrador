@@ -22,6 +22,10 @@ class GJB5369StmtRule : public StmtNullHandler {
 public:
   ~GJB5369StmtRule() {}
 
+  GJB5369StmtRule() {
+    _disabled = XcalCheckerManager::GetDisableOption().getValue().find("GJB5369") != std::string::npos;
+  }
+
 private:
   bool _in_loop_now;
 

@@ -15,7 +15,8 @@
 namespace xsca {
 namespace rule {
 
-/* Check if addiction is overflowed
+/*
+ * Check if addiction is overflowed
  */
 bool GJB5369StmtRule::AddOverflowed(int a, int b) {
   if (a > 0 && b > INT_MAX - a) {

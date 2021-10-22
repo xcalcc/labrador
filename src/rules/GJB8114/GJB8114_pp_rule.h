@@ -22,8 +22,10 @@ namespace rule {
 class GJB8114PPRule : public PPNullHandler {
 public:
   ~GJB8114PPRule() {}
+
   GJB8114PPRule() {
     _included_file.clear();
+    _disabled = XcalCheckerManager::GetDisableOption().getValue().find("GJB8114") != std::string::npos;
   }
 
 private:

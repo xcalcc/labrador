@@ -24,6 +24,10 @@ class GJB5369DeclRule : public DeclNullHandler {
 public:
   ~GJB5369DeclRule() {}
 
+  GJB5369DeclRule() {
+    _disabled = XcalCheckerManager::GetDisableOption().getValue().find("GJB5369") != std::string::npos;
+  }
+
 private:
   std::string GetTypeString(clang::QualType type);
 
@@ -359,7 +363,8 @@ public:
     CheckIandOUsedAsVariable(decl);
   }
 
-  void VisitEnum(const clang::EnumDecl *decl) {}
+  void VisitEnum(const clang::EnumDecl *decl) {
+  }
 
 }; // GJB5369DeclRule
 }  // rule

@@ -19,6 +19,11 @@
 namespace xsca {
 namespace rule {
 class MISRAPPRule : public PPNullHandler {
+public:
+  MISRAPPRule() {
+    _disabled = XcalCheckerManager::GetDisableOption().getValue().find("MISRA") != std::string::npos;
+  }
+
 private:
 
   /* MISRA

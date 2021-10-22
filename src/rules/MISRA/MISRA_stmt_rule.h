@@ -22,9 +22,14 @@ class MISRAStmtRule : public StmtNullHandler {
 public:
   ~MISRAStmtRule() = default;
 
+  MISRAStmtRule() {
+    _disabled = XcalCheckerManager::GetDisableOption().getValue().find("MISRA") != std::string::npos;
+  }
+
 private:
   const clang::FunctionDecl *_current_function_decl;
   std::unordered_set<const clang::Stmt *> _terminates;
+
 
   void HasThisFunctionThenReport(const std::vector<std::string> &fid_func, const std::string &str,
                                  const clang::CallExpr *stmt, const char *std_id, const std::string &info);

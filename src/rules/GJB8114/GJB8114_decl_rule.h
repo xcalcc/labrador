@@ -24,6 +24,10 @@ class GJB8114DeclRule : public DeclNullHandler {
 public:
   ~GJB8114DeclRule() {}
 
+  GJB8114DeclRule() {
+    _disabled = XcalCheckerManager::GetDisableOption().getValue().find("GJB8114") != std::string::npos;
+  }
+
 private:
   // check if function has new expr
   bool HasNewExpr(const clang::Stmt *decl);
