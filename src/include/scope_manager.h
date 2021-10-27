@@ -56,7 +56,7 @@ private:
   // map identifier to ValueDecl
   std::unordered_multimap<std::string, const clang::ValueDecl*>    _id_to_value;
   // map identifier to TypeDecl
-  std::unordered_multimap<std::string, const clang::TypeDecl*>     _id_to_type;
+  std::unordered_multimap<std::string, const clang::RecordDecl*>    _id_to_type;
   // map identifier to LabelDecl
   std::unordered_multimap<std::string, const clang::LabelDecl*>    _id_to_label;
   // map identifier to FieldDecl
@@ -88,7 +88,7 @@ public:
     _id_to_var.emplace(std::make_pair(var_name, decl));
   }
 
-  void AddIdentifier(const clang::TypeDecl *decl) {
+  void AddIdentifier(const clang::RecordDecl *decl) {
     DBG_ASSERT(decl != nullptr, "TypeDecl is null");
     std::string type_name = decl->getNameAsString();
     _id_to_type.emplace(std::make_pair(type_name, decl));

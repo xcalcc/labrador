@@ -395,6 +395,7 @@ void GJB8114DeclRule::CheckOmitInitValueDependOnSystem() {
       const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
       [&issue, &report](const std::string &name, const clang::Decl *decl, IdentifierManager *id_mgr) {
         auto varDecl = clang::dyn_cast<clang::VarDecl>(decl);
+        if (varDecl->isExternallyDeclarable()) return;
         if (varDecl->isStaticLocal() || varDecl->hasGlobalStorage()) {
           if (!varDecl->hasInit()) {
             if (issue == nullptr) {
@@ -426,7 +427,7 @@ void GJB8114DeclRule::CheckInitWithDecl() {
       const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
       [&issue, &report](const std::string &name, const clang::Decl *decl, IdentifierManager *id_mgr) {
         auto varDecl = clang::dyn_cast<clang::VarDecl>(decl);
-        if (!varDecl->hasInit()) {
+        if (!varDecl->hasInit() && !varDecl->isExternallyDeclarable()) {
           if (issue == nullptr) {
             issue = report->ReportIssue(GJB8114, G5_11_2_1, decl);
             std::string ref_msg = "Init the variable at its declaration";
@@ -480,7 +481,9 @@ void GJB8114DeclRule::CheckVariableConflictWithIdentifiers() {
       const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
       [&issue, &report, &top_scope](const std::string &name, const clang::Decl *decl, IdentifierManager *id_mgr) {
         auto varDecl = clang::dyn_cast<clang::VarDecl>(decl);
+        if (varDecl->getNameAsString().empty()) return;
         if (top_scope->HasRecordName<true>(varDecl->getNameAsString())) {
+          printf("%s\n", varDecl->getNameAsString().c_str());
           if (issue == nullptr) {
             issue = report->ReportIssue(GJB8114, G5_13_1_4, decl);
             std::string ref_msg = "Variable names conflicting with identifiers in forbidden";

@@ -73,8 +73,7 @@ public:
   void VisitRecord(const clang::RecordDecl *decl) {
     auto scope_mgr = XcalCheckerManager::GetScopeManager();
     // Add CXXRecord to current lexical scope.
-    scope_mgr->CurrentScope()->AddIdentifier<clang::TypeDecl>(
-        clang::dyn_cast<clang::TypeDecl>(decl));
+    scope_mgr->CurrentScope()->AddIdentifier<clang::RecordDecl>(decl);
 
     // Add field to current lexical scope.
     for (const auto &it : decl->fields()) {
@@ -85,8 +84,7 @@ public:
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
     auto scope_mgr = XcalCheckerManager::GetScopeManager();
     // Add CXXRecord to current lexical scope.
-    scope_mgr->CurrentScope()->AddIdentifier<clang::TypeDecl>(
-        clang::dyn_cast<clang::TypeDecl>(decl));
+    scope_mgr->CurrentScope()->AddIdentifier<clang::RecordDecl>(decl);
 
     // Add field to current lexical scope.
     for (const auto &it : decl->fields()) {
