@@ -33,11 +33,22 @@ public:
 
 private:
 
+  /*
+   * AUTOSAR: A7-2-2
+   * Enumeration underlying base type shall be explicitly defined.
+   */
   void CheckEnumUnderlyingType(const clang::EnumDecl *decl);
+
+  /*
+   * AUTOSAR: A7-2-3
+   * Enumerations shall be declared as scoped enum classes.
+   */
+  void CheckEnumScoped(const clang::EnumDecl *decl);
 
 public:
   void VisitEnum(const clang::EnumDecl *decl) {
     CheckEnumUnderlyingType(decl);
+    CheckEnumScoped(decl);
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {

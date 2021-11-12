@@ -30,5 +30,14 @@ void AUTOSARDeclRule::CheckEnumUnderlyingType(const clang::EnumDecl *decl) {
   issue->SetRefMsg(ref_msg);
 }
 
+void AUTOSARDeclRule::CheckEnumScoped(const clang::EnumDecl *decl) {
+  if (decl->isScoped()) return;
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(AUTOSAR, A7_2_3, decl);
+  std::string ref_msg = "Enumerations shall be declared as scoped enum classes.";
+  issue->SetRefMsg(ref_msg);
+}
+
 }
 }
