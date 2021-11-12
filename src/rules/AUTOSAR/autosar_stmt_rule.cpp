@@ -39,5 +39,25 @@ void AUTOSARStmtRule::CheckLambdaParameterList(const clang::LambdaExpr *stmt) {
   issue->SetRefMsg(ref_msg);
 }
 
+void AUTOSARStmtRule::CheckLambdaExplictReturnType(const clang::LambdaExpr *stmt) {
+  if (stmt->hasExplicitResultType()) return;
+
+  clang::QualType result_type;
+  for (const auto &it : stmt->getLambdaClass()->methods()) {
+    if (it->getNameAsString() != "operator()") continue;
+    result_type = it->getType();
+  }
+
+  if (auto lambda_type = clang::dyn_cast<clang::FunctionProtoType>(result_type)) {
+    if (lambda_type->getReturnType()->isVoidType()) return;
+  }
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(AUTOSAR, A5_1_6, stmt);
+  std::string ref_msg = "Return type of a non-void return type lambda expression should be explicitly specified.";
+  issue->SetRefMsg(ref_msg);
+}
+
 }
 }

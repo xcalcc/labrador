@@ -68,6 +68,12 @@ private:
    */
   void CheckLambdaParameterList(const clang::LambdaExpr *stmt);
 
+  /*
+   * AUTOSAR: A5-1-6
+   * Return type of a non-void return type lambda expression should be explicitly specified.
+   */
+  void CheckLambdaExplictReturnType(const clang::LambdaExpr *stmt);
+
 public:
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
   }
@@ -94,6 +100,7 @@ public:
   void VisitLambdaExpr(const clang::LambdaExpr *stmt) {
     CheckLambdaImplicitlyCaptured(stmt);
     CheckLambdaParameterList(stmt);
+    CheckLambdaExplictReturnType(stmt);
   }
 
 };
