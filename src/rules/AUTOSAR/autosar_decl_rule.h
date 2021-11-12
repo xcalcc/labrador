@@ -46,6 +46,12 @@ private:
   void CheckEnumScoped(const clang::EnumDecl *decl);
 
   /*
+   * AUTOSAR: A7-3-3
+   * There shall be no unnamed namespaces in header files.
+   */
+  void CheckUnnamedNamespace(const clang::NamespaceDecl *decl);
+
+  /*
    * AUTOSAR: A7-3-4
    * Using-directives shall not be used.
    */
@@ -59,6 +65,10 @@ public:
 
   void VisitUsingDirective(const clang::UsingDirectiveDecl *decl) {
     CheckUsingDirective(decl);
+  }
+
+  void VisitNamespace(const clang::NamespaceDecl *decl) {
+    CheckUnnamedNamespace(decl);
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {

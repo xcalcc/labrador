@@ -17,6 +17,7 @@
 
 #include "autosar_enum.inc"
 #include "autosar_decl_rule.h"
+//#include <clang/Basic/FileManager.h>
 
 namespace xsca {
 namespace rule {
@@ -45,6 +46,20 @@ void AUTOSARDeclRule::CheckUsingDirective(const clang::UsingDirectiveDecl *decl)
   issue = report->ReportIssue(AUTOSAR, A7_3_4, decl);
   std::string ref_msg = "Using-directives shall not be used.";
   issue->SetRefMsg(ref_msg);
+}
+
+void AUTOSARDeclRule::CheckUnnamedNamespace(const clang::NamespaceDecl *decl) {
+  if (!decl->isAnonymousNamespace()) return;
+  auto loc = decl->getLocation();
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  auto filename = src_mgr->getFilename(loc);
+  if (filename.find(".h") != std::string::npos) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(AUTOSAR, A7_3_3, decl);
+    std::string ref_msg = "There shall be no unnamed namespaces in header files.";
+    issue->SetRefMsg(ref_msg);
+  }
 }
 
 }
