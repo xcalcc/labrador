@@ -439,6 +439,7 @@ void GJB8114DeclRule::CheckInitWithDecl() {
       const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
       [&issue, &report](const std::string &name, const clang::Decl *decl, IdentifierManager *id_mgr) {
         auto varDecl = clang::dyn_cast<clang::VarDecl>(decl);
+        if (clang::isa<clang::ParmVarDecl>(decl)) return;
         if (!varDecl->hasInit() && !varDecl->isExternallyDeclarable()) {
           if (issue == nullptr) {
             issue = report->ReportIssue(GJB8114, G5_11_2_1, decl);
