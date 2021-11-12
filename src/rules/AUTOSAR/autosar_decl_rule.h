@@ -45,10 +45,20 @@ private:
    */
   void CheckEnumScoped(const clang::EnumDecl *decl);
 
+  /*
+   * AUTOSAR: A7-3-4
+   * Using-directives shall not be used.
+   */
+  void CheckUsingDirective(const clang::UsingDirectiveDecl *decl);
+
 public:
   void VisitEnum(const clang::EnumDecl *decl) {
     CheckEnumUnderlyingType(decl);
     CheckEnumScoped(decl);
+  }
+
+  void VisitUsingDirective(const clang::UsingDirectiveDecl *decl) {
+    CheckUsingDirective(decl);
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {
