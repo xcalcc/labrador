@@ -49,13 +49,22 @@ private:
    * AUTOSAR: A7-3-3
    * There shall be no unnamed namespaces in header files.
    */
-  void CheckUnnamedNamespace(const clang::NamespaceDecl *decl);
+  void CheckUnnamedNamespaceInHeaderFile(const clang::NamespaceDecl *decl);
 
   /*
    * AUTOSAR: A7-3-4
    * Using-directives shall not be used.
    */
   void CheckUsingDirective(const clang::UsingDirectiveDecl *decl);
+
+  /*
+   * AUTOSAR: A7-3-6
+   * Using-directives and using-declarations
+   * (excluding class scope or function scope using-declarations)
+   * shall not be used in header files.
+   */
+  void CheckUsingDeclInHeaderFile(const clang::UsingDecl *decl);
+  void CheckUsingDirectiveInHeaderFile(const clang::UsingDirectiveDecl *decl);
 
 public:
   void VisitEnum(const clang::EnumDecl *decl) {
@@ -65,10 +74,15 @@ public:
 
   void VisitUsingDirective(const clang::UsingDirectiveDecl *decl) {
     CheckUsingDirective(decl);
+    CheckUsingDirectiveInHeaderFile(decl);
+  }
+
+  void VisitUsing(const clang::UsingDecl *decl) {
+    CheckUsingDeclInHeaderFile(decl);
   }
 
   void VisitNamespace(const clang::NamespaceDecl *decl) {
-    CheckUnnamedNamespace(decl);
+    CheckUnnamedNamespaceInHeaderFile(decl);
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {

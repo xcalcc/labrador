@@ -48,7 +48,7 @@ void AUTOSARDeclRule::CheckUsingDirective(const clang::UsingDirectiveDecl *decl)
   issue->SetRefMsg(ref_msg);
 }
 
-void AUTOSARDeclRule::CheckUnnamedNamespace(const clang::NamespaceDecl *decl) {
+void AUTOSARDeclRule::CheckUnnamedNamespaceInHeaderFile(const clang::NamespaceDecl *decl) {
   if (!decl->isAnonymousNamespace()) return;
   auto loc = decl->getLocation();
   auto src_mgr = XcalCheckerManager::GetSourceManager();
@@ -58,6 +58,40 @@ void AUTOSARDeclRule::CheckUnnamedNamespace(const clang::NamespaceDecl *decl) {
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(AUTOSAR, A7_3_3, decl);
     std::string ref_msg = "There shall be no unnamed namespaces in header files.";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+void AUTOSARDeclRule::CheckUsingDirectiveInHeaderFile(const clang::UsingDirectiveDecl *decl) {
+  auto loc = decl->getLocation();
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  auto filename = src_mgr->getFilename(loc);
+  if (filename.find(".h") != std::string::npos) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(AUTOSAR, A7_3_6, decl);
+    std::string ref_msg = "Using-directives and using-declarations shall not be used in header files.";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+void AUTOSARDeclRule::CheckUsingDeclInHeaderFile(const clang::UsingDecl *decl) {
+  clang::Decl *sink = nullptr;
+  for (const auto &it : decl->shadows()) {
+    auto target = it->getTargetDecl();
+    if (clang::isa<clang::FunctionDecl>(target) ||
+        clang::isa<clang::CXXRecordDecl>(target)) {
+      continue;
+    }
+    sink = it;
+    break;
+  }
+
+  if (sink != nullptr) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(AUTOSAR, A7_3_6, decl);
+    std::string ref_msg = "Using-directives and using-declarations shall not be used in header files.";
     issue->SetRefMsg(ref_msg);
   }
 }
