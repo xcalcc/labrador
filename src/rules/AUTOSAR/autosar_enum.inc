@@ -24,6 +24,7 @@
 
 #define AUTOSAR   "autosar"
 #define A5_1_1    "A5_1_1"
+#define A5_1_2    "A5_1_2"
 #define A7_2_2    "A7_2_2"
 #define A7_2_3    "A7_2_3"
 #define A7_3_3    "A7_3_3"

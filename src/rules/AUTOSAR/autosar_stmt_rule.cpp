@@ -20,6 +20,15 @@ namespace xsca {
 namespace rule {
 
 
+void AUTOSARStmtRule::CheckLambdaImplicitlyCaptured(const clang::LambdaExpr *stmt) {
+  if (stmt->explicit_captures().empty()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(AUTOSAR, A5_1_2, stmt);
+    std::string ref_msg = "Variables shall not be implicitly captured in a lambda expression.";
+    issue->SetRefMsg(ref_msg);
+  }
+}
 
 }
 }

@@ -35,6 +35,11 @@ public:
 
 private:
 
+  /*
+   * AUTOSAR: A5-1-1
+   * Literal values shall not be used apart from type initialization,
+   * otherwise symbolic names shall be used instead.
+   */
   template<typename Literal>
   void CheckLiteralNotWithinInitExpr(const Literal *stmt) {
     auto ctx = XcalCheckerManager::GetAstContext();
@@ -51,6 +56,12 @@ private:
     issue->SetRefMsg(ref_msg);
   }
 
+  /*
+   * AUTOSAR: A5-1-2
+   * Variables shall not be implicitly captured in a lambda expression.
+   */
+  void CheckLambdaImplicitlyCaptured(const clang::LambdaExpr *stmt);
+
 public:
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
   }
@@ -62,16 +73,20 @@ public:
     CheckLiteralNotWithinInitExpr(stmt);
   }
 
-  void VisitCharacterLiteral(const clang::CharacterLiteral *stmt){
+  void VisitCharacterLiteral(const clang::CharacterLiteral *stmt) {
     CheckLiteralNotWithinInitExpr(stmt);
   }
 
-  void VisitStringLiteral(const clang::StringLiteral *stmt){
+  void VisitStringLiteral(const clang::StringLiteral *stmt) {
     CheckLiteralNotWithinInitExpr(stmt);
   }
 
-  void VisitFloatingLiteral(const clang::FloatingLiteral *stmt){
+  void VisitFloatingLiteral(const clang::FloatingLiteral *stmt) {
     CheckLiteralNotWithinInitExpr(stmt);
+  }
+
+  void VisitLambdaExpr(const clang::LambdaExpr *stmt) {
+    CheckLambdaImplicitlyCaptured(stmt);
   }
 
 };
