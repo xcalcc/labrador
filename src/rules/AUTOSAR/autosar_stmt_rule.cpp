@@ -59,5 +59,24 @@ void AUTOSARStmtRule::CheckLambdaExplictReturnType(const clang::LambdaExpr *stmt
   issue->SetRefMsg(ref_msg);
 }
 
+void AUTOSARStmtRule::CheckLambdaInTypeidtype(const clang::CXXTypeidExpr *stmt) {
+  auto op = stmt->getExprOperand();
+  if (auto ref_expr = clang::dyn_cast<clang::DeclRefExpr>(op)) {
+    auto ref_type = ref_expr->getType();
+
+    auto auto_type = clang::dyn_cast<clang::AutoType>(ref_type);
+    if (!auto_type) return;
+
+    auto record_type = auto_type->getAs<clang::RecordType>();
+    if (!record_type || !record_type->getDecl()->isLambda()) return;
+
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(AUTOSAR, A5_1_7, stmt);
+    std::string ref_msg = "A lambda shall not be an operand to decltype or typeid.";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 }
 }

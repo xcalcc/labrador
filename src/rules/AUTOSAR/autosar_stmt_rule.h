@@ -74,6 +74,12 @@ private:
    */
   void CheckLambdaExplictReturnType(const clang::LambdaExpr *stmt);
 
+  /*
+   * AUTOSAR: A5-1-7 (partial)
+   * A lambda shall not be an operand to decltype or typeid.
+   */
+  void CheckLambdaInTypeidtype(const clang::CXXTypeidExpr *stmt);
+
 public:
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
   }
@@ -101,6 +107,10 @@ public:
     CheckLambdaImplicitlyCaptured(stmt);
     CheckLambdaParameterList(stmt);
     CheckLambdaExplictReturnType(stmt);
+  }
+
+  void VisitCXXTypeidExpr(const clang::CXXTypeidExpr *stmt) {
+    CheckLambdaInTypeidtype(stmt);
   }
 
 };
