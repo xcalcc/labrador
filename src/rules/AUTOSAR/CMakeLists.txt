@@ -12,24 +12,14 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-add_subdirectory (GJB5369)
-add_subdirectory (GJB8114)
-add_subdirectory (MISRA)
-add_subdirectory (SJT11682)
-add_subdirectory (CERT)
-add_subdirectory (AUTOSAR)
-add_subdirectory (common)
-add_subdirectory (example)
-
-add_library (xscaRule STATIC
-  rule_checker.cpp
-  )
-
-target_link_libraries (xscaRule
-  xscaCore
-  xscaGJB5369Rule
-  xscaGJB8114Rule
-  xscaMISRARule
-  xscaCERTRule
-  xscaAUTOSARRule
-  )
+# remove comments below if there are real cpp files used
+add_library (xscaAUTOSARRule STATIC
+        autosar_decl_rule.cpp
+        autosar_stmt_rule.cpp
+        autosar_pp_rule.cpp
+        diagnostic.cpp
+        )
+#
+target_link_libraries (xscaAUTOSARRule
+        xscaRule
+        )

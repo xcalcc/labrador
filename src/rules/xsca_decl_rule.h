@@ -32,8 +32,8 @@
   R(GJB5369DeclRule,   "GJB5369DeclRule"),     \
   R(GJB8114DeclRule,   "GJB8114DeclRule"),     \
   R(MISRADeclRule,     "MISRADeclRule"),       \
-  R(SJT11682DeclRule,  "SJT11682DeclRule")
-
+  R(SJT11682DeclRule,  "SJT11682DeclRule"),    \
+  R(AUTOSARDeclRule,   "AUTOSARDeclRule")
 
 // include all rules from sub directories
 #include "common/identifier_builder.h"
@@ -41,6 +41,7 @@
 #include "GJB8114/GJB8114_decl_rule.h"
 #include "MISRA/MISRA_decl_rule.h"
 #include "SJT11682/SJT11682_decl_rule.h"
+#include "AUTOSAR/autosar_decl_rule.h"
 
 namespace xsca {
 using namespace xsca::rule;

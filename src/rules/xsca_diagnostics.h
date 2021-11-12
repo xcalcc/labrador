@@ -24,12 +24,16 @@
 #define ALL_Diagnostic(R)                      \
   R(GJB5369Diagnostic,   "GJB5369Diagnostic"), \
   R(GJB8114Diagnostic,   "GJB8114Diagnostic"), \
-  R(MISRADiagnostic,     "MISRADiagnostic")
-//  R(SJT11682DeclRule,  "SJT11682DeclRule")
+  R(MISRADiagnostic,     "MISRADiagnostic"),   \
+  R(AUTOSARDiagnostic,    "AUTOSARDiagnostic")
+//  R(SJT11682DeclRule,    "SJT11682DeclRule"),  \
 
 #include "GJB5369/diagnostic.h"
 #include "GJB8114/diagnostic.h"
 #include "MISRA/diagnostic.h"
+//#include "SJT11682/diagnostic.h"
+#include "AUTOSAR/diagnostic.h"
+
 
 namespace xsca {
 using namespace rule;

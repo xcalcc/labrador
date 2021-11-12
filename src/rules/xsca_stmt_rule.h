@@ -31,7 +31,8 @@
   R(GJB5369StmtRule,   "GJB5369StmtRule"),     \
   R(GJB8114StmtRule,   "GJB8114StmtRule"),     \
   R(MISRAStmtRule,     "MISRAStmtRule"),       \
-  R(SJT11682StmtRule,  "SJT11682StmtRule")
+  R(SJT11682StmtRule,  "SJT11682StmtRule"),    \
+  R(AUTOSARStmtRule,   "AUTOSARStmtRule")    \
 
 
 
@@ -40,6 +41,7 @@
 #include "GJB8114/GJB8114_stmt_rule.h"
 #include "MISRA/MISRA_stmt_rule.h"
 #include "SJT11682/SJT11682_stmt_rule.h"
+#include "AUTOSAR/autosar_stmt_rule.h"
 
 namespace xsca {
 

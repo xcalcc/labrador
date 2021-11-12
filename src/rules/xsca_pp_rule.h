@@ -31,7 +31,8 @@
   R(GJB5369PPRule,       "GJB5369PPRule"),     \
   R(GJB8114PPRule,       "GJB8114PPRule"),     \
   R(MISRAPPRule,         "MISRAPPRule"),       \
-  R(SJT11682PPRule,      "SJT11682PPRule")
+  R(SJT11682PPRule,      "SJT11682PPRule"),    \
+  R(AUTOSARPPRule,       "AUTOSARPPRule")
 
 
 
@@ -40,6 +41,7 @@
 #include "GJB8114/GJB8114_pp_rule.h"
 #include "MISRA/MISRA_pp_rule.h"
 #include "SJT11682/SJT11682_pp_rule.h"
+#include "AUTOSAR/autosar_pp_rule.h"
 
 namespace xsca {
 
