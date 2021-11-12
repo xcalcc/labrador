@@ -33,7 +33,13 @@ public:
 
 private:
 
+  void CheckEnumUnderlyingType(const clang::EnumDecl *decl);
+
 public:
+  void VisitEnum(const clang::EnumDecl *decl) {
+    CheckEnumUnderlyingType(decl);
+  }
+
   void VisitRecord(const clang::RecordDecl *decl) {
   }
 

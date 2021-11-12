@@ -21,5 +21,14 @@
 namespace xsca {
 namespace rule {
 
+void AUTOSARDeclRule::CheckEnumUnderlyingType(const clang::EnumDecl *decl) {
+  if (decl->getIntegerTypeSourceInfo()) return;
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(AUTOSAR, A7_2_2, decl);
+  std::string ref_msg = "Enumeration underlying base type shall be explicitly defined.";
+  issue->SetRefMsg(ref_msg);
+}
+
 }
 }
