@@ -17,6 +17,7 @@
 #ifndef LABRADOR_AUTOSAR_STMT_RULE_H
 #define LABRADOR_AUTOSAR_STMT_RULE_H
 
+#include <clang/AST/ParentMapContext.h>
 #include "autosar_enum.inc"
 #include "stmt_null_handler.h"
 #include "xsca_checker_manager.h"
@@ -34,6 +35,22 @@ public:
 
 private:
 
+  template<typename Literal>
+  void CheckLiteralNotWithinInitExpr(const Literal *stmt) {
+    auto ctx = XcalCheckerManager::GetAstContext();
+    auto parents = ctx->getParents(*stmt);
+    if (parents.empty()) return;
+    auto parent = parents[0].template get<clang::Decl>();
+    if (parent && clang::isa<clang::VarDecl>(parent)) return;
+
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(AUTOSAR, A5_1_1, stmt);
+    std::string ref_msg = "Literal values shall not be used apart from type initialization, "
+                          "otherwise symbolic names shall be used instead.";
+    issue->SetRefMsg(ref_msg);
+  }
+
 public:
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
   }
@@ -41,6 +58,21 @@ public:
   void VisitReturnStmt(const clang::ReturnStmt *stmt) {
   }
 
+  void VisitIntegerLiteral(const clang::IntegerLiteral *stmt) {
+    CheckLiteralNotWithinInitExpr(stmt);
+  }
+
+  void VisitCharacterLiteral(const clang::CharacterLiteral *stmt){
+    CheckLiteralNotWithinInitExpr(stmt);
+  }
+
+  void VisitStringLiteral(const clang::StringLiteral *stmt){
+    CheckLiteralNotWithinInitExpr(stmt);
+  }
+
+  void VisitFloatingLiteral(const clang::FloatingLiteral *stmt){
+    CheckLiteralNotWithinInitExpr(stmt);
+  }
 
 };
 
