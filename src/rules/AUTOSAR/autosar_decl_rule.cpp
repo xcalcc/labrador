@@ -40,14 +40,6 @@ void AUTOSARDeclRule::CheckEnumScoped(const clang::EnumDecl *decl) {
   issue->SetRefMsg(ref_msg);
 }
 
-void AUTOSARDeclRule::CheckUsingDirective(const clang::UsingDirectiveDecl *decl) {
-  XcalIssue *issue = nullptr;
-  XcalReport *report = XcalCheckerManager::GetReport();
-  issue = report->ReportIssue(AUTOSAR, A7_3_4, decl);
-  std::string ref_msg = "Using-directives shall not be used.";
-  issue->SetRefMsg(ref_msg);
-}
-
 void AUTOSARDeclRule::CheckUnnamedNamespaceInHeaderFile(const clang::NamespaceDecl *decl) {
   if (!decl->isAnonymousNamespace()) return;
   auto loc = decl->getLocation();
@@ -60,6 +52,14 @@ void AUTOSARDeclRule::CheckUnnamedNamespaceInHeaderFile(const clang::NamespaceDe
     std::string ref_msg = "There shall be no unnamed namespaces in header files.";
     issue->SetRefMsg(ref_msg);
   }
+}
+
+void AUTOSARDeclRule::CheckUsingDirective(const clang::UsingDirectiveDecl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(AUTOSAR, A7_3_4, decl);
+  std::string ref_msg = "Using-directives shall not be used.";
+  issue->SetRefMsg(ref_msg);
 }
 
 void AUTOSARDeclRule::CheckUsingDirectiveInHeaderFile(const clang::UsingDirectiveDecl *decl) {

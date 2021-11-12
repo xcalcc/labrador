@@ -1,0 +1,9 @@
+This is for AUTOSAR with the following rules:
+
+Rule		Kind		Implementation
+--------------+---------------+--------------------------------
+A7-2-2      Decl        CheckEnumUnderlyingType
+A7-2-3      Decl        CheckEnumScoped
+A7-3-3      Decl        CheckUnnamedNamespaceInHeaderFile
+A7-3-4      Decl        CheckUsingDirective
+A7-3-6      Decl        CheckUsingDirectiveInHeaderFile
