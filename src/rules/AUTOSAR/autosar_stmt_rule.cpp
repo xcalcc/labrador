@@ -30,5 +30,14 @@ void AUTOSARStmtRule::CheckLambdaImplicitlyCaptured(const clang::LambdaExpr *stm
   }
 }
 
+void AUTOSARStmtRule::CheckLambdaParameterList(const clang::LambdaExpr *stmt) {
+  if (stmt->hasExplicitParameters()) return;
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(AUTOSAR, A5_1_3, stmt);
+  std::string ref_msg = "Parameter list (possibly empty) shall be included in every lambda expression.";
+  issue->SetRefMsg(ref_msg);
+}
+
 }
 }

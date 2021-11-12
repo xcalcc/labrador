@@ -62,6 +62,12 @@ private:
    */
   void CheckLambdaImplicitlyCaptured(const clang::LambdaExpr *stmt);
 
+  /*
+   * AUTOSAR: A5-1-3
+   * Parameter list (possibly empty) shall be included in every lambda expression.
+   */
+  void CheckLambdaParameterList(const clang::LambdaExpr *stmt);
+
 public:
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
   }
@@ -87,6 +93,7 @@ public:
 
   void VisitLambdaExpr(const clang::LambdaExpr *stmt) {
     CheckLambdaImplicitlyCaptured(stmt);
+    CheckLambdaParameterList(stmt);
   }
 
 };

@@ -4,6 +4,7 @@ Rule		Kind		Implementation
 --------------+---------------+--------------------------------
 A5-1-1      Stmt        CheckLiteralNotWithinInitExpr
 A5-1-2      Stmt        CheckLambdaImplicitlyCaptured
+A5-1-3      Stmt        CheckLambdaParameterList
 A7-2-2      Decl        CheckEnumUnderlyingType
 A7-2-3      Decl        CheckEnumScoped
 A7-3-3      Decl        CheckUnnamedNamespaceInHeaderFile
