@@ -44,9 +44,11 @@ private:
   void CheckLiteralNotWithinInitExpr(const Literal *stmt) {
     auto ctx = XcalCheckerManager::GetAstContext();
     auto parents = ctx->getParents(*stmt);
-    if (parents.empty()) return;
-    auto parent = parents[0].template get<clang::Decl>();
-    if (parent && clang::isa<clang::VarDecl>(parent)) return;
+    if (!parents.empty()) {
+      auto parent = parents[0].template get<clang::Decl>();
+      if (parent) parent->dumpColor();
+      if (parent && clang::isa<clang::VarDecl>(parent)) return;
+    }
 
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
