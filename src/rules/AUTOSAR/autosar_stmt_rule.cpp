@@ -42,12 +42,10 @@ void AUTOSARStmtRule::CheckLambdaParameterList(const clang::LambdaExpr *stmt) {
 void AUTOSARStmtRule::CheckLambdaExplictReturnType(const clang::LambdaExpr *stmt) {
   if (stmt->hasExplicitResultType()) return;
 
-  clang::QualType result_type;
-  for (const auto &it : stmt->getLambdaClass()->methods()) {
-    if (it->getNameAsString() != "operator()") continue;
-    result_type = it->getType();
-  }
+  clang::QualType result_type = stmt->getLambdaClass()->getLambdaCallOperator()->getType();
+  DBG_ASSERT(result_type.isNull() == false, "get lambda return type failed");
 
+  result_type->dump();
   if (auto lambda_type = clang::dyn_cast<clang::FunctionProtoType>(result_type)) {
     if (lambda_type->getReturnType()->isVoidType()) return;
   }
