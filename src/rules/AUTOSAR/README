@@ -7,8 +7,14 @@ A5-1-2      Stmt        CheckLambdaImplicitlyCaptured
 A5-1-3      Stmt        CheckLambdaParameterList
 A5-1-6      Stmt        CheckLambdaExplictReturnType
 A5-1-7      Stmt        CheckLambdaInTypeidtype
+A5-1-8      Stmt        CheckNestedLambdaExpr
+A5-16-1     Stmt        CheckConditionalOperatorAsSubExpr
+A7-1-6      Decl        CheckTypedefDecl
+A7-1-7      Stmt        CheckDeclsInSameLine
+A7-5-2      Stmt        CheckFunctionCallThemselves
 A7-2-2      Decl        CheckEnumUnderlyingType
 A7-2-3      Decl        CheckEnumScoped
 A7-3-3      Decl        CheckUnnamedNamespaceInHeaderFile
 A7-3-4      Decl        CheckUsingDirective
 A7-3-6      Decl        CheckUsingDirectiveInHeaderFile
+A8-2-1      Decl        CheckTrailingReturnWhenDependTypeParameter

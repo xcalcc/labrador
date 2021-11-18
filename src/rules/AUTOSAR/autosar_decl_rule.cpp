@@ -108,5 +108,25 @@ void AUTOSARDeclRule::CheckTypedefDecl(const clang::TypedefDecl *decl) {
   issue->SetRefMsg(ref_msg);
 }
 
+/*
+ * AUTOSAR: A8-2-1
+ * When declaring function templates, the trailing return type syntax shall
+ * be used if the return type depends on the type of parameters.
+ */
+void AUTOSARDeclRule::CheckTrailingReturnWhenDependTypeParameter(const clang::FunctionTemplateDecl *decl) {
+  auto func_decl = decl->getAsFunction();
+  auto ret_type = func_decl->getReturnType();
+  if (ret_type->isDependentType()) {
+    if (!func_decl->getType()->hasAutoForTrailingReturnType()) {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+      issue = report->ReportIssue(AUTOSAR, A8_2_1, decl);
+      std::string ref_msg = "When declaring function templates, the trailing return type syntax shall be used if the return "
+                            "type depends on the type of parameters.";
+      issue->SetRefMsg(ref_msg);
+    }
+  }
+}
+
 }
 }

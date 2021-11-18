@@ -72,6 +72,13 @@ private:
   void CheckUsingDeclInHeaderFile(const clang::UsingDecl *decl);
   void CheckUsingDirectiveInHeaderFile(const clang::UsingDirectiveDecl *decl);
 
+  /*
+   * AUTOSAR: A8-2-1
+   * When declaring function templates, the trailing return type syntax shall
+   * be used if the return type depends on the type of parameters.
+   */
+  void CheckTrailingReturnWhenDependTypeParameter(const clang::FunctionTemplateDecl *decl);
+
 public:
   void VisitEnum(const clang::EnumDecl *decl) {
     CheckEnumUnderlyingType(decl);
@@ -99,6 +106,10 @@ public:
 
   void VisitTypedef(const clang::TypedefDecl *decl) {
     CheckTypedefDecl(decl);
+  }
+
+  void VisitFunctionTemplate(const clang::FunctionTemplateDecl *decl) {
+    CheckTrailingReturnWhenDependTypeParameter(decl);
   }
 };
 }
