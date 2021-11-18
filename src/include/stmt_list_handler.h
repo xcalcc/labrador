@@ -65,6 +65,16 @@ public:
     _rest.SetCurrentFunctionDecl(decl);
   }
 
+  void IncLambdaDepth() {
+    _first.IncLambdaDepth();
+    _rest.IncLambdaDepth();
+  }
+
+  void DecLambdaDepth() {
+    _first.DecLambdaDepth();
+    _rest.DecLambdaDepth();
+  }
+
 };  // StmtListHandler
 
 // class StmtListHandler with single template parameters as handlers
@@ -95,6 +105,14 @@ public:
 public:
   void SetCurrentFunctionDecl(const clang::FunctionDecl *decl) {
     _first.SetCurrentFunctionDecl(decl);
+  }
+
+  void IncLambdaDepth() {
+    _first.IncLambdaDepth();
+  }
+
+  void DecLambdaDepth() {
+    _first.DecLambdaDepth();
   }
 
 };  // StmtListHandler

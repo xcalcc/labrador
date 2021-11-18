@@ -81,6 +81,15 @@ public:
     _stmt_handler.VisitAtFunctionExit(stmt);
   }
 
+  void VisitLambdaExpr(const clang::LambdaExpr *stmt) {
+    _stmt_handler.IncLambdaDepth();
+    _stmt_handler.VisitLambdaExpr(stmt);
+
+    // visit lambda method
+    _decl_visitor.Visit(stmt->getLambdaClass()->getLambdaCallOperator());
+    _stmt_handler.DecLambdaDepth();
+  }
+
   void SetCurrentFunctionDecl(const clang::FunctionDecl *decl) {
     _stmt_handler.SetCurrentFunctionDecl(decl);
   }
@@ -97,6 +106,7 @@ public:
   #define DECLSTMT(CLASS, BASE)   // already handled above
   #define LABELSTMT(CLASS, BASE)
   #define COMPOUNDSTMT(CLASS, BASE)
+  #define LAMBDAEXPR(CLASS, BASE)
   # include "clang/AST/StmtNodes.inc"
 
   // general Visit method

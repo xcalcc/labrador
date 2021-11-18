@@ -46,7 +46,6 @@ private:
     auto parents = ctx->getParents(*stmt);
     if (!parents.empty()) {
       auto parent = parents[0].template get<clang::Decl>();
-      if (parent) parent->dumpColor();
       if (parent && clang::isa<clang::VarDecl>(parent)) return;
     }
 
@@ -82,6 +81,12 @@ private:
    */
   void CheckLambdaInTypeidtype(const clang::CXXTypeidExpr *stmt);
 
+  /*
+   * AUTOSAR: A5-1-8
+   * Lambda expressions should not be defined inside another lambda expression.
+   */
+  void CheckNestedLambdaExpr(const clang::LambdaExpr *stmt);
+
 public:
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
   }
@@ -109,6 +114,7 @@ public:
     CheckLambdaImplicitlyCaptured(stmt);
     CheckLambdaParameterList(stmt);
     CheckLambdaExplictReturnType(stmt);
+    CheckNestedLambdaExpr(stmt);
   }
 
   void VisitCXXTypeidExpr(const clang::CXXTypeidExpr *stmt) {

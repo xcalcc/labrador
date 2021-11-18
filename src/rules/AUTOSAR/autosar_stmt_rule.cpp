@@ -21,7 +21,7 @@ namespace rule {
 
 
 void AUTOSARStmtRule::CheckLambdaImplicitlyCaptured(const clang::LambdaExpr *stmt) {
-  if (stmt->explicit_captures().empty()) {
+  if (!stmt->implicit_captures().empty()) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(AUTOSAR, A5_1_2, stmt);
@@ -45,7 +45,6 @@ void AUTOSARStmtRule::CheckLambdaExplictReturnType(const clang::LambdaExpr *stmt
   clang::QualType result_type = stmt->getLambdaClass()->getLambdaCallOperator()->getType();
   DBG_ASSERT(result_type.isNull() == false, "get lambda return type failed");
 
-  result_type->dump();
   if (auto lambda_type = clang::dyn_cast<clang::FunctionProtoType>(result_type)) {
     if (lambda_type->getReturnType()->isVoidType()) return;
   }
@@ -72,6 +71,20 @@ void AUTOSARStmtRule::CheckLambdaInTypeidtype(const clang::CXXTypeidExpr *stmt) 
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(AUTOSAR, A5_1_7, stmt);
     std::string ref_msg = "A lambda shall not be an operand to decltype or typeid.";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+/*
+ * AUTOSAR: A5-1-8
+ * Lambda expressions should not be defined inside another lambda expression.
+ */
+void AUTOSARStmtRule::CheckNestedLambdaExpr(const clang::LambdaExpr *stmt) {
+  if (this->LambdaDepth() > 1) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(AUTOSAR, A5_1_8, stmt);
+    std::string ref_msg = "Lambda expressions should not be defined inside another lambda expression.";
     issue->SetRefMsg(ref_msg);
   }
 }
