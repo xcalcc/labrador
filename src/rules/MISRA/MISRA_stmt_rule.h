@@ -39,7 +39,6 @@ public:
   }
 
 private:
-  const clang::FunctionDecl *_current_function_decl;
   std::unordered_set<const clang::Stmt *> _terminates;
 
 
@@ -508,11 +507,6 @@ public:
 
   void VisitCXXCatchStmt(const clang::CXXCatchStmt *stmt) {
     CheckCatchTypeNotReference(stmt);
-  }
-
-public:
-  void SetCurrentFunctionDecl(const clang::FunctionDecl *decl) {
-    _current_function_decl = decl;
   }
 
 }; // MISRAStmtRule

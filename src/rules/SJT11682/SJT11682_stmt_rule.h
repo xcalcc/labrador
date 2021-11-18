@@ -31,7 +31,6 @@ public:
   ~SJT11682StmtRule() {}
 
 private:
-  const clang::FunctionDecl *_current_function_decl;
 
 public:
 

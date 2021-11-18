@@ -154,5 +154,19 @@ void AUTOSARStmtRule::CheckDeclsInSameLine(const clang::DeclStmt *stmt) {
   issue->SetRefMsg(ref_msg);
 }
 
+/*
+ * AUTOSAR: A7-5-2
+ * Functions shall not call themselves, either directly or indirectly.
+ */
+void AUTOSARStmtRule::CheckFunctionCallThemselves(const clang::CallExpr *stmt) {
+  if (stmt->getCalleeDecl() == this->_current_function_decl) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(AUTOSAR, A7_5_2, stmt);
+    std::string ref_msg = "Functions shall not call themselves, either directly or indirectly.";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 }
 }

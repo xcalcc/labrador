@@ -45,8 +45,6 @@ private:
 
   bool _func_has_return_stmt;
 
-  const clang::FunctionDecl *_current_function_decl;
-
   // check add overflow
   bool AddOverflowed(int a, int b);
 
@@ -717,10 +715,6 @@ public:
     CheckArrayOutOfBoundary(stmt);
   }
 
-public:
-  void SetCurrentFunctionDecl(const clang::FunctionDecl *decl) {
-    _current_function_decl = decl;
-  }
 }; // GJB5369StmtRule
 
 }

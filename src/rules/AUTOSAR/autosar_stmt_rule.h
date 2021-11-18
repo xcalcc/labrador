@@ -99,6 +99,12 @@ private:
    */
   void CheckDeclsInSameLine(const clang::DeclStmt *stmt);
 
+  /*
+   * AUTOSAR: A7-5-2
+   * Functions shall not call themselves, either directly or indirectly.
+   */
+  void CheckFunctionCallThemselves(const clang::CallExpr *stmt);
+
 public:
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
   }
@@ -139,6 +145,10 @@ public:
 
   void VisitDeclStmt(const clang::DeclStmt *stmt) {
     CheckDeclsInSameLine(stmt);
+  }
+
+  void VisitCallExpr(const clang::CallExpr *stmt) {
+    CheckFunctionCallThemselves(stmt);
   }
 };
 

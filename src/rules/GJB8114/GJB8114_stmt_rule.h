@@ -40,7 +40,6 @@ public:
   }
 
 private:
-  const clang::FunctionDecl *_current_function_decl;
 
   // Check if stmt contains bitwise operator
   bool HasBitwiseSubStmt(const clang::Stmt *stmt);
@@ -443,11 +442,6 @@ public:
   }
 
   void VisitCXXThrowExpr(const clang::CXXThrowExpr *stmt) {
-  }
-
-public:
-  void SetCurrentFunctionDecl(const clang::FunctionDecl *decl) {
-    _current_function_decl = decl;
   }
 
 }; // GJB8114StmtRule
