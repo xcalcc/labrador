@@ -89,5 +89,57 @@ void AUTOSARStmtRule::CheckNestedLambdaExpr(const clang::LambdaExpr *stmt) {
   }
 }
 
+/*
+ * AUTOSAR: A5-16-1
+ * The ternary conditional operator shall not be used as a sub-expression.
+ */
+void AUTOSARStmtRule::CheckConditionalOperatorAsSubExpr(const clang::ConditionalOperator *stmt) {
+  auto ctx = XcalCheckerManager::GetAstContext();
+  auto parents = ctx->getParents(*stmt);
+  if (!parents.empty()) {
+    auto parent_decl = parents[0].get<clang::Decl>();
+    if (parent_decl && clang::isa<clang::VarDecl>(parent_decl)) return;
+
+    auto parent_stmt = parents[0].get<clang::Stmt>();
+    if (parent_stmt) {
+      if (auto bin_stmt = clang::dyn_cast<clang::BinaryOperator>(parent_stmt)) {
+        if (bin_stmt->isAssignmentOp() || bin_stmt->isCompoundAssignmentOp()) return;
+      } else if (clang::isa<clang::CompoundStmt>(parent_stmt)) {
+        return;
+      } else if (clang::isa<clang::ReturnStmt>(parent_stmt)) {
+        return;
+      } else {
+        if (clang::isa<clang::ParenExpr>(parent_stmt) || clang::isa<clang::ImplicitCastExpr>(parent_stmt)) {
+          const clang::Stmt *tmp = parent_stmt;
+          do {
+            parents = ctx->getParents(*tmp);
+            if (parents.empty()) return;
+            tmp = parents[0].get<clang::Stmt>();
+            if (tmp == nullptr) return;
+          } while (clang::isa<clang::ParenExpr>(tmp) || clang::isa<clang::ImplicitCastExpr>(tmp));
+
+          switch (tmp->getStmtClass()) {
+            case clang::Stmt::StmtClass::ReturnStmtClass:
+              case clang::Stmt::StmtClass::CompoundStmtClass:
+                return;
+            case clang::Stmt::StmtClass::BinaryOperatorClass: {
+              auto bin = clang::dyn_cast<clang::BinaryOperator>(tmp);
+              if (bin->isAssignmentOp() || bin->isCompoundAssignmentOp()) return;
+            }
+            default:
+              break;
+          }
+        }
+      }
+    }
+
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(AUTOSAR, A5_16_1, stmt);
+    std::string ref_msg = "The ternary conditional operator shall not be used as a sub-expression.";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 }
 }

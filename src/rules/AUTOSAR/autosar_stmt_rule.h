@@ -87,6 +87,12 @@ private:
    */
   void CheckNestedLambdaExpr(const clang::LambdaExpr *stmt);
 
+  /*
+   * AUTOSAR: A5-16-1
+   * The ternary conditional operator shall not be used as a sub-expression.
+   */
+  void CheckConditionalOperatorAsSubExpr(const clang::ConditionalOperator *stmt);
+
 public:
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
   }
@@ -119,6 +125,10 @@ public:
 
   void VisitCXXTypeidExpr(const clang::CXXTypeidExpr *stmt) {
     CheckLambdaInTypeidtype(stmt);
+  }
+
+  void VisitConditionalOperator(const clang::ConditionalOperator *stmt) {
+    CheckConditionalOperatorAsSubExpr(stmt);
   }
 
 };

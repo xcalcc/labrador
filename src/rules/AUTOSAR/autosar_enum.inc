@@ -29,6 +29,7 @@
 #define A5_1_6    "A5_1_6"
 #define A5_1_7    "A5_1_7"
 #define A5_1_8    "A5_1_8"
+#define A5_16_1   "A5_16_1"
 #define A7_2_2    "A7_2_2"
 #define A7_2_3    "A7_2_3"
 #define A7_3_3    "A7_3_3"
