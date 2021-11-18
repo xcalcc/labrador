@@ -96,5 +96,17 @@ void AUTOSARDeclRule::CheckUsingDeclInHeaderFile(const clang::UsingDecl *decl) {
   }
 }
 
+/*
+ * AUTOSAR: A7-1-6
+ * The typedef specifier shall not be used.
+ */
+void AUTOSARDeclRule::CheckTypedefDecl(const clang::TypedefDecl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(AUTOSAR, A7_1_6, decl);
+  std::string ref_msg = "The typedef specifier shall not be used.";
+  issue->SetRefMsg(ref_msg);
+}
+
 }
 }

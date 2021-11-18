@@ -1019,6 +1019,12 @@ void GJB5369DeclRule::CheckIandOUsedAsVariable(const clang::ParmVarDecl *decl) {
  * GJB5369: 4.8.2.7
  * using register variable carefully
  */
+void GJB5369DeclRule::CheckRegisterVariable(const clang::FunctionDecl *decl) {
+  for (const auto &param : decl->parameters()) {
+    CheckRegisterVariable(param);
+  }
+}
+
 void GJB5369DeclRule::CheckRegisterVariable(const clang::VarDecl *decl) {
   if (decl->getStorageClass() == clang::SC_Register) {
     XcalIssue *issue = nullptr;

@@ -34,6 +34,12 @@ public:
 private:
 
   /*
+   * AUTOSAR: A7-1-6
+   * The typedef specifier shall not be used.
+   */
+  void CheckTypedefDecl(const clang::TypedefDecl *decl);
+
+  /*
    * AUTOSAR: A7-2-2
    * Enumeration underlying base type shall be explicitly defined.
    */
@@ -89,6 +95,10 @@ public:
   }
 
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
+  }
+
+  void VisitTypedef(const clang::TypedefDecl *decl) {
+    CheckTypedefDecl(decl);
   }
 };
 }

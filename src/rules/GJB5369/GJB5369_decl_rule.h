@@ -253,6 +253,7 @@ private:
    * using register variable carefully
    */
   void CheckRegisterVariable(const clang::VarDecl *decl);
+  void CheckRegisterVariable(const clang::FunctionDecl *decl);
 
   /*
    * GJB5369: 4.13.1.3
@@ -331,6 +332,7 @@ public:
     CheckPointerNestedLevel(decl);
     CheckVoidTypeParameters(decl);
     CheckUnusedParameters(decl);
+    CheckRegisterVariable(decl);
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {
