@@ -141,5 +141,18 @@ void AUTOSARStmtRule::CheckConditionalOperatorAsSubExpr(const clang::Conditional
   }
 }
 
+/*
+ * AUTOSAR: A7-1-7 (partial)
+ * Each expression statement and identifier declaration shall be placed on a separate line.
+ */
+void AUTOSARStmtRule::CheckDeclsInSameLine(const clang::DeclStmt *stmt) {
+  if (stmt->isSingleDecl()) return;
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(AUTOSAR, A7_1_7, stmt);
+  std::string ref_msg = "Each expression statement and identifier declaration shall be placed on a separate line.";
+  issue->SetRefMsg(ref_msg);
+}
+
 }
 }

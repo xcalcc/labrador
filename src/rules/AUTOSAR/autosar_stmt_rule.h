@@ -93,6 +93,12 @@ private:
    */
   void CheckConditionalOperatorAsSubExpr(const clang::ConditionalOperator *stmt);
 
+  /*
+   * AUTOSAR: A7-1-7 (partial)
+   * Each expression statement and identifier declaration shall be placed on a separate line.
+   */
+  void CheckDeclsInSameLine(const clang::DeclStmt *stmt);
+
 public:
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
   }
@@ -131,6 +137,9 @@ public:
     CheckConditionalOperatorAsSubExpr(stmt);
   }
 
+  void VisitDeclStmt(const clang::DeclStmt *stmt) {
+    CheckDeclsInSameLine(stmt);
+  }
 };
 
 }
