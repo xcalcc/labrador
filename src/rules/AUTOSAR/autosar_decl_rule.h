@@ -85,6 +85,13 @@ private:
    */
   void CheckMultiNonAbstractBaseClass(const clang::CXXRecordDecl *decl);
 
+  /*
+   * AUTOSAR: A10-3-1
+   * Virtual function declaration shall contain exactly one of the three specifiers:
+   * (1) virtual, (2) override, (3) final.
+   */
+  void CheckMethodSpecifier(const clang::CXXRecordDecl *decl);
+
 public:
   void VisitEnum(const clang::EnumDecl *decl) {
     CheckEnumUnderlyingType(decl);
@@ -109,6 +116,7 @@ public:
 
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
     CheckMultiNonAbstractBaseClass(decl);
+    CheckMethodSpecifier(decl);
   }
 
   void VisitTypedef(const clang::TypedefDecl *decl) {

@@ -17,7 +17,7 @@
 
 #include "autosar_enum.inc"
 #include "autosar_decl_rule.h"
-//#include <clang/Basic/FileManager.h>
+#include <clang/AST/Attr.h>
 
 namespace xsca {
 namespace rule {
@@ -136,7 +136,6 @@ void AUTOSARDeclRule::CheckMultiNonAbstractBaseClass(const clang::CXXRecordDecl 
   if (decl->bases().empty()) return;
   int count = 0;
 
-  decl->dumpColor();
   for (const auto &base : decl->bases()) {
     auto base_decl = base.getType()->getAsCXXRecordDecl();
     if (!base_decl) return;
@@ -158,6 +157,38 @@ void AUTOSARDeclRule::CheckMultiNonAbstractBaseClass(const clang::CXXRecordDecl 
     }
   }
 
+}
+
+/*
+ * AUTOSAR: A10-3-1
+ * Virtual function declaration shall contain exactly one of the three specifiers:
+ * (1) virtual, (2) override, (3) final.
+ */
+void AUTOSARDeclRule::CheckMethodSpecifier(const clang::CXXRecordDecl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  for (const auto &method : decl->methods()) {
+    if (method->isDefaulted()) continue;
+    bool explict_virtual = method->isVirtualAsWritten();
+    bool explict_override = method->getAttr<clang::OverrideAttr>();
+    bool explict_final = method->getAttr<clang::FinalAttr>();
+
+    // check virtual function
+    if (explict_virtual && (!explict_override && !explict_final)) continue;
+
+    // check override function
+    if (method->size_overridden_methods()) {
+      if ((explict_override || explict_final) && !explict_virtual) continue;
+    }
+
+    if (issue == nullptr) {
+      issue = report->ReportIssue(AUTOSAR, A10_3_1, decl);
+      std::string ref_msg = "Virtual function declaration shall contain exactly one of the three specifiers:"
+                            "virtual, override, final.";
+      issue->SetRefMsg(ref_msg);
+    }
+    issue->AddDecl(method);
+  }
 }
 
 }

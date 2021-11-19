@@ -103,6 +103,7 @@ public:
 
     // visit methods
     for (const auto &method : decl->methods()) {
+      if (method->isDefaulted()) continue;
       this->Visit(method);
     }
   }
