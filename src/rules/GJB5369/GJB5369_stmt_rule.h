@@ -695,7 +695,6 @@ public:
 
   void VisitAtFunctionExit(const clang::Stmt *stmt) {
     _current_function_decl = nullptr;
-    XcalCheckerManager::SetCurrentFunction(nullptr);
     CheckReturnStmt(stmt, false);
   }
 

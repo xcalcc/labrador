@@ -308,7 +308,6 @@ public:
   }
 
   void VisitFunction(const clang::FunctionDecl *decl) {
-    XcalCheckerManager::SetCurrentFunction(decl);
     CheckExternVariableInFunction(decl);
     CheckVariableDeclPosition(decl);
     CheckVoidPointer(decl);

@@ -79,6 +79,12 @@ private:
    */
   void CheckTrailingReturnWhenDependTypeParameter(const clang::FunctionTemplateDecl *decl);
 
+  /*
+   * AUTOSAR: A10-1-1
+   * Class shall not be derived from more than one base class which is not an interface class.
+   */
+  void CheckMultiNonAbstractBaseClass(const clang::CXXRecordDecl *decl);
+
 public:
   void VisitEnum(const clang::EnumDecl *decl) {
     CheckEnumUnderlyingType(decl);
@@ -102,6 +108,7 @@ public:
   }
 
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
+    CheckMultiNonAbstractBaseClass(decl);
   }
 
   void VisitTypedef(const clang::TypedefDecl *decl) {

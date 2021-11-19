@@ -118,6 +118,9 @@ public:
     // setup function scope
     ScopeHelper<clang::FunctionDecl> scope(scope_mgr, decl);
 
+    // set current function for XcalCheckerManager
+    XcalCheckerManager::SetCurrentFunction(decl);
+
     _decl_handler.VisitFunction(decl);
 
     _type_visitor.Visit(decl->clang::ValueDecl::getType().getTypePtr());
@@ -133,7 +136,11 @@ public:
     if (decl->doesThisDeclarationHaveABody()) {
       _stmt_visitor.SetCurrentFunctionDecl(decl);
       _stmt_visitor.VisitFunctionBody(decl->getBody());
+      _stmt_visitor.SetCurrentFunctionDecl(nullptr);
     }
+
+    // clear current function for XcalCheckerManager
+    XcalCheckerManager::SetCurrentFunction(nullptr);
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {

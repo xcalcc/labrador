@@ -18,3 +18,4 @@ A7-3-3      Decl        CheckUnnamedNamespaceInHeaderFile
 A7-3-4      Decl        CheckUsingDirective
 A7-3-6      Decl        CheckUsingDirectiveInHeaderFile
 A8-2-1      Decl        CheckTrailingReturnWhenDependTypeParameter
+A9-3-1      Stmt        CheckMethodReturnPrivateOrProtectFields

@@ -168,5 +168,30 @@ void AUTOSARStmtRule::CheckFunctionCallThemselves(const clang::CallExpr *stmt) {
   }
 }
 
+/*
+ * AUTOSAR: A9-3-1
+ * Member functions shall not return non-const “raw” pointers or references to
+ * private or protected data owned by the class.
+ */
+void AUTOSARStmtRule::CheckMethodReturnPrivateOrProtectFields(const clang::ReturnStmt *stmt) {
+  if (clang::isa<clang::CXXMethodDecl>(_current_function_decl)) {
+    auto ret_value = stmt->getRetValue();
+    if (!ret_value) return;
+    if (auto member = clang::dyn_cast<clang::MemberExpr>(ret_value)) {
+      if (auto field_decl = clang::dyn_cast<clang::FieldDecl>(member->getMemberDecl())) {
+        auto access = field_decl->getAccess();
+        if (access == clang::AccessSpecifier::AS_private || access == clang::AccessSpecifier::AS_protected) {
+          XcalIssue *issue = nullptr;
+          XcalReport *report = XcalCheckerManager::GetReport();
+          issue = report->ReportIssue(AUTOSAR, A9_3_1, stmt);
+          std::string ref_msg = "Member functions shall not return non-const “raw” pointers or references to "
+                                "private or protected data owned by the class.";
+          issue->SetRefMsg(ref_msg);
+        }
+      }
+    }
+  }
+}
+
 }
 }

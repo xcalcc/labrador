@@ -38,7 +38,6 @@ private:
 public:
 
   void VisitFunction(const clang::FunctionDecl *decl) {
-    XcalCheckerManager::SetCurrentFunction(decl);
   }
   void Finalize() {
   }

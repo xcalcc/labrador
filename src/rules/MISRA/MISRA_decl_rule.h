@@ -297,7 +297,6 @@ public:
   }
 
   void VisitFunction(const clang::FunctionDecl *decl) {
-    XcalCheckerManager::SetCurrentFunction(decl);
     CheckUnusedParameters(decl);
     CheckStaticSpecifier(decl);
     CheckInlineFunctionWithExternalLinkage(decl);

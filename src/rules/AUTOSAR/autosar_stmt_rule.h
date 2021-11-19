@@ -105,11 +105,19 @@ private:
    */
   void CheckFunctionCallThemselves(const clang::CallExpr *stmt);
 
+  /*
+   * AUTOSAR: A9-3-1
+   * Member functions shall not return non-const “raw” pointers or references to
+   * private or protected data owned by the class.
+   */
+  void CheckMethodReturnPrivateOrProtectFields(const clang::ReturnStmt *stmt);
+
 public:
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
   }
 
   void VisitReturnStmt(const clang::ReturnStmt *stmt) {
+    CheckMethodReturnPrivateOrProtectFields(stmt);
   }
 
   void VisitIntegerLiteral(const clang::IntegerLiteral *stmt) {

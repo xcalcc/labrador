@@ -128,5 +128,37 @@ void AUTOSARDeclRule::CheckTrailingReturnWhenDependTypeParameter(const clang::Fu
   }
 }
 
+/*
+ * AUTOSAR: A10-1-1
+ * Class shall not be derived from more than one base class which is not an interface class.
+ */
+void AUTOSARDeclRule::CheckMultiNonAbstractBaseClass(const clang::CXXRecordDecl *decl) {
+  if (decl->bases().empty()) return;
+  int count = 0;
+
+  decl->dumpColor();
+  for (const auto &base : decl->bases()) {
+    auto base_decl = base.getType()->getAsCXXRecordDecl();
+    if (!base_decl) return;
+
+    bool is_abstract = false;
+    for (const auto &method : base_decl->methods()) {
+      if (method->isPure()) is_abstract = true;
+    }
+    if (is_abstract) continue;
+
+    count++;
+    if (count > 1) {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+      issue = report->ReportIssue(AUTOSAR, A10_1_1, decl);
+      std::string ref_msg = "Class shall not be derived from more than one base class which is not an interface class.";
+      issue->SetRefMsg(ref_msg);
+      return;
+    }
+  }
+
+}
+
 }
 }
