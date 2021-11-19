@@ -19,4 +19,6 @@ A7-3-4      Decl        CheckUsingDirective
 A7-3-6      Decl        CheckUsingDirectiveInHeaderFile
 A8-2-1      Decl        CheckTrailingReturnWhenDependTypeParameter
 A9-3-1      Stmt        CheckMethodReturnPrivateOrProtectFields
+A10-1-1     Decl        CheckMultiNonAbstractBaseClass
 A10-3-1     Decl        CheckMethodSpecifier
+A10-3-2     Decl        CheckExplictOverriddenFunction

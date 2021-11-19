@@ -106,6 +106,16 @@ public:
       if (method->isDefaulted()) continue;
       this->Visit(method);
     }
+
+    // visit ctor and dtor
+    for (const auto &ctor : decl->ctors()) {
+      if (ctor->isDefaultConstructor()) continue;
+      this->Visit(ctor);
+    }
+
+    if (decl->hasUserDeclaredDestructor()) {
+      this->VisitCXXMethod(decl->getDestructor());
+    }
   }
 
   void VisitEnum(const clang::EnumDecl *decl) {

@@ -42,3 +42,4 @@
 #define A9_3_1    "A9_3_1"
 #define A10_1_1   "A10_1_1"
 #define A10_3_1   "A10_3_1"
+#define A10_3_2   "A10_3_2"

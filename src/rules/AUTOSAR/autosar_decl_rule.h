@@ -92,6 +92,12 @@ private:
    */
   void CheckMethodSpecifier(const clang::CXXRecordDecl *decl);
 
+  /*
+   * AUTOSAR: A10-3-2
+   * Each overriding virtual function shall be declared with the override or final specifier.
+   */
+  void CheckExplictOverriddenFunction(const clang::CXXMethodDecl *decl);
+
 public:
   void VisitEnum(const clang::EnumDecl *decl) {
     CheckEnumUnderlyingType(decl);
@@ -117,6 +123,10 @@ public:
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
     CheckMultiNonAbstractBaseClass(decl);
     CheckMethodSpecifier(decl);
+  }
+
+  void VisitCXXMethod(const clang::CXXMethodDecl *decl) {
+    CheckExplictOverriddenFunction(decl);
   }
 
   void VisitTypedef(const clang::TypedefDecl *decl) {

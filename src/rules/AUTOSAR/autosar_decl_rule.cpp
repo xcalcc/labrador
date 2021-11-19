@@ -191,5 +191,25 @@ void AUTOSARDeclRule::CheckMethodSpecifier(const clang::CXXRecordDecl *decl) {
   }
 }
 
+/*
+ * AUTOSAR: A10-3-2
+ * Each overriding virtual function shall be declared with the override or final specifier.
+ */
+void AUTOSARDeclRule::CheckExplictOverriddenFunction(const clang::CXXMethodDecl *decl) {
+  if (decl->isPure() || (decl->size_overridden_methods() == 0)) return;
+  if (decl->isVirtual()) {
+    bool explict_overridden = decl->getAttr<clang::OverrideAttr>();
+    bool explict_final = decl->getAttr<clang::FinalAttr>();
+    if (explict_overridden ^ explict_final) return;
+
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(AUTOSAR, A10_3_2, decl);
+    std::string ref_msg = "Each overriding virtual function shall be declared with the override or final specifier.";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+
 }
 }
