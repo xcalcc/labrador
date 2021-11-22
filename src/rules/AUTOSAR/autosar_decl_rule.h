@@ -110,6 +110,12 @@ private:
    */
   void CheckVirtualUserDefinedAssignmentOperator(const clang::CXXMethodDecl *decl);
 
+  /*
+   * AUTOSAR: A11-0-1
+   * A non-POD type should be defined as class.
+   */
+  void CheckNonPODStruct(const clang::RecordDecl *decl);
+
 public:
   void VisitEnum(const clang::EnumDecl *decl) {
     CheckEnumUnderlyingType(decl);
@@ -130,6 +136,7 @@ public:
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {
+    CheckNonPODStruct(decl);
   }
 
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {

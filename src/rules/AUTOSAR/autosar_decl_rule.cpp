@@ -133,7 +133,7 @@ void AUTOSARDeclRule::CheckTrailingReturnWhenDependTypeParameter(const clang::Fu
  * Class shall not be derived from more than one base class which is not an interface class.
  */
 void AUTOSARDeclRule::CheckMultiNonAbstractBaseClass(const clang::CXXRecordDecl *decl) {
-  if (decl->bases().empty()) return;
+  if (!decl->hasDefinition() || decl->bases().empty()) return;
   int count = 0;
 
   for (const auto &base : decl->bases()) {
@@ -239,13 +239,29 @@ void AUTOSARDeclRule::CheckVirtualFunctionsInFinalClass(const clang::CXXRecordDe
 void AUTOSARDeclRule::CheckVirtualUserDefinedAssignmentOperator(const clang::CXXMethodDecl *decl) {
   if (!decl->isVirtual()) return;
   if (!decl->isOverloadedOperator()) return;
-  if (decl->getNameAsString().find("=") != std::string::npos) {
+  if (decl->getNameAsString().find('=') != std::string::npos) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(AUTOSAR, A10_3_5, decl);
     std::string ref_msg = "A user-defined assignment operator shall not be virtual.";
     issue->SetRefMsg(ref_msg);
   }
+}
+
+/*
+ * AUTOSAR: A11-0-1
+ * A non-POD type should be defined as class.
+ */
+void AUTOSARDeclRule::CheckNonPODStruct(const clang::RecordDecl *decl) {
+  if (!decl->isThisDeclarationADefinition()) return;
+  if (clang::dyn_cast<clang::CXXRecordDecl>(decl)->isPOD()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(AUTOSAR, A11_0_1, decl);
+    std::string ref_msg = "A non-POD type should be defined as class.";
+    issue->SetRefMsg(ref_msg);
+  }
+
 }
 
 
