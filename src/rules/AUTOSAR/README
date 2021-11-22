@@ -23,3 +23,7 @@ A10-1-1     Decl        CheckMultiNonAbstractBaseClass
 A10-3-1     Decl        CheckMethodSpecifier
 A10-3-2     Decl        CheckExplictOverriddenFunction
 A10-3-3     Decl        CheckVirtualFunctionsInFinalClass
+A10-3-5     Decl        CheckVirtualUserDefinedAssignmentOperator
+A11-0-1     Decl        CheckNonPODStruct
+A11-0-2     Decl        CheckStruct
+A11-3-1     Decl        CheckFriendDeclarations

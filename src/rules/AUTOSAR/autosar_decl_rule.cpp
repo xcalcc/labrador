@@ -18,6 +18,7 @@
 #include "autosar_enum.inc"
 #include "autosar_decl_rule.h"
 #include <clang/AST/Attr.h>
+#include <unordered_set>
 
 namespace xsca {
 namespace rule {
@@ -309,6 +310,43 @@ void AUTOSARDeclRule::CheckStruct(const clang::CXXRecordDecl *decl) {
   }
 }
 
+/*
+ * AUTOSAR: A11-3-1
+ * Friend declarations shall not be used.
+ * It is allowed to declare comparison operators as friend functions
+ */
+void AUTOSARDeclRule::CheckFriendDeclarations(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasDefinition()) return;
+
+  if (!decl->hasFriends()) return;
+
+  std::unordered_set<std::string> cmp_names = {
+      "operator==", "operator<=", "operator>=", "operator>", "operator<", "operator!="
+  };
+  auto isCmp = [&cmp_names](const clang::NamedDecl *decl) -> bool {
+    if (!clang::isa<clang::FunctionDecl>(decl)) return false;
+    auto func = clang::dyn_cast<clang::FunctionDecl>(decl);
+    auto name = func->getNameAsString();
+    for (const auto &it : cmp_names) {
+      if (it == name) return true;
+    }
+    return false;
+  };
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  for (const auto &it : decl->friends()) {
+    if (isCmp(it->getFriendDecl())) continue;
+
+    if (issue == nullptr) {
+      issue = report->ReportIssue(AUTOSAR, A11_3_1, decl);
+      std::string ref_msg = "Friend declarations shall not be used.";
+      issue->SetRefMsg(ref_msg);
+    }
+    issue->AddDecl(it);
+  }
+}
 
 }
 }

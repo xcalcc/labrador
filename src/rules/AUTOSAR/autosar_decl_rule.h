@@ -126,6 +126,13 @@ private:
    */
   void CheckStruct(const clang::CXXRecordDecl *decl);
 
+  /*
+   * AUTOSAR: A11-3-1
+   * Friend declarations shall not be used.
+   * It is allowed to declare comparison operators as friend functions
+   */
+  void CheckFriendDeclarations(const clang::CXXRecordDecl *decl);
+
 public:
   void VisitEnum(const clang::EnumDecl *decl) {
     CheckEnumUnderlyingType(decl);
@@ -154,6 +161,7 @@ public:
     CheckVirtualFunctionsInFinalClass(decl);
     CheckNonPODStruct(decl);
     CheckStruct(decl);
+    CheckFriendDeclarations(decl);
   }
 
   void VisitCXXMethod(const clang::CXXMethodDecl *decl) {
