@@ -210,6 +210,28 @@ void AUTOSARDeclRule::CheckExplictOverriddenFunction(const clang::CXXMethodDecl 
   }
 }
 
+/*
+ * AUTOSAR: A10-3-3
+ * Virtual functions shall not be introduced in a final class.
+ */
+void AUTOSARDeclRule::CheckVirtualFunctionsInFinalClass(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasAttr<clang::FinalAttr>()) return;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  for (const auto &method : decl->methods()) {
+    if (method->isVirtual()) {
+      if (issue == nullptr) {
+        issue = report->ReportIssue(AUTOSAR, A10_3_3, decl);
+        std::string ref_msg = "Virtual functions shall not be introduced in a final class.";
+        issue->SetRefMsg(ref_msg);
+      }
+      issue->AddDecl(method);
+    }
+  }
+}
+
 
 }
 }

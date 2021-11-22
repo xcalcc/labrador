@@ -98,6 +98,12 @@ private:
    */
   void CheckExplictOverriddenFunction(const clang::CXXMethodDecl *decl);
 
+  /*
+   * AUTOSAR: A10-3-3
+   * Virtual functions shall not be introduced in a final class.
+   */
+  void CheckVirtualFunctionsInFinalClass(const clang::CXXRecordDecl *decl);
+
 public:
   void VisitEnum(const clang::EnumDecl *decl) {
     CheckEnumUnderlyingType(decl);
@@ -123,6 +129,7 @@ public:
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
     CheckMultiNonAbstractBaseClass(decl);
     CheckMethodSpecifier(decl);
+    CheckVirtualFunctionsInFinalClass(decl);
   }
 
   void VisitCXXMethod(const clang::CXXMethodDecl *decl) {
