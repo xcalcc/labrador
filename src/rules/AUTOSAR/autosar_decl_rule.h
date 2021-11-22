@@ -114,7 +114,17 @@ private:
    * AUTOSAR: A11-0-1
    * A non-POD type should be defined as class.
    */
-  void CheckNonPODStruct(const clang::RecordDecl *decl);
+  void CheckNonPODStruct(const clang::CXXRecordDecl *decl);
+
+  /*
+   * AUTOSAR: A11-0-2
+   * A type defined as struct shall:
+   * (1) provide only public data members,
+   * (2) not provide any special member functions or methods,
+   * (3) not be a base of another struct or class,
+   * (4) not inherit from another struct or class.
+   */
+  void CheckStruct(const clang::CXXRecordDecl *decl);
 
 public:
   void VisitEnum(const clang::EnumDecl *decl) {
@@ -136,13 +146,14 @@ public:
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {
-    CheckNonPODStruct(decl);
   }
 
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
     CheckMultiNonAbstractBaseClass(decl);
     CheckMethodSpecifier(decl);
     CheckVirtualFunctionsInFinalClass(decl);
+    CheckNonPODStruct(decl);
+    CheckStruct(decl);
   }
 
   void VisitCXXMethod(const clang::CXXMethodDecl *decl) {

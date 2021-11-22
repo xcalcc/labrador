@@ -91,14 +91,9 @@ public:
   }
 
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
-    if (decl->isStruct()) {
-      _decl_handler.VisitRecord(decl);
-      _type_visitor.Visit(decl->getTypeForDecl());
-      return;
-    }
-
     _decl_handler.VisitCXXRecord(decl);
     _type_visitor.Visit(decl->getTypeForDecl());
+    if (!decl->hasDefinition()) return;
 
     // visit fields
     if (!decl->field_empty()) {

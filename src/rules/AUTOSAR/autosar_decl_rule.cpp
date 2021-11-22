@@ -252,9 +252,9 @@ void AUTOSARDeclRule::CheckVirtualUserDefinedAssignmentOperator(const clang::CXX
  * AUTOSAR: A11-0-1
  * A non-POD type should be defined as class.
  */
-void AUTOSARDeclRule::CheckNonPODStruct(const clang::RecordDecl *decl) {
-  if (!decl->isThisDeclarationADefinition()) return;
-  if (clang::dyn_cast<clang::CXXRecordDecl>(decl)->isPOD()) {
+void AUTOSARDeclRule::CheckNonPODStruct(const clang::CXXRecordDecl *decl) {
+  if (!decl->isStruct() || !decl->hasDefinition()) return;
+  if (decl->isPOD()) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(AUTOSAR, A11_0_1, decl);
@@ -262,6 +262,51 @@ void AUTOSARDeclRule::CheckNonPODStruct(const clang::RecordDecl *decl) {
     issue->SetRefMsg(ref_msg);
   }
 
+}
+
+/*
+ * AUTOSAR: A11-0-2
+ * A type defined as struct shall:
+ * (1) provide only public data members,
+ * (2) not provide any special member functions or methods,
+ * (3) not be a base of another struct or class,
+ * (4) not inherit from another struct or class.
+ */
+void AUTOSARDeclRule::CheckStruct(const clang::CXXRecordDecl *decl) {
+  if (!decl->isStruct() || !decl->hasDefinition()) return;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  auto Report = [&issue, &report, &decl]() {
+    issue = report->ReportIssue(AUTOSAR, A11_0_2, decl);
+    std::string ref_msg = "Struct definition is non-compliant.";
+    issue->SetRefMsg(ref_msg);
+  };
+
+  // 1. provide only public data members
+  if (decl->hasPrivateFields() || decl->hasProtectedFields()) {
+    Report();
+    return;
+  }
+
+  // 2. not provide any special member functions or methods
+  if (!decl->methods().empty()) {
+    Report();
+    return;
+  }
+
+  // 3. not be a base of another struct or class
+  // 4. not inherit from another struct or class
+  if (decl->getNumBases() || decl->getNumVBases()) {
+    Report();
+    for (const auto &it : decl->bases())
+      issue->AddDecl(it.getType()->getAsCXXRecordDecl());
+
+    for (const auto &it : decl->vbases())
+      issue->AddDecl(it.getType()->getAsCXXRecordDecl());
+    return;
+  }
 }
 
 
