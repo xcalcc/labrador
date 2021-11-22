@@ -232,6 +232,22 @@ void AUTOSARDeclRule::CheckVirtualFunctionsInFinalClass(const clang::CXXRecordDe
   }
 }
 
+/*
+ * AUTOSAR: A10-3-5
+ * A user-defined assignment operator shall not be virtual.
+ */
+void AUTOSARDeclRule::CheckVirtualUserDefinedAssignmentOperator(const clang::CXXMethodDecl *decl) {
+  if (!decl->isVirtual()) return;
+  if (!decl->isOverloadedOperator()) return;
+  if (decl->getNameAsString().find("=") != std::string::npos) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(AUTOSAR, A10_3_5, decl);
+    std::string ref_msg = "A user-defined assignment operator shall not be virtual.";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 
 }
 }

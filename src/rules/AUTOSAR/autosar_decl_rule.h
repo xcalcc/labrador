@@ -104,6 +104,12 @@ private:
    */
   void CheckVirtualFunctionsInFinalClass(const clang::CXXRecordDecl *decl);
 
+  /*
+   * AUTOSAR: A10-3-5
+   * A user-defined assignment operator shall not be virtual.
+   */
+  void CheckVirtualUserDefinedAssignmentOperator(const clang::CXXMethodDecl *decl);
+
 public:
   void VisitEnum(const clang::EnumDecl *decl) {
     CheckEnumUnderlyingType(decl);
@@ -134,6 +140,7 @@ public:
 
   void VisitCXXMethod(const clang::CXXMethodDecl *decl) {
     CheckExplictOverriddenFunction(decl);
+    CheckVirtualUserDefinedAssignmentOperator(decl);
   }
 
   void VisitTypedef(const clang::TypedefDecl *decl) {
