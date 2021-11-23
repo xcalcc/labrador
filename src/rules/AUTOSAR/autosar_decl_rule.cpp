@@ -240,7 +240,25 @@ void AUTOSARDeclRule::CheckVirtualFunctionsInFinalClass(const clang::CXXRecordDe
 void AUTOSARDeclRule::CheckVirtualUserDefinedAssignmentOperator(const clang::CXXMethodDecl *decl) {
   if (!decl->isVirtual()) return;
   if (!decl->isOverloadedOperator()) return;
-  if (decl->getNameAsString().find('=') != std::string::npos) {
+
+
+  auto isAssign = [](clang::OverloadedOperatorKind kind) -> bool {
+    using OverOp = clang::OverloadedOperatorKind;
+    switch (kind) {
+      case OverOp::OO_Equal:
+      case OverOp::OO_LessLessEqual:
+      case OverOp::OO_GreaterGreaterEqual:
+        return true;
+      default:
+        break;
+    }
+
+    if (kind >= OverOp::OO_PlusEqual && kind <= OverOp::OO_PipeEqual) return true;
+
+    return false;
+  };
+
+  if (isAssign(decl->getOverloadedOperator())) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(AUTOSAR, A10_3_5, decl);
