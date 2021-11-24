@@ -169,7 +169,7 @@ void AUTOSARDeclRule::CheckMethodSpecifier(const clang::CXXRecordDecl *decl) {
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
   for (const auto &method : decl->methods()) {
-    if (method->isDefaulted()) continue;
+    if (method->isDefaulted() || !method->isVirtual()) continue;
     bool explict_virtual = method->isVirtualAsWritten();
     bool explict_override = method->getAttr<clang::OverrideAttr>();
     bool explict_final = method->getAttr<clang::FinalAttr>();
@@ -364,6 +364,42 @@ void AUTOSARDeclRule::CheckFriendDeclarations(const clang::CXXRecordDecl *decl) 
     }
     issue->AddDecl(it);
   }
+}
+
+/*
+ * AUTOSAR: A12-1-6
+ * Derived classes that do not need further explicit initialization
+ * and require all the constructors from the base class shall use inheriting constructors.
+ */
+void AUTOSARDeclRule::CheckUnnecessaryCTor(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasDefinition() || !decl->hasUserDeclaredConstructor()) return;
+  if ((decl->getNumBases() + decl->getNumVBases()) == 0) return;
+
+  // check if ctor only has parents constructors
+  for (const auto &ctor : decl->ctors()) {
+    if (ctor->isDefaultConstructor()) continue;
+    if (!ctor->doesThisDeclarationHaveABody()) return;
+    if (ctor->getBody()->children().empty()) {
+      // check initializer
+      bool only_has_bctor = true;
+      for (const auto &init : ctor->inits()) {
+        if (!init->isBaseInitializer()) {
+          only_has_bctor = false;
+          break;
+        }
+      }
+      if (!only_has_bctor) return;
+    } else {
+      return;
+    }
+  }
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(AUTOSAR, A12_1_6, decl);
+  std::string ref_msg = "Derived classes that do not need further explicit initialization and require all the constructors "
+                        "from the base class shall use inheriting constructors.";
+  issue->SetRefMsg(ref_msg);
 }
 
 }

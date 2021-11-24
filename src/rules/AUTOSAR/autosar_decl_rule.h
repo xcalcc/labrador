@@ -133,6 +133,13 @@ private:
    */
   void CheckFriendDeclarations(const clang::CXXRecordDecl *decl);
 
+  /*
+   * AUTOSAR: A12-1-6
+   * Derived classes that do not need further explicit initialization
+   * and require all the constructors from the base class shall use inheriting constructors.
+   */
+  void CheckUnnecessaryCTor(const clang::CXXRecordDecl *decl);
+
 public:
   void VisitEnum(const clang::EnumDecl *decl) {
     CheckEnumUnderlyingType(decl);
@@ -162,6 +169,7 @@ public:
     CheckNonPODStruct(decl);
     CheckStruct(decl);
     CheckFriendDeclarations(decl);
+    CheckUnnecessaryCTor(decl);
   }
 
   void VisitCXXMethod(const clang::CXXMethodDecl *decl) {
