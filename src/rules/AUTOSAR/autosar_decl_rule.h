@@ -161,7 +161,18 @@ private:
    */
   void CheckAssignmentWithoutRefQualifier(const clang::CXXMethodDecl *decl);
 
+  /*
+   * AUTOSAR: A13-1-2
+   * User defined suffixes of the user defined literal operators shall start with
+   * underscore followed by one or more letters.
+   */
+  void CheckUserDefinedSuffixes(const clang::FunctionDecl *decl);
+
 public:
+  void VisitFunction(const clang::FunctionDecl *decl) {
+    CheckUserDefinedSuffixes(decl);
+  }
+
   void VisitEnum(const clang::EnumDecl *decl) {
     CheckEnumUnderlyingType(decl);
     CheckEnumScoped(decl);

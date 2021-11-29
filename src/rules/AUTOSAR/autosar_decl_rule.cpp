@@ -474,5 +474,23 @@ void AUTOSARDeclRule::CheckAssignmentWithoutRefQualifier(const clang::CXXMethodD
   }
 }
 
+/*
+ * AUTOSAR: A13-1-2
+ * User defined suffixes of the user defined literal operators shall start with
+ * underscore followed by one or more letters.
+ */
+void AUTOSARDeclRule::CheckUserDefinedSuffixes(const clang::FunctionDecl *decl) {
+  if (decl->getDeclName().getNameKind() != clang::DeclarationName::CXXLiteralOperatorName) return;
+
+  auto name = clang::StringRef(decl->getNameAsString()).trim("operator\"\"");
+  if (name.startswith("_")) return;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(AUTOSAR, A13_1_2, decl);
+  std::string ref_msg = "User defined suffixes of the user defined literal operators shall start with underscore followed by one or more letters.";
+  issue->SetRefMsg(ref_msg);
+}
+
 }
 }

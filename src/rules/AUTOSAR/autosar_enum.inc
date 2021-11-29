@@ -22,7 +22,7 @@
 // the defines of about the AUTOSAR rules
 //
 
-#define AUTOSAR   "autosar"
+#define AUTOSAR   "AUTOSAR"
 #define A5_1_1    "A5_1_1"
 #define A5_1_2    "A5_1_2"
 #define A5_1_3    "A5_1_3"
@@ -52,3 +52,4 @@
 #define A12_4_1   "A12_4_1"
 #define A12_4_2   "A12_4_2"
 #define A12_8_7   "A12_8_7"
+#define A13_1_2   "A13_1_2"

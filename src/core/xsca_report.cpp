@@ -129,10 +129,12 @@ XcalReport::PrintVtxtIssue(const XcalIssue *issue)
 
   std::string output_std;
   std::string std_name = std::string(issue->StdName());
-  if (std_name.find("GJB") == std::string::npos) {
+  if (std_name.find("MSR") != std::string::npos) {
     output_std = "MSR";
-  } else {
+  } else if (std_name.find("GJB") != std::string::npos) {
     output_std = "GJB";
+  } else if (std_name.find("AUTOSAR") != std::string::npos) {
+    output_std = "ATS";
   }
 
   fprintf(_vtxt_file, "[%s],[%s],[%s],[%d:%d],[SML],[D],[RBC],[1,0,0],[%s],[%s],",
