@@ -30,3 +30,4 @@ A11-3-1     Decl        CheckFriendDeclarations
 A12-1-6     Decl        CheckUnnecessaryCTor
 A12-4-1     Decl        CheckNonVirtualDestructor
 A12-4-2     Decl        CheckNonVirtualDestructorInNonFinalClass
+A12-8-7     Decl        CheckAssignmentWithoutRefQualifier

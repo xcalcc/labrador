@@ -33,6 +33,8 @@ public:
 
 private:
 
+  bool IsAssign(clang::OverloadedOperatorKind kind) const;
+
   /*
    * AUTOSAR: A7-1-6
    * The typedef specifier shall not be used.
@@ -153,6 +155,12 @@ private:
    */
   void CheckNonVirtualDestructorInNonFinalClass(const clang::CXXRecordDecl *decl);
 
+  /*
+   * AUTOSAR: A12-8-7
+   * Assignment operators should be declared with the ref-qualifier &.
+   */
+  void CheckAssignmentWithoutRefQualifier(const clang::CXXMethodDecl *decl);
+
 public:
   void VisitEnum(const clang::EnumDecl *decl) {
     CheckEnumUnderlyingType(decl);
@@ -190,6 +198,7 @@ public:
   void VisitCXXMethod(const clang::CXXMethodDecl *decl) {
     CheckExplictOverriddenFunction(decl);
     CheckVirtualUserDefinedAssignmentOperator(decl);
+    CheckAssignmentWithoutRefQualifier(decl);
   }
 
   void VisitTypedef(const clang::TypedefDecl *decl) {

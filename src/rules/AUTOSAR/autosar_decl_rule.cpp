@@ -23,6 +23,22 @@
 namespace xsca {
 namespace rule {
 
+bool AUTOSARDeclRule::IsAssign(clang::OverloadedOperatorKind kind) const {
+  using OverOp = clang::OverloadedOperatorKind;
+  switch (kind) {
+    case OverOp::OO_Equal:
+    case OverOp::OO_LessLessEqual:
+    case OverOp::OO_GreaterGreaterEqual:
+      return true;
+    default:
+      break;
+  }
+
+  if (kind >= OverOp::OO_PlusEqual && kind <= OverOp::OO_PipeEqual) return true;
+
+  return false;
+};
+
 void AUTOSARDeclRule::CheckEnumUnderlyingType(const clang::EnumDecl *decl) {
   if (decl->getIntegerTypeSourceInfo()) return;
   XcalIssue *issue = nullptr;
@@ -241,24 +257,7 @@ void AUTOSARDeclRule::CheckVirtualUserDefinedAssignmentOperator(const clang::CXX
   if (!decl->isVirtual()) return;
   if (!decl->isOverloadedOperator()) return;
 
-
-  auto isAssign = [](clang::OverloadedOperatorKind kind) -> bool {
-    using OverOp = clang::OverloadedOperatorKind;
-    switch (kind) {
-      case OverOp::OO_Equal:
-      case OverOp::OO_LessLessEqual:
-      case OverOp::OO_GreaterGreaterEqual:
-        return true;
-      default:
-        break;
-    }
-
-    if (kind >= OverOp::OO_PlusEqual && kind <= OverOp::OO_PipeEqual) return true;
-
-    return false;
-  };
-
-  if (isAssign(decl->getOverloadedOperator())) {
+  if (IsAssign(decl->getOverloadedOperator())) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(AUTOSAR, A10_3_5, decl);
@@ -409,13 +408,13 @@ void AUTOSARDeclRule::CheckUnnecessaryCTor(const clang::CXXRecordDecl *decl) {
 void AUTOSARDeclRule::CheckNonVirtualDestructor(const clang::CXXRecordDecl *decl) {
   for (const auto &it : decl->bases()) {
     auto base = it.getType()->getAsCXXRecordDecl();
-    if (base->hasUserDeclaredConstructor())
+    if (base->hasUserDeclaredDestructor())
       CheckNonVirtualDestructor(base->getDestructor());
   }
 
   for (const auto &it : decl->vbases()) {
     auto base = it.getType()->getAsCXXRecordDecl();
-    if (base->hasUserDeclaredConstructor())
+    if (base->hasUserDeclaredDestructor())
       CheckNonVirtualDestructor(base->getDestructor());
   }
 }
@@ -446,7 +445,7 @@ void AUTOSARDeclRule::CheckNonVirtualDestructor(const clang::CXXMethodDecl *decl
  * If a public destructor of a class is non-virtual, then the class should be declared final.
  */
 void AUTOSARDeclRule::CheckNonVirtualDestructorInNonFinalClass(const clang::CXXRecordDecl *decl) {
-  if (!decl->hasDefinition() || !decl->hasUserDeclaredConstructor()) return;
+  if (!decl->hasDefinition() || !decl->hasUserDeclaredDestructor()) return;
   if (decl->getAttr<clang::FinalAttr>()) return;
   auto dtor = decl->getDestructor();
   if (dtor->isVirtual()) return;
@@ -456,6 +455,23 @@ void AUTOSARDeclRule::CheckNonVirtualDestructorInNonFinalClass(const clang::CXXR
   issue = report->ReportIssue(AUTOSAR, A12_4_2, decl);
   std::string ref_msg = "If a public destructor of a class is non-virtual, then the class should be declared final.";
   issue->SetRefMsg(ref_msg);
+}
+
+/*
+ * AUTOSAR: A12-8-7
+ * Assignment operators should be declared with the ref-qualifier &.
+ */
+void AUTOSARDeclRule::CheckAssignmentWithoutRefQualifier(const clang::CXXMethodDecl *decl) {
+  if (!decl->isOverloadedOperator()) return;
+  if (!IsAssign(decl->getOverloadedOperator())) return;
+
+  if (!decl->getRefQualifier()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(AUTOSAR, A12_8_7, decl);
+    std::string ref_msg = "Assignment operators should be declared with the ref-qualifier &.";
+    issue->SetRefMsg(ref_msg);
+  }
 }
 
 }
