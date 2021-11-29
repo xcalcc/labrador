@@ -402,5 +402,30 @@ void AUTOSARDeclRule::CheckUnnecessaryCTor(const clang::CXXRecordDecl *decl) {
   issue->SetRefMsg(ref_msg);
 }
 
+/*
+ * AUTOSAR: A12-4-1
+ * Destructor of a base class shall be public virtual, public override or protected non-virtual.
+ */
+void AUTOSARDeclRule::CheckUnvirtualDestructor(const clang::CXXMethodDecl *decl) {
+  if (!clang::isa<clang::CXXDestructorDecl>(decl)) return;
+
+  // public virtual, public override
+  if (decl->getAccess() == clang::AccessSpecifier::AS_public) {
+    if (decl->isVirtual()) return;
+    if (decl->getAttr<clang::OverrideAttr>()) return;
+  }
+
+  // protected non-virtual
+  if (decl->getAccess() == clang::AccessSpecifier::AS_protected) {
+    if (!decl->isVirtual() && !decl->getAttr<clang::OverrideAttr>()) return;
+  }
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(AUTOSAR, A12_4_1, decl);
+  std::string ref_msg = "Destructor of a base class shall be public virtual, public override or protected non-virtual.";
+  issue->SetRefMsg(ref_msg);
+}
+
 }
 }

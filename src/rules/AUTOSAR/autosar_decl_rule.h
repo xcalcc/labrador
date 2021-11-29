@@ -140,6 +140,12 @@ private:
    */
   void CheckUnnecessaryCTor(const clang::CXXRecordDecl *decl);
 
+  /*
+   * AUTOSAR: A12-4-1
+   * Destructor of a base class shall be public virtual, public override or protected non-virtual.
+   */
+  void CheckUnvirtualDestructor(const clang::CXXMethodDecl *decl);
+
 public:
   void VisitEnum(const clang::EnumDecl *decl) {
     CheckEnumUnderlyingType(decl);
@@ -175,6 +181,7 @@ public:
   void VisitCXXMethod(const clang::CXXMethodDecl *decl) {
     CheckExplictOverriddenFunction(decl);
     CheckVirtualUserDefinedAssignmentOperator(decl);
+    CheckUnvirtualDestructor(decl);
   }
 
   void VisitTypedef(const clang::TypedefDecl *decl) {
