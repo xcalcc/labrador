@@ -168,6 +168,12 @@ private:
    */
   void CheckUserDefinedSuffixes(const clang::FunctionDecl *decl);
 
+  /*
+   * AUTOSAR: A13-2-1
+   * An assignment operator shall return a reference to “this”.
+   */
+  void CheckAssignmentOperatorReturnThisRef(const clang::CXXMethodDecl *decl);
+
 public:
   void VisitFunction(const clang::FunctionDecl *decl) {
     CheckUserDefinedSuffixes(decl);
@@ -210,6 +216,7 @@ public:
     CheckExplictOverriddenFunction(decl);
     CheckVirtualUserDefinedAssignmentOperator(decl);
     CheckAssignmentWithoutRefQualifier(decl);
+    CheckAssignmentOperatorReturnThisRef(decl);
   }
 
   void VisitTypedef(const clang::TypedefDecl *decl) {

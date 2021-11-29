@@ -492,5 +492,29 @@ void AUTOSARDeclRule::CheckUserDefinedSuffixes(const clang::FunctionDecl *decl) 
   issue->SetRefMsg(ref_msg);
 }
 
+/*
+ * AUTOSAR: A13-2-1
+ * An assignment operator shall return a reference to “this”.
+ */
+void AUTOSARDeclRule::CheckAssignmentOperatorReturnThisRef(const clang::CXXMethodDecl *decl) {
+  if (!decl->isOverloadedOperator() || !IsAssign(decl->getOverloadedOperator())) return;
+
+  auto ret_type = decl->getReturnType();
+  if (ret_type->isReferenceType()) {
+    auto ref_type = ret_type.getNonReferenceType();
+    auto record = ref_type->getAsCXXRecordDecl();
+    if (record && record == decl->getParent() && !ref_type.isConstQualified()) {
+      ret_type->dump();
+      return;
+    }
+  }
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(AUTOSAR, A13_2_1, decl);
+  std::string ref_msg = "An assignment operator shall return a reference to “this”.";
+  issue->SetRefMsg(ref_msg);
+}
+
 }
 }

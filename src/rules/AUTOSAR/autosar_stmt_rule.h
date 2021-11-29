@@ -35,6 +35,8 @@ public:
 
 private:
 
+  bool IsAssign(clang::OverloadedOperatorKind kind) const;
+
   /*
    * AUTOSAR: A5-1-1
    * Literal values shall not be used apart from type initialization,
@@ -112,12 +114,20 @@ private:
    */
   void CheckMethodReturnPrivateOrProtectFields(const clang::ReturnStmt *stmt);
 
+  /*
+   * AUTOSAR: A13-2-1
+   * An assignment operator shall return a reference to “this”.
+   */
+  void CheckAssignmentOperatorReturnThisRef(const clang::ReturnStmt *stmt);
+
+
 public:
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
   }
 
   void VisitReturnStmt(const clang::ReturnStmt *stmt) {
     CheckMethodReturnPrivateOrProtectFields(stmt);
+    CheckAssignmentOperatorReturnThisRef(stmt);
   }
 
   void VisitIntegerLiteral(const clang::IntegerLiteral *stmt) {

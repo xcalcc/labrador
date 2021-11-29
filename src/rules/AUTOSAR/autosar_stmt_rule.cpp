@@ -19,6 +19,21 @@
 namespace xsca {
 namespace rule {
 
+bool AUTOSARStmtRule::IsAssign(clang::OverloadedOperatorKind kind) const {
+  using OverOp = clang::OverloadedOperatorKind;
+  switch (kind) {
+    case OverOp::OO_Equal:
+    case OverOp::OO_LessLessEqual:
+    case OverOp::OO_GreaterGreaterEqual:
+      return true;
+    default:
+      break;
+  }
+
+  if (kind >= OverOp::OO_PlusEqual && kind <= OverOp::OO_PipeEqual) return true;
+
+  return false;
+};
 
 void AUTOSARStmtRule::CheckLambdaImplicitlyCaptured(const clang::LambdaExpr *stmt) {
   if (!stmt->implicit_captures().empty()) {
@@ -120,8 +135,8 @@ void AUTOSARStmtRule::CheckConditionalOperatorAsSubExpr(const clang::Conditional
 
           switch (tmp->getStmtClass()) {
             case clang::Stmt::StmtClass::ReturnStmtClass:
-              case clang::Stmt::StmtClass::CompoundStmtClass:
-                return;
+            case clang::Stmt::StmtClass::CompoundStmtClass:
+              return;
             case clang::Stmt::StmtClass::BinaryOperatorClass: {
               auto bin = clang::dyn_cast<clang::BinaryOperator>(tmp);
               if (bin->isAssignmentOp() || bin->isCompoundAssignmentOp()) return;
@@ -191,6 +206,31 @@ void AUTOSARStmtRule::CheckMethodReturnPrivateOrProtectFields(const clang::Retur
       }
     }
   }
+}
+
+/*
+ * AUTOSAR: A13-2-1
+ * An assignment operator shall return a reference to “this”.
+ */
+void AUTOSARStmtRule::CheckAssignmentOperatorReturnThisRef(const clang::ReturnStmt *stmt) {
+  if (!_current_function_decl->isOverloadedOperator() ||
+      !clang::isa<clang::CXXMethodDecl>(_current_function_decl))
+    return;
+
+  auto kind = clang::dyn_cast<clang::CXXMethodDecl>(_current_function_decl)->getOverloadedOperator();
+  if (!IsAssign(kind)) return;
+
+  auto ret_value = stmt->getRetValue()->IgnoreParenImpCasts();
+  if (auto unary_op = clang::dyn_cast<clang::UnaryOperator>(ret_value)) {
+    if (clang::isa<clang::CXXThisExpr>(unary_op->getSubExpr()))
+      return;
+  }
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(AUTOSAR, A13_2_1, stmt);
+  std::string ref_msg = "An assignment operator shall return a reference to “this”.";
+  issue->SetRefMsg(ref_msg);
 }
 
 }

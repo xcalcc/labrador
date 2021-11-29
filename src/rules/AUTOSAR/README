@@ -32,3 +32,4 @@ A12-4-1     Decl        CheckNonVirtualDestructor
 A12-4-2     Decl        CheckNonVirtualDestructorInNonFinalClass
 A12-8-7     Decl        CheckAssignmentWithoutRefQualifier
 A13-1-2     Decl        CheckUserDefinedSuffixes
+A13-2-1     Decl        CheckAssignmentOperatorReturnThisRef
