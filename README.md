@@ -34,6 +34,13 @@
 ```
 xsca will be built in build directory
 
+### 1.4 Set configure files
+```
+ $ cp -f labdrador/conf build
+ # or you can put the directory (conf) into any position and then
+ $ export XSCA_HOME=/directory/which/contains/conf
+```
+
 ### 1.4 Simple run
 ```
  $ ./xsca -cc1 -emit-llvm test.c
