@@ -27,3 +27,6 @@ A10-3-5     Decl        CheckVirtualUserDefinedAssignmentOperator
 A11-0-1     Decl        CheckNonPODStruct
 A11-0-2     Decl        CheckStruct
 A11-3-1     Decl        CheckFriendDeclarations
+A12-1-6     Decl        CheckUnnecessaryCTor
+A12-4-1     Decl        CheckNonVirtualDestructor
+A12-4-2     Decl        CheckNonVirtualDestructorInNonFinalClass

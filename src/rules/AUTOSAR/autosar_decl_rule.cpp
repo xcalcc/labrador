@@ -406,7 +406,21 @@ void AUTOSARDeclRule::CheckUnnecessaryCTor(const clang::CXXRecordDecl *decl) {
  * AUTOSAR: A12-4-1
  * Destructor of a base class shall be public virtual, public override or protected non-virtual.
  */
-void AUTOSARDeclRule::CheckUnvirtualDestructor(const clang::CXXMethodDecl *decl) {
+void AUTOSARDeclRule::CheckNonVirtualDestructor(const clang::CXXRecordDecl *decl) {
+  for (const auto &it : decl->bases()) {
+    auto base = it.getType()->getAsCXXRecordDecl();
+    if (base->hasUserDeclaredConstructor())
+      CheckNonVirtualDestructor(base->getDestructor());
+  }
+
+  for (const auto &it : decl->vbases()) {
+    auto base = it.getType()->getAsCXXRecordDecl();
+    if (base->hasUserDeclaredConstructor())
+      CheckNonVirtualDestructor(base->getDestructor());
+  }
+}
+
+void AUTOSARDeclRule::CheckNonVirtualDestructor(const clang::CXXMethodDecl *decl) {
   if (!clang::isa<clang::CXXDestructorDecl>(decl)) return;
 
   // public virtual, public override
@@ -424,6 +438,23 @@ void AUTOSARDeclRule::CheckUnvirtualDestructor(const clang::CXXMethodDecl *decl)
   XcalReport *report = XcalCheckerManager::GetReport();
   issue = report->ReportIssue(AUTOSAR, A12_4_1, decl);
   std::string ref_msg = "Destructor of a base class shall be public virtual, public override or protected non-virtual.";
+  issue->SetRefMsg(ref_msg);
+}
+
+/*
+ * AUTOSAR: A12-4-2
+ * If a public destructor of a class is non-virtual, then the class should be declared final.
+ */
+void AUTOSARDeclRule::CheckNonVirtualDestructorInNonFinalClass(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasDefinition() || !decl->hasUserDeclaredConstructor()) return;
+  if (decl->getAttr<clang::FinalAttr>()) return;
+  auto dtor = decl->getDestructor();
+  if (dtor->isVirtual()) return;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(AUTOSAR, A12_4_2, decl);
+  std::string ref_msg = "If a public destructor of a class is non-virtual, then the class should be declared final.";
   issue->SetRefMsg(ref_msg);
 }
 

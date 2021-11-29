@@ -144,7 +144,14 @@ private:
    * AUTOSAR: A12-4-1
    * Destructor of a base class shall be public virtual, public override or protected non-virtual.
    */
-  void CheckUnvirtualDestructor(const clang::CXXMethodDecl *decl);
+  void CheckNonVirtualDestructor(const clang::CXXRecordDecl *decl);
+  void CheckNonVirtualDestructor(const clang::CXXMethodDecl *decl);
+
+  /*
+   * AUTOSAR: A12-4-2
+   * If a public destructor of a class is non-virtual, then the class should be declared final.
+   */
+  void CheckNonVirtualDestructorInNonFinalClass(const clang::CXXRecordDecl *decl);
 
 public:
   void VisitEnum(const clang::EnumDecl *decl) {
@@ -176,12 +183,13 @@ public:
     CheckStruct(decl);
     CheckFriendDeclarations(decl);
     CheckUnnecessaryCTor(decl);
+    CheckNonVirtualDestructor(decl);
+    CheckNonVirtualDestructorInNonFinalClass(decl);
   }
 
   void VisitCXXMethod(const clang::CXXMethodDecl *decl) {
     CheckExplictOverriddenFunction(decl);
     CheckVirtualUserDefinedAssignmentOperator(decl);
-    CheckUnvirtualDestructor(decl);
   }
 
   void VisitTypedef(const clang::TypedefDecl *decl) {
