@@ -120,6 +120,18 @@ private:
    */
   void CheckAssignmentOperatorReturnThisRef(const clang::ReturnStmt *stmt);
 
+  /*
+   * AUTOSAR: A13-2-2
+   * A binary arithmetic operator and a bitwise operator shall return a “prvalue”.
+   */
+  void CheckBinaryOpOrBitwiseOpReturnPRValue(const clang::ReturnStmt *stmt);
+
+  /*
+   * AUTOSAR: A13-2-3
+   * A relational operator shall return a boolean value.
+   */
+  void CheckRelationalOpReturnBool(const clang::ReturnStmt *stmt);
+
 
 public:
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -128,6 +140,8 @@ public:
   void VisitReturnStmt(const clang::ReturnStmt *stmt) {
     CheckMethodReturnPrivateOrProtectFields(stmt);
     CheckAssignmentOperatorReturnThisRef(stmt);
+    CheckBinaryOpOrBitwiseOpReturnPRValue(stmt);
+    CheckRelationalOpReturnBool(stmt);
   }
 
   void VisitIntegerLiteral(const clang::IntegerLiteral *stmt) {

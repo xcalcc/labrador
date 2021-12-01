@@ -54,3 +54,5 @@
 #define A12_8_7   "A12_8_7"
 #define A13_1_2   "A13_1_2"
 #define A13_2_1   "A13_2_1"
+#define A13_2_2   "A13_2_2"
+#define A13_2_3   "A13_2_3"

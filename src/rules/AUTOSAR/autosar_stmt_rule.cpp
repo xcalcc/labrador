@@ -233,5 +233,60 @@ void AUTOSARStmtRule::CheckAssignmentOperatorReturnThisRef(const clang::ReturnSt
   issue->SetRefMsg(ref_msg);
 }
 
+/*
+ * AUTOSAR: A13-2-2
+ * A binary arithmetic operator and a bitwise operator shall return a “prvalue”.
+ * TODO: NEED MAKE SURE THE RESULT OF "isRValue"
+ */
+void AUTOSARStmtRule::CheckBinaryOpOrBitwiseOpReturnPRValue(const clang::ReturnStmt *stmt) {
+  if (!_current_function_decl->isOverloadedOperator()) return;
+
+  auto op = _current_function_decl->getOverloadedOperator();
+
+  if (op < clang::OverloadedOperatorKind::OO_Plus ||
+      op > clang::OverloadedOperatorKind::OO_Greater)
+    return;
+
+  auto ret_value = stmt->getRetValue();
+
+  // TODO: NEED FIX HERE
+#if 0
+  if (ret_value->isRValue() && !ret_value->isXValue()) {
+
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(AUTOSAR, A13_2_2, stmt);
+    std::string ref_msg = "A binary arithmetic operator and a bitwise operator shall return a “prvalue”.";
+    issue->SetRefMsg(ref_msg);
+  }
+#endif
+}
+
+/*
+ * AUTOSAR: A13-2-3
+ * A relational operator shall return a boolean value.
+ */
+void AUTOSARStmtRule::CheckRelationalOpReturnBool(const clang::ReturnStmt *stmt) {
+  if (!_current_function_decl->isOverloadedOperator()) return;
+
+  using OpKind = clang::OverloadedOperatorKind;
+  auto op = _current_function_decl->getOverloadedOperator();
+
+  bool is_relational = false;
+
+  if (op == OpKind::OO_Greater || op == OpKind::OO_Less ||
+      (op >= OpKind::OO_ExclaimEqual && op <= OpKind::OO_Spaceship))
+    is_relational = true;
+
+  if (!is_relational) return;
+  if (stmt->getRetValue()->getType()->isBooleanType()) return;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(AUTOSAR, A13_2_3, stmt);
+  std::string ref_msg = "A relational operator shall return a boolean value.";
+  issue->SetRefMsg(ref_msg);
+}
+
 }
 }
