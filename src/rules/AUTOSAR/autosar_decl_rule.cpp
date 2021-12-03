@@ -39,6 +39,32 @@ bool AUTOSARDeclRule::IsAssign(clang::OverloadedOperatorKind kind) const {
   return false;
 };
 
+bool AUTOSARDeclRule::IsCmp(clang::OverloadedOperatorKind kind) const {
+  if (kind >= clang::OverloadedOperatorKind::OO_EqualEqual &&
+      kind <= clang::OverloadedOperatorKind::OO_Spaceship)
+    return true;
+
+  if (kind >= clang::OverloadedOperatorKind::OO_Exclaim &&
+      kind <= clang::OverloadedOperatorKind::OO_Greater)
+    return true;
+
+  return false;
+}
+
+bool AUTOSARDeclRule::IsCmp(clang::NamedDecl *decl) const {
+  std::unordered_set<std::string> cmp_names = {
+      "operator==", "operator<=", "operator>=", "operator>", "operator<", "operator!="
+  };
+  if (!clang::isa<clang::FunctionDecl>(decl)) return false;
+  auto func = clang::dyn_cast<clang::FunctionDecl>(decl);
+  auto name = func->getNameAsString();
+  for (const auto &it : cmp_names) {
+    if (it == name) return true;
+  }
+  return false;
+}
+
+
 void AUTOSARDeclRule::CheckEnumUnderlyingType(const clang::EnumDecl *decl) {
   if (decl->getIntegerTypeSourceInfo()) return;
   XcalIssue *issue = nullptr;
@@ -337,24 +363,11 @@ void AUTOSARDeclRule::CheckFriendDeclarations(const clang::CXXRecordDecl *decl) 
 
   if (!decl->hasFriends()) return;
 
-  std::unordered_set<std::string> cmp_names = {
-      "operator==", "operator<=", "operator>=", "operator>", "operator<", "operator!="
-  };
-  auto isCmp = [&cmp_names](const clang::NamedDecl *decl) -> bool {
-    if (!clang::isa<clang::FunctionDecl>(decl)) return false;
-    auto func = clang::dyn_cast<clang::FunctionDecl>(decl);
-    auto name = func->getNameAsString();
-    for (const auto &it : cmp_names) {
-      if (it == name) return true;
-    }
-    return false;
-  };
-
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
 
   for (const auto &it : decl->friends()) {
-    if (isCmp(it->getFriendDecl())) continue;
+    if (IsCmp(it->getFriendDecl())) continue;
 
     if (issue == nullptr) {
       issue = report->ReportIssue(AUTOSAR, A11_3_1, decl);
@@ -558,6 +571,43 @@ void AUTOSARDeclRule::CheckExplictUserDefinedConversionOp(const clang::FunctionD
   XcalReport *report = XcalCheckerManager::GetReport();
   issue = report->ReportIssue(AUTOSAR, A13_5_2, decl);
   std::string ref_msg = "All user-defined conversion operators shall be defined explicit.";
+  issue->SetRefMsg(ref_msg);
+}
+
+/*
+ * AUTOSAR: A13-5-5
+ * Comparison operators shall be non-member functions with identical
+ * parameter types and noexcept.
+ */
+void AUTOSARDeclRule::CheckComparisonOpDecl(const clang::CXXMethodDecl *decl) {
+  if (!decl->isOverloadedOperator()) return;
+  if (!IsCmp(decl->getOverloadedOperator())) return;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(AUTOSAR, A13_5_5, decl);
+  std::string ref_msg = "Comparison operators shall be non-member functions with identical parameter types and noexcept.";
+  issue->SetRefMsg(ref_msg);
+}
+
+void AUTOSARDeclRule::CheckComparisonOpDecl(const clang::FriendDecl *decl) {
+  auto frd_decl = decl->getFriendDecl();
+  if (!frd_decl || !IsCmp(frd_decl)) return;
+
+  auto func = clang::dyn_cast<clang::FunctionDecl>(frd_decl);
+  if (!func) return;
+  if (func->getExceptionSpecType() == clang::ExceptionSpecificationType::EST_BasicNoexcept) {
+    if (func->param_size() == 2) {
+      auto tp1 = func->parameters()[0]->getType();
+      auto tp2 = func->parameters()[1]->getType();
+      if (tp1 == tp2) return;
+    }
+  }
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(AUTOSAR, A13_5_5, decl);
+  std::string ref_msg = "Comparison operators shall be non-member functions with identical parameter types and noexcept.";
   issue->SetRefMsg(ref_msg);
 }
 

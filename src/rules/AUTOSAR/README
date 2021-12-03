@@ -38,3 +38,4 @@ A13-2-3     Stmt        CheckRelationalOpReturnBool
 A13-5-1     Decl        CheckBracketOpOverloadedWithOnlyNonConstVersion
 A13-5-2     Decl        CheckExplictUserDefinedConversionOp
 A13-5-3     Stmt        CheckUsingUserDefinedConversionOp
+A13-5-5     Decl        CheckComparisonOpDecl

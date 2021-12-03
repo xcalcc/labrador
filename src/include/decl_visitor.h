@@ -117,6 +117,11 @@ public:
     if (decl->hasUserDeclaredDestructor()) {
       this->VisitCXXMethod(decl->getDestructor());
     }
+
+    // visit friends
+    for (const auto &it : decl->friends()) {
+      this->Visit(it);
+    }
   }
 
   void VisitEnum(const clang::EnumDecl *decl) {

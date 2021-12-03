@@ -35,6 +35,9 @@ private:
 
   bool IsAssign(clang::OverloadedOperatorKind kind) const;
 
+  bool IsCmp(clang::OverloadedOperatorKind kind) const;
+  bool IsCmp(clang::NamedDecl *decl) const;
+
   /*
    * AUTOSAR: A7-1-6
    * The typedef specifier shall not be used.
@@ -187,6 +190,14 @@ private:
    */
   void CheckExplictUserDefinedConversionOp(const clang::FunctionDecl *decl);
 
+  /*
+   * AUTOSAR: A13-5-5
+   * Comparison operators shall be non-member functions with identical
+   * parameter types and noexcept.
+   */
+  void CheckComparisonOpDecl(const clang::CXXMethodDecl *decl);
+  void CheckComparisonOpDecl(const clang::FriendDecl *decl);
+
 public:
   void VisitFunction(const clang::FunctionDecl *decl) {
     CheckUserDefinedSuffixes(decl);
@@ -232,6 +243,7 @@ public:
     CheckVirtualUserDefinedAssignmentOperator(decl);
     CheckAssignmentWithoutRefQualifier(decl);
     CheckAssignmentOperatorReturnThisRef(decl);
+    CheckComparisonOpDecl(decl);
   }
 
   void VisitTypedef(const clang::TypedefDecl *decl) {
@@ -240,6 +252,10 @@ public:
 
   void VisitFunctionTemplate(const clang::FunctionTemplateDecl *decl) {
     CheckTrailingReturnWhenDependTypeParameter(decl);
+  }
+
+  void VisitFriend(const clang::FriendDecl *decl) {
+    CheckComparisonOpDecl(decl);
   }
 };
 }
