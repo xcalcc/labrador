@@ -181,9 +181,16 @@ private:
    */
   void CheckBracketOpOverloadedWithOnlyNonConstVersion(const clang::CXXRecordDecl *decl);
 
+  /*
+   * AUTOSAR: A13-5-2
+   * All user-defined conversion operators shall be defined explicit.
+   */
+  void CheckExplictUserDefinedConversionOp(const clang::FunctionDecl *decl);
+
 public:
   void VisitFunction(const clang::FunctionDecl *decl) {
     CheckUserDefinedSuffixes(decl);
+    CheckExplictUserDefinedConversionOp(decl);
   }
 
   void VisitEnum(const clang::EnumDecl *decl) {

@@ -36,3 +36,4 @@ A13-2-1     Decl        CheckAssignmentOperatorReturnThisRef
 A13-2-2     Stmt        CheckBinaryOpOrBitwiseOpReturnPRValue
 A13-2-3     Stmt        CheckRelationalOpReturnBool
 A13-5-1     Decl        CheckBracketOpOverloadedWithOnlyNonConstVersion
+A13-5-2     Decl        CheckExplictUserDefinedConversionOp

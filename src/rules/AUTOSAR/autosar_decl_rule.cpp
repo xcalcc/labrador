@@ -531,8 +531,7 @@ void AUTOSARDeclRule::CheckBracketOpOverloadedWithOnlyNonConstVersion(const clan
       if (it->isConst()) {
         if (need_const) return;
         has_const_version = true;
-      }
-      else {
+      } else {
         if (has_const_version) return;
         need_const = true;
       }
@@ -543,6 +542,22 @@ void AUTOSARDeclRule::CheckBracketOpOverloadedWithOnlyNonConstVersion(const clan
   XcalReport *report = XcalCheckerManager::GetReport();
   issue = report->ReportIssue(AUTOSAR, A13_5_1, decl);
   std::string ref_msg = "If “operator[]” is to be overloaded with a non-const version, const version shall also be implemented.";
+  issue->SetRefMsg(ref_msg);
+}
+
+/*
+ * AUTOSAR: A13-5-2
+ * All user-defined conversion operators shall be defined explicit.
+ */
+void AUTOSARDeclRule::CheckExplictUserDefinedConversionOp(const clang::FunctionDecl *decl) {
+  auto conv = clang::dyn_cast<clang::CXXConversionDecl>(decl);
+  if (!conv || !conv->isUserProvided()) return;
+  if (conv->isExplicit()) return;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(AUTOSAR, A13_5_2, decl);
+  std::string ref_msg = "All user-defined conversion operators shall be defined explicit.";
   issue->SetRefMsg(ref_msg);
 }
 
