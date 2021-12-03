@@ -132,6 +132,12 @@ private:
    */
   void CheckRelationalOpReturnBool(const clang::ReturnStmt *stmt);
 
+  /*
+   * AUTOSAR: A13-5-3
+   * User-defined conversion operators should not be used.
+   */
+  void CheckUsingUserDefinedConversionOp(const clang::CStyleCastExpr *stmt);
+
 
 public:
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -181,6 +187,10 @@ public:
 
   void VisitCallExpr(const clang::CallExpr *stmt) {
     CheckFunctionCallThemselves(stmt);
+  }
+
+  void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {
+    CheckUsingUserDefinedConversionOp(stmt);
   }
 };
 

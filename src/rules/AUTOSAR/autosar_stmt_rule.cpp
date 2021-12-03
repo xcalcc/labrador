@@ -288,5 +288,27 @@ void AUTOSARStmtRule::CheckRelationalOpReturnBool(const clang::ReturnStmt *stmt)
   issue->SetRefMsg(ref_msg);
 }
 
+/*
+ * AUTOSAR: A13-5-3
+ * User-defined conversion operators should not be used.
+ */
+void AUTOSARStmtRule::CheckUsingUserDefinedConversionOp(const clang::CStyleCastExpr *stmt) {
+  // get call expr
+  auto sub = stmt->getSubExpr()->IgnoreParenImpCasts();
+  auto call_expr = clang::dyn_cast<clang::CXXMemberCallExpr>(sub);
+  if (!call_expr) return;
+
+  // get conversion declaration
+  auto callee = call_expr->getCalleeDecl();
+  auto conv = clang::dyn_cast<clang::CXXConversionDecl>(callee);
+  if (!conv) return;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(AUTOSAR, A13_5_3, stmt);
+  std::string ref_msg = "User-defined conversion operators should not be used.";
+  issue->SetRefMsg(ref_msg);
+}
+
 }
 }

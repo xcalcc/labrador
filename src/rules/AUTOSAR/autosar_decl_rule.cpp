@@ -406,6 +406,7 @@ void AUTOSARDeclRule::CheckUnnecessaryCTor(const clang::CXXRecordDecl *decl) {
  * Destructor of a base class shall be public virtual, public override or protected non-virtual.
  */
 void AUTOSARDeclRule::CheckNonVirtualDestructor(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasDefinition()) return;
   for (const auto &it : decl->bases()) {
     auto base = it.getType()->getAsCXXRecordDecl();
     if (base->hasUserDeclaredDestructor())
@@ -504,7 +505,6 @@ void AUTOSARDeclRule::CheckAssignmentOperatorReturnThisRef(const clang::CXXMetho
     auto ref_type = ret_type.getNonReferenceType();
     auto record = ref_type->getAsCXXRecordDecl();
     if (record && record == decl->getParent() && !ref_type.isConstQualified()) {
-      ret_type->dump();
       return;
     }
   }
