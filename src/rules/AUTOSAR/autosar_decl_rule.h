@@ -174,6 +174,13 @@ private:
    */
   void CheckAssignmentOperatorReturnThisRef(const clang::CXXMethodDecl *decl);
 
+  /*
+   * AUTOSAR: A13-5-1
+   * If “operator[]” is to be overloaded with a non-const version,
+   * const version shall also be implemented.
+   */
+  void CheckBracketOpOverloadedWithOnlyNonConstVersion(const clang::CXXRecordDecl *decl);
+
 public:
   void VisitFunction(const clang::FunctionDecl *decl) {
     CheckUserDefinedSuffixes(decl);
@@ -210,6 +217,7 @@ public:
     CheckUnnecessaryCTor(decl);
     CheckNonVirtualDestructor(decl);
     CheckNonVirtualDestructorInNonFinalClass(decl);
+    CheckBracketOpOverloadedWithOnlyNonConstVersion(decl);
   }
 
   void VisitCXXMethod(const clang::CXXMethodDecl *decl) {

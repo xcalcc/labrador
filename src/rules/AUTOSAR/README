@@ -33,3 +33,6 @@ A12-4-2     Decl        CheckNonVirtualDestructorInNonFinalClass
 A12-8-7     Decl        CheckAssignmentWithoutRefQualifier
 A13-1-2     Decl        CheckUserDefinedSuffixes
 A13-2-1     Decl        CheckAssignmentOperatorReturnThisRef
+A13-2-2     Stmt        CheckBinaryOpOrBitwiseOpReturnPRValue
+A13-2-3     Stmt        CheckRelationalOpReturnBool
+A13-5-1     Decl        CheckBracketOpOverloadedWithOnlyNonConstVersion

@@ -516,5 +516,35 @@ void AUTOSARDeclRule::CheckAssignmentOperatorReturnThisRef(const clang::CXXMetho
   issue->SetRefMsg(ref_msg);
 }
 
+/*
+ * AUTOSAR: A13-5-1
+ * If “operator[]” is to be overloaded with a non-const version,
+ * const version shall also be implemented.
+ */
+void AUTOSARDeclRule::CheckBracketOpOverloadedWithOnlyNonConstVersion(const clang::CXXRecordDecl *decl) {
+  if (!decl->hasDefinition()) return;
+
+  bool has_const_version = false, need_const = false;
+  for (const auto &it : decl->methods()) {
+    if (!it->isOverloadedOperator()) continue;
+    if (it->getOverloadedOperator() == clang::OverloadedOperatorKind::OO_Subscript) {
+      if (it->isConst()) {
+        if (need_const) return;
+        has_const_version = true;
+      }
+      else {
+        if (has_const_version) return;
+        need_const = true;
+      }
+    }
+  }
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(AUTOSAR, A13_5_1, decl);
+  std::string ref_msg = "If “operator[]” is to be overloaded with a non-const version, const version shall also be implemented.";
+  issue->SetRefMsg(ref_msg);
+}
+
 }
 }
