@@ -496,7 +496,6 @@ void GJB8114DeclRule::CheckVariableConflictWithIdentifiers() {
         auto varDecl = clang::dyn_cast<clang::VarDecl>(decl);
         if (varDecl->getNameAsString().empty()) return;
         if (top_scope->HasRecordName<true>(varDecl->getNameAsString())) {
-          printf("%s\n", varDecl->getNameAsString().c_str());
           if (issue == nullptr) {
             issue = report->ReportIssue(GJB8114, G5_13_1_4, decl);
             std::string ref_msg = "Variable names conflicting with identifiers in forbidden";

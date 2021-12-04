@@ -112,9 +112,15 @@ public:
     diagnosticInfo.FormatDiagnostic(diagnosticMessage);
 
     llvm::raw_svector_ostream DiagMessageStream(diagnosticMessage);
-    auto full_loc = clang::FullSourceLoc(diagnosticInfo.getLocation(), diagnosticInfo.getSourceManager());
-    _TextDiag->emitDiagnostic(full_loc, diagnosticLevel, DiagMessageStream.str(),
-                              diagnosticInfo.getRanges(), diagnosticInfo.getFixItHints());
+
+    if (diagnosticInfo.hasSourceManager()) {
+      auto full_loc = clang::FullSourceLoc(diagnosticInfo.getLocation(), diagnosticInfo.getSourceManager());
+      _TextDiag->emitDiagnostic(full_loc, diagnosticLevel, DiagMessageStream.str(),
+                                diagnosticInfo.getRanges(), diagnosticInfo.getFixItHints());
+    } else {
+      clang::StoredDiagnostic diag(clang::DiagnosticsEngine::Level::Error, diagnosticInfo);
+      _TextDiag->emitStoredDiagnostic(diag);
+    }
   }
 
 };

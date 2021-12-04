@@ -901,7 +901,7 @@ void GJB8114StmtRule::CheckUsingGlobalVarInConstructor(const clang::DeclRefExpr 
   auto decl = stmt->getDecl();
   if (auto varDecl = clang::dyn_cast<clang::VarDecl>(decl)) {
     if (varDecl->hasGlobalStorage()) {
-      if (clang::dyn_cast<clang::CXXConstructorDecl>(_current_function_decl)) {
+      if (_current_function_decl && clang::dyn_cast<clang::CXXConstructorDecl>(_current_function_decl)) {
         XcalIssue *issue = nullptr;
         XcalReport *report = XcalCheckerManager::GetReport();
 
