@@ -39,8 +39,21 @@ class XcalDeclVisitor {
   using _Self = XcalDeclVisitor<_DeclHandler, _StmtHandler, _TypeHandler>;
 private:
   _DeclHandler &_decl_handler;
-  XcalStmtVisitor<_StmtHandler, _Self>  _stmt_visitor;
-  XcalTypeVisitor<_TypeHandler>         _type_visitor;
+  XcalStmtVisitor<_StmtHandler, _Self>    _stmt_visitor;
+  XcalTypeVisitor<_TypeHandler>           _type_visitor;
+  std::stack<const clang::FunctionDecl *> _func_stack;
+
+  void SetCurrentFunction(const clang::FunctionDecl *decl) {
+    _func_stack.push(decl);
+    XcalCheckerManager::SetCurrentFunction(decl);
+    _stmt_visitor.SetCurrentFunctionDecl(decl);
+  }
+
+  void ClearCurrentFunction() {
+    if (_func_stack.top() != nullptr) _func_stack.pop();
+    XcalCheckerManager::SetCurrentFunction(_func_stack.top());
+    _stmt_visitor.SetCurrentFunctionDecl(_func_stack.top());
+  }
 
 public:
   XcalDeclVisitor(_DeclHandler &decl_handler,
@@ -48,9 +61,12 @@ public:
       _TypeHandler &type_handler)
       : _decl_handler(decl_handler),
         _stmt_visitor(stmt_handler, *this),
-        _type_visitor(type_handler) {}
+        _type_visitor(type_handler) {
+    _func_stack.push(nullptr);
+  }
 
   void Finalize() {
+    DBG_ASSERT(_func_stack.empty() || (_func_stack.top() == nullptr), "function stack corruption");
     _decl_handler.Finalize();
   }
 
@@ -87,7 +103,14 @@ public:
 
   void VisitCXXMethod(const clang::CXXMethodDecl *decl) {
     VisitFunction(clang::cast<clang::FunctionDecl>(decl));
+
+    // set current function
+    SetCurrentFunction(decl);
+
     _decl_handler.VisitCXXMethod(decl);
+
+    // clear current function
+    ClearCurrentFunction();
   }
 
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
@@ -111,7 +134,9 @@ public:
     // visit ctor and dtor
     for (const auto &ctor : decl->ctors()) {
       if (ctor->isDefaultConstructor()) continue;
+      SetCurrentFunction(ctor);
       this->Visit(ctor);
+      ClearCurrentFunction();
     }
 
     if (decl->hasUserDeclaredDestructor()) {
@@ -136,7 +161,7 @@ public:
     ScopeHelper<clang::FunctionDecl> scope(scope_mgr, decl);
 
     // set current function for XcalCheckerManager
-    XcalCheckerManager::SetCurrentFunction(decl);
+    SetCurrentFunction(decl);
 
     _decl_handler.VisitFunction(decl);
 
@@ -151,13 +176,11 @@ public:
 
     // visit function body
     if (decl->doesThisDeclarationHaveABody()) {
-      _stmt_visitor.SetCurrentFunctionDecl(decl);
       _stmt_visitor.VisitFunctionBody(decl->getBody());
-      _stmt_visitor.SetCurrentFunctionDecl(nullptr);
     }
 
     // clear current function for XcalCheckerManager
-    XcalCheckerManager::SetCurrentFunction(nullptr);
+    ClearCurrentFunction();
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {
