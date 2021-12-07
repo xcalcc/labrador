@@ -129,7 +129,7 @@ XcalReport::PrintVtxtIssue(const XcalIssue *issue)
 
   std::string output_std;
   std::string std_name = std::string(issue->StdName());
-  if (std_name.find("MSR") != std::string::npos) {
+  if (std_name.find("MISRA") != std::string::npos) {
     output_std = "MSR";
   } else if (std_name.find("GJB") != std::string::npos) {
     output_std = "GJB";
