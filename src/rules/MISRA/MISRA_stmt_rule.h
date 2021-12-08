@@ -41,6 +41,7 @@ public:
 private:
   std::unordered_set<const clang::Stmt *> _terminates;
 
+  clang::QualType GetRawTypeOfTypedef(const clang::QualType type);
 
   void HasThisFunctionThenReport(const std::vector<std::string> &fid_func, const std::string &str,
                                  const clang::CallExpr *stmt, const char *std_id, const std::string &info);

@@ -28,6 +28,14 @@
 namespace xsca {
 namespace rule {
 
+clang::QualType MISRAStmtRule::GetRawTypeOfTypedef(const clang::QualType type) {
+  clang::QualType res;
+  if (auto tmp = clang::dyn_cast<clang::TypedefType>(type)) {
+    res = tmp->getDecl()->getTypeForDecl()->getCanonicalTypeInternal();
+  }
+  return res;
+}
+
 void MISRAStmtRule::HasThisFunctionThenReport(const std::vector<std::string> &fid_func, const std::string &str,
                                               const clang::CallExpr *stmt, const char *std_id,
                                               const std::string &info) {
@@ -274,6 +282,10 @@ void MISRAStmtRule::CheckCompositeExprAssignToWiderTypeVar(const clang::BinaryOp
   auto rhs_type = stmt->getRHS()->IgnoreCasts()->getType();
   bool need_report = false;
 
+  /* Get raw type of typedef */
+  if (clang::isa<clang::TypedefType>(lhs_type)) lhs_type = GetRawTypeOfTypedef(lhs_type);
+  if (clang::isa<clang::TypedefType>(rhs_type)) rhs_type = GetRawTypeOfTypedef(rhs_type);
+
   if (rhs_type < lhs_type) need_report = true;
   if (lhs_type->isIntegerType() && (rhs_type == lhs_type)) {
     auto lhs_bt = clang::dyn_cast<clang::BuiltinType>(lhs_type);
@@ -300,6 +312,10 @@ void MISRAStmtRule::CheckCompositeExprAssignToWiderTypeVar(const clang::BinaryOp
         if (lhs_kind < prim_kind && rhs_kind < prim_kind) need_report = true;
       }
     }
+  } else {
+    stmt->dumpColor();
+    lhs_type->dump();
+    rhs_type->dump();
   }
 
   if (need_report) {
