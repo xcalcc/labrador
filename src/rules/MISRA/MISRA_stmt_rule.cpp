@@ -58,6 +58,14 @@ const clang::FunctionDecl *MISRAStmtRule::GetCalleeDecl(const clang::CallExpr *s
 }
 
 /* MISRA
+ * Rule: 4.1
+ * Octal and hexadecimal escape sequences shall be terminated
+ */
+void MISRAStmtRule::CheckOctalAndHexadecimalEscapeWithoutTerminated(const clang::StringLiteral *stmt) {
+  stmt->dumpColor();
+}
+
+/* MISRA
  * Rule: 7.4
  * A string literal shall not be assigned to an object unless the object’s type is “pointer to const-qualified char”
  */

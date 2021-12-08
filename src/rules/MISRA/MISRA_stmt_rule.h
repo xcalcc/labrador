@@ -52,6 +52,12 @@ private:
   std::vector <clang::QualType> RecordThrowObjectTypes(const clang::Stmt *stmt);
 
   /* MISRA
+   * Rule: 4.1
+   * Octal and hexadecimal escape sequences shall be terminated
+   */
+  void CheckOctalAndHexadecimalEscapeWithoutTerminated(const clang::StringLiteral *stmt);
+
+  /* MISRA
    * Rule: 7.4
    * A string literal shall not be assigned to an object unless the object’s
    * type is “pointer to const-qualified char”
@@ -507,6 +513,10 @@ public:
 
   void VisitCXXCatchStmt(const clang::CXXCatchStmt *stmt) {
     CheckCatchTypeNotReference(stmt);
+  }
+
+  void VisitStringLiteral(const clang::StringLiteral *stmt) {
+    CheckOctalAndHexadecimalEscapeWithoutTerminated(stmt);
   }
 
 }; // MISRAStmtRule
