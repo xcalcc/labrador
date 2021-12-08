@@ -64,7 +64,7 @@ private:
 
   clang::ASTContext                                    *_ast_context;
 
-  static llvm::cl::opt<std::string>                     _disable_opt;
+  static llvm::cl::opt<std::string>                     _enable_opt;
 
   XcalCheckerManager()
     : _scope_mgr(std::make_unique<ScopeManager>()) ,
@@ -145,8 +145,8 @@ public:
     _instance.AddFactory(std::move(factory));
   }
 
-  static llvm::cl::opt<std::string>& GetDisableOption() {
-    return _instance._disable_opt;
+  static llvm::cl::opt<std::string>& GetEnableOption() {
+    return _instance._enable_opt;
   }
 };
 

@@ -37,7 +37,7 @@ public:
   ~GJB8114DeclRule() {}
 
   GJB8114DeclRule() {
-    _disabled = XcalCheckerManager::GetDisableOption().getValue().find("GJB8114") != std::string::npos;
+    _enable = XcalCheckerManager::GetEnableOption().getValue().find("GJB8114") != std::string::npos;
   }
 
 private:
@@ -271,13 +271,21 @@ private:
 
 public:
   void Finalize() {
+    TRACE0();
     CheckUnusedStaticFunction();
+    TRACE0();
     CheckOmitInitValueDependOnSystem();
+    TRACE0();
     CheckInitWithDecl();
+    TRACE0();
     CheckVariableConflictWithFunction();
+    TRACE0();
     CheckVariableConflictWithIdentifiers();
+    TRACE0();
     CheckVariableConflictWithEnumElem();
+    TRACE0();
     CheckVariableConflictWithTypeDef();
+    TRACE0();
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {

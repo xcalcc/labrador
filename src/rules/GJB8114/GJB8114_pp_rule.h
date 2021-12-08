@@ -37,7 +37,7 @@ public:
 
   GJB8114PPRule() {
     _included_file.clear();
-    _disabled = XcalCheckerManager::GetDisableOption().getValue().find("GJB8114") != std::string::npos;
+    _enable = XcalCheckerManager::GetEnableOption().getValue().find("GJB8114") != std::string::npos;
   }
 
 private:

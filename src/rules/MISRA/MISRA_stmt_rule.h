@@ -35,7 +35,7 @@ public:
   ~MISRAStmtRule() = default;
 
   MISRAStmtRule() {
-    _disabled = XcalCheckerManager::GetDisableOption().getValue().find("MISRA") != std::string::npos;
+    _enable = true;
   }
 
 private:

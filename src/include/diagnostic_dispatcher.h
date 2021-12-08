@@ -42,11 +42,11 @@ private:
   DiagnosticDispatcher<_REST...>  _rest;
 
 public:
-  DiagnosticDispatcher() = default;;
+  DiagnosticDispatcher() = default;
 
   void HandleDiagnostic(clang::DiagnosticsEngine::Level diagnosticLevel,
                         const clang::Diagnostic &diagnosticInfo) {
-    _first.HandleDiagnostic(diagnosticLevel, diagnosticInfo);
+    if (_first.Enable()) _first.HandleDiagnostic(diagnosticLevel, diagnosticInfo);
     _rest.HandleDiagnostic(diagnosticLevel, diagnosticInfo);
   }
 };
@@ -57,11 +57,11 @@ private:
   _FIRST                   _first;
 
 public:
-  DiagnosticDispatcher() = default;;
+  DiagnosticDispatcher() = default;
 
   void HandleDiagnostic(clang::DiagnosticsEngine::Level diagnosticLevel,
                         const clang::Diagnostic &diagnosticInfo) {
-    _first.HandleDiagnostic(diagnosticLevel, diagnosticInfo);
+    if (_first.Enable()) _first.HandleDiagnostic(diagnosticLevel, diagnosticInfo);
   }
 };
 

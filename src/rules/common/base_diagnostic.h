@@ -31,8 +31,13 @@ namespace xsca {
 namespace rule {
 
 class RuleBaseDiagnostic : public clang::IgnoringDiagConsumer {
-private:
+protected:
+  bool _enable;
+
 public:
+
+  inline bool Enable() const { return _enable; }
+
   RuleBaseDiagnostic() = default;
 
   virtual void AddIssue(const char *rule, const std::string &ref_msg,

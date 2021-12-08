@@ -37,7 +37,7 @@ public:
   ~GJB5369DeclRule() {}
 
   GJB5369DeclRule() {
-    _disabled = XcalCheckerManager::GetDisableOption().getValue().find("GJB5369") != std::string::npos;
+    _enable = XcalCheckerManager::GetEnableOption().getValue().find("GJB5369") != std::string::npos;
   }
 
 private:

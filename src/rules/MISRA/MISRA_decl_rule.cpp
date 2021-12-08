@@ -187,7 +187,7 @@ void MISRADeclRule::CheckUnusedParameters(const clang::FunctionDecl *decl) {
       if (!it->isUsed()) {
         if (issue == nullptr) {
           issue = report->ReportIssue(MISRA, M_R_2_7, decl);
-          std::string ref_msg = "There should be no unused parameters in functions";
+          std::string ref_msg = "There should be no unused parameters in functions ";
           ref_msg += decl->getNameAsString();
           issue->SetRefMsg(ref_msg);
         }

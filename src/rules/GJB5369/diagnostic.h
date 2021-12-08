@@ -17,6 +17,7 @@
 #ifndef LABRADOR_GJB5369_DIAGNOSTIC_H
 #define LABRADOR_GJB5369_DIAGNOSTIC_H
 
+#include "xsca_checker_manager.h"
 #include "rules/common/base_diagnostic.h"
 
 namespace xsca {
@@ -25,7 +26,9 @@ namespace rule {
 class GJB5369Diagnostic : public RuleBaseDiagnostic {
 private:
 public:
-  GJB5369Diagnostic() = default;
+  GJB5369Diagnostic() {
+    _enable = XcalCheckerManager::GetEnableOption().getValue().find("GJB5369") != std::string::npos;
+  }
 
   void HandleDiagnostic(clang::DiagnosticsEngine::Level diagnosticLevel,
                         const clang::Diagnostic &diagnosticInfo) override;

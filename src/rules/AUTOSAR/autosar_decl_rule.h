@@ -28,7 +28,7 @@ public:
   ~AUTOSARDeclRule() = default;
 
   AUTOSARDeclRule() {
-    _disabled = XcalCheckerManager::GetDisableOption().getValue().find("AUTOSAR") != std::string::npos;
+    _enable = XcalCheckerManager::GetEnableOption().getValue().find("AUTOSAR") != std::string::npos;
   }
 
 private:

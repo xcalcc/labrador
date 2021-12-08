@@ -11,8 +11,7 @@ Rule		Kind		Implementation
 2.5
 2.6         Decl        CheckUnusedLabelInFunction
 2.7         Decl        CheckUnusedParameters
-4.1
-4.2
+4.2         Diag        HandleDiagnostic
 
 
 5.1         Decl        CheckUndistinctExternalIdent

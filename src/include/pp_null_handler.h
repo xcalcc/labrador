@@ -37,10 +37,12 @@ namespace xsca {
 // class PPNullHandler
 class PPNullHandler {
 protected:
-  bool _disabled;
+  bool _enable;
 
 public:
-  inline bool Disabled() const { return _disabled; }
+  PPNullHandler() : _enable(false) {}
+
+  inline bool Enable() const { return _enable; }
 
   void FileChanged(clang::SourceLocation Loc,
            clang::PPCallbacks::FileChangeReason Reason,

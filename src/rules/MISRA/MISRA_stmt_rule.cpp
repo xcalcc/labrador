@@ -62,7 +62,6 @@ const clang::FunctionDecl *MISRAStmtRule::GetCalleeDecl(const clang::CallExpr *s
  * Octal and hexadecimal escape sequences shall be terminated
  */
 void MISRAStmtRule::CheckOctalAndHexadecimalEscapeWithoutTerminated(const clang::StringLiteral *stmt) {
-  stmt->dumpColor();
 }
 
 /* MISRA
@@ -320,10 +319,6 @@ void MISRAStmtRule::CheckCompositeExprAssignToWiderTypeVar(const clang::BinaryOp
         if (lhs_kind < prim_kind && rhs_kind < prim_kind) need_report = true;
       }
     }
-  } else {
-    stmt->dumpColor();
-    lhs_type->dump();
-    rhs_type->dump();
   }
 
   if (need_report) {

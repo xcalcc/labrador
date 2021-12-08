@@ -18,6 +18,7 @@
 #define LABRADOR_GJB8114_DIAGNOSTIC_H
 
 #include "rules/common/base_diagnostic.h"
+#include "xsca_checker_manager.h"
 
 namespace xsca {
 namespace rule {
@@ -25,7 +26,9 @@ namespace rule {
 class GJB8114Diagnostic : public RuleBaseDiagnostic {
 private:
 public:
-  GJB8114Diagnostic() = default;
+  GJB8114Diagnostic() {
+    _enable = XcalCheckerManager::GetEnableOption().getValue().find("GJB8114") != std::string::npos;
+  }
 
   void HandleDiagnostic(clang::DiagnosticsEngine::Level diagnosticLevel,
                         const clang::Diagnostic &diagnosticInfo) override;

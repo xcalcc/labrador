@@ -36,6 +36,10 @@ private:
   const clang::FunctionDecl *_current_function_decl;
 
 public:
+  IdentifierBuilder() {
+    _enable = true;
+  }
+
   void VisitLabel(const clang::LabelDecl *decl) {
     auto scope_mgr = XcalCheckerManager::GetScopeManager();
     scope_mgr->CurrentScope()->AddIdentifier<clang::LabelDecl>(decl);

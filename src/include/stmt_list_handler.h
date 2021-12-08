@@ -41,7 +41,7 @@ public:
   // generate Visit* function from StmtNodes.inc
   #define STMT(CLASS, PARENT)                              \
       void Visit##CLASS(const clang::CLASS *stmt) {        \
-        if (!_first.Disabled()) _first.Visit##CLASS(stmt); \
+        if (_first.Enable()) _first.Visit##CLASS(stmt);    \
         _rest.Visit##CLASS(stmt);                          \
       }
   #define ABSTRACT_STMT(STMT)
@@ -50,12 +50,12 @@ public:
   #undef STMT
 
   void VisitFunctionBody(const clang::Stmt *stmt) {
-    if (!_first.Disabled()) _first.VisitFunctionBody(stmt);
+    if (_first.Enable()) _first.VisitFunctionBody(stmt);
     _rest.VisitFunctionBody(stmt);
   }
 
   void VisitAtFunctionExit(const clang::Stmt *stmt) {
-    if (!_first.Disabled()) _first.VisitAtFunctionExit(stmt);
+    if (_first.Enable()) _first.VisitAtFunctionExit(stmt);
     _rest.VisitAtFunctionExit(stmt);
   }
 
@@ -87,7 +87,7 @@ public:
   // generate Visit* function from StmtNodes.inc
   #define STMT(CLASS, PARENT) \
       void Visit##CLASS(const clang::CLASS *stmt) { \
-        if (!_first.Disabled()) _first.Visit##CLASS(stmt); \
+        if (_first.Enable()) _first.Visit##CLASS(stmt); \
       }
   #define ABSTRACT_STMT(STMT)
   # include "clang/AST/StmtNodes.inc"
@@ -95,11 +95,11 @@ public:
   #undef STMT
 
   void VisitFunctionBody(const clang::Stmt *stmt) {
-    if (!_first.Disabled()) _first.VisitFunctionBody(stmt);
+    if (_first.Enable()) _first.VisitFunctionBody(stmt);
   }
 
   void VisitAtFunctionExit(const clang::Stmt *stmt) {
-    if (!_first.Disabled()) _first.VisitAtFunctionExit(stmt);
+    if (_first.Enable()) _first.VisitAtFunctionExit(stmt);
   }
 
 public:

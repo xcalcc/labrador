@@ -39,14 +39,14 @@ private:
 public:
   // finalize handler
   void Finalize() {
-    _first.Finalize();
+    if (_first.Enable()) _first.Finalize();
     _rest.Finalize();
   }
 
   // generate Visit* function from DeclNodes.inc
   #define DECL(DERIVED, BASE)                                 \
       void Visit##DERIVED(const clang::DERIVED##Decl *decl) { \
-        if (!_first.Disabled()) _first.Visit##DERIVED(decl);  \
+        if (_first.Enable()) _first.Visit##DERIVED(decl);     \
         _rest.Visit##DERIVED(decl);                           \
       }
   #define ABSTRACT_DECL(DECL)
@@ -65,13 +65,13 @@ private:
 public:
   // finalize handler
   void Finalize() {
-    _first.Finalize();
+    if (_first.Enable()) _first.Finalize();
   }
 
   // generate Visit* function from DeclNodes.inc
   #define DECL(DERIVED, BASE) \
       void Visit##DERIVED(const clang::DERIVED##Decl *decl) { \
-        if (!_first.Disabled()) _first.Visit##DERIVED(decl);  \
+        if (_first.Enable()) _first.Visit##DERIVED(decl);  \
       }
   #define ABSTRACT_DECL(DECL)
   # include "clang/AST/DeclNodes.inc"

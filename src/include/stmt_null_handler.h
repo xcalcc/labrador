@@ -40,15 +40,15 @@ namespace xsca {
 // class StmtNullHandler
 class StmtNullHandler {
 protected:
-  bool                       _disabled;
+  bool                       _enable;
   unsigned long              _lambda_depth;          // current depth of lambda expression
   const clang::FunctionDecl *_current_function_decl; // current function declaration
 
 public:
   StmtNullHandler()
-  : _disabled(false), _lambda_depth(0), _current_function_decl(nullptr) {}
+  : _enable(false), _lambda_depth(0), _current_function_decl(nullptr) {}
 
-  inline bool Disabled() const { return _disabled; }
+  inline bool Enable() const { return _enable; }
 
   // generate function prototype from StmtNodes.inc
   #define STMT(CLASS, PARENT) \

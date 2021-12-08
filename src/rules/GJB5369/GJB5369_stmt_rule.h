@@ -35,7 +35,7 @@ public:
   ~GJB5369StmtRule() {}
 
   GJB5369StmtRule() {
-    _disabled = XcalCheckerManager::GetDisableOption().getValue().find("GJB5369") != std::string::npos;
+    _enable = XcalCheckerManager::GetEnableOption().getValue().find("GJB5369") != std::string::npos;
   }
 
 private:

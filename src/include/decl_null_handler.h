@@ -38,13 +38,15 @@ namespace xsca {
 // class DeclNullHandler
 class DeclNullHandler {
 protected:
-  bool _disabled;
+  bool _enable;
 
 public:
+  DeclNullHandler() : _enable(false) {}
+
   // finalize handler
   void Finalize() {}
 
-  inline bool Disabled() const { return _disabled; }
+  inline bool Enable() const { return _enable; }
 
   // generate function prototype from DeclNodes.inc
   #define DECL(DERIVED, BASE) \

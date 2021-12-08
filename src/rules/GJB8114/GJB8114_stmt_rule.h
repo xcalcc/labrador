@@ -36,7 +36,7 @@ public:
   ~GJB8114StmtRule() {}
 
   GJB8114StmtRule() {
-    _disabled = XcalCheckerManager::GetDisableOption().getValue().find("GJB8114") != std::string::npos;
+    _enable = XcalCheckerManager::GetEnableOption().getValue().find("GJB8114") != std::string::npos;
   }
 
 private:

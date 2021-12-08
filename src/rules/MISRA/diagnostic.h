@@ -18,6 +18,7 @@
 #define LABRADOR_MISRA_DIAGNOSTIC_H
 
 #include "rules/common/base_diagnostic.h"
+#include "xsca_checker_manager.h"
 
 namespace xsca {
 namespace rule {
@@ -25,7 +26,9 @@ class MISRADiagnostic : public RuleBaseDiagnostic {
 private:
 
 public:
-  MISRADiagnostic() = default;
+  MISRADiagnostic() {
+    _enable = true;
+  };
 
   void HandleDiagnostic(clang::DiagnosticsEngine::Level diagnosticLevel,
                         const clang::Diagnostic &diagnosticInfo) override;
