@@ -264,19 +264,12 @@ private:
 
 public:
   void Finalize() {
-    TRACE0();
     CheckUnusedTypedef();
-    TRACE0();
     CheckUnusedLabelInFunction();
-    TRACE0();
     CheckUndistinctExternalIdent();
-    TRACE0();
     CheckIdentifierNameConflict();
-    TRACE0();
 //    CheckTypedefUnique();
-    TRACE0();
     CheckThrownUnSpecifiedType();
-    TRACE0();
   }
 
   void VisitVar(const clang::VarDecl *decl) {

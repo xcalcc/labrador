@@ -341,6 +341,9 @@ void MISRAStmtRule::CheckCompositeMixTypeExpr(const clang::BinaryOperator *stmt)
   auto lhs_type = lhs->getType();
   auto rhs_type = rhs->getType();
 
+  if (clang::isa<clang::TypedefType>(lhs_type)) lhs_type = GetRawTypeOfTypedef(lhs_type);
+  if (clang::isa<clang::TypedefType>(rhs_type)) rhs_type = GetRawTypeOfTypedef(rhs_type);
+
   bool need_report = false;
   if (lhs_type < rhs_type) {
     if (lhs->getStmtClass() == clang::Stmt::BinaryOperatorClass) {
@@ -348,6 +351,7 @@ void MISRAStmtRule::CheckCompositeMixTypeExpr(const clang::BinaryOperator *stmt)
     }
   } else if (rhs_type < lhs_type) {
     if (rhs->getStmtClass() == clang::Stmt::BinaryOperatorClass) {
+      rhs_type->dump(); lhs_type->dump();
       need_report = true;
     }
   }
