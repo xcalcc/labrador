@@ -122,10 +122,23 @@ XcalReport::PrintVtxtIssue(const XcalIssue *issue)
   const clang::FileEntry *fe = _source_mgr->getFileEntryForID(ploc.getFileID());
   unsigned fid = fe ? fe->getUID() + 1 : GetFileIdFromLineTable(ploc.getFilename());
 
+  auto getLastToken = [](std::string s, const std::string &delimiter) -> std::string {
+    size_t pos = 0;
+    std::string token;
+    while ((pos = s.find(delimiter)) != std::string::npos) {
+      token = s.substr(0, pos);
+      s.erase(0, pos + delimiter.length());
+    }
+    return s;
+  };
+
   char key[1024];
+  std::string ploc_filename = ploc.getFilename();
+  std::string short_filename = getLastToken(ploc_filename, "/");
+
   snprintf(key, sizeof(key), "%s@%s@%s:%d",
            issue->DeclName(), issue->RuleName(),
-           ploc.getFilename(), ploc.getLine());
+           short_filename.c_str(), ploc.getLine());
 
   std::string output_std;
   std::string std_name = std::string(issue->StdName());
@@ -138,7 +151,7 @@ XcalReport::PrintVtxtIssue(const XcalIssue *issue)
   }
 
   fprintf(_vtxt_file, "[%s],[%s],[%s],[%d:%d],[SML],[D],[RBC],[1,0,0],[%s],[%s],",
-          _magic_opt.getValue().c_str(), key, ploc.getFilename(),
+          _magic_opt.getValue().c_str(), key, short_filename.c_str(),
           fid, ploc.getLine(), output_std.c_str(), issue->RuleName());
   fprintf(_vtxt_file, "[%s],[%s],[", issue->DeclName(), issue->FuncName());
 
