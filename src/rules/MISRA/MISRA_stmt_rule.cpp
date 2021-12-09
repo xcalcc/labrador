@@ -733,7 +733,7 @@ void MISRAStmtRule::CheckControlStmt(const clang::Expr *stmt) {
     if (auto unary_op = clang::dyn_cast<clang::UnaryOperator>(stmt)) {
       if (unary_op->getOpcode() == clang::UnaryOperator::Opcode::UO_LNot) return;
     }
-    
+
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(MISRA, M_R_14_4, stmt);
