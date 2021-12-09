@@ -351,7 +351,6 @@ void MISRAStmtRule::CheckCompositeMixTypeExpr(const clang::BinaryOperator *stmt)
     }
   } else if (rhs_type < lhs_type) {
     if (rhs->getStmtClass() == clang::Stmt::BinaryOperatorClass) {
-      rhs_type->dump(); lhs_type->dump();
       need_report = true;
     }
   }
@@ -725,6 +724,16 @@ void MISRAStmtRule::CheckControlStmt(const clang::Expr *stmt) {
       auto val = const_value->getValue().getZExtValue();
       if (val == 1 || val == 0) return;
     }
+
+    // check if comparison operator or logical operator
+    if (auto bin_op = clang::dyn_cast<clang::BinaryOperator>(stmt)) {
+      if (bin_op->isComparisonOp() || bin_op->isLogicalOp()) return;
+    }
+
+    if (auto unary_op = clang::dyn_cast<clang::UnaryOperator>(stmt)) {
+      if (unary_op->getOpcode() == clang::UnaryOperator::Opcode::UO_LNot) return;
+    }
+    
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(MISRA, M_R_14_4, stmt);
