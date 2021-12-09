@@ -323,6 +323,7 @@ void MISRADeclRule::CheckInappropriateBitField(const clang::RecordDecl *decl) {
   auto src_mgr = XcalCheckerManager::GetSourceManager();
 
   for (const auto &field : decl->fields()) {
+    if (!field->isBitField()) continue;
     bool need_report = false;
     auto type = field->getType();
     if (!type->isIntegerType()) continue;
@@ -335,7 +336,8 @@ void MISRADeclRule::CheckInappropriateBitField(const clang::RecordDecl *decl) {
       start++;
     }
 
-    if (!IsExplicitSign(GetTypeString(type)) && !IsExplicitSign(token)) need_report = true;
+    if (!IsExplicitSign(GetTypeString(type)) && !IsExplicitSign(token))
+      need_report = true;
 
     auto bt_type = clang::dyn_cast<clang::BuiltinType>(type);
     if (bt_type != nullptr) {
