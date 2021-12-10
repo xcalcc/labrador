@@ -51,6 +51,9 @@ private:
   // collect object types within try block
   std::vector <clang::QualType> RecordThrowObjectTypes(const clang::Stmt *stmt);
 
+  clang::BuiltinType::Kind UnifyBTTypeKind(const clang::BuiltinType::Kind &kind);
+
+
   /* MISRA
    * Rule: 4.1
    * Octal and hexadecimal escape sequences shall be terminated

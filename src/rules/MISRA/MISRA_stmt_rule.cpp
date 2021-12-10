@@ -57,6 +57,13 @@ const clang::FunctionDecl *MISRAStmtRule::GetCalleeDecl(const clang::CallExpr *s
   return decl;
 }
 
+clang::BuiltinType::Kind MISRAStmtRule::UnifyBTTypeKind(const clang::BuiltinType::Kind &kind) {
+  if (kind > clang::BuiltinType::Kind::UInt128)
+    return (clang::BuiltinType::Kind) (kind - 8);
+  else return kind;
+}
+
+
 /* MISRA
  * Rule: 4.1
  * Octal and hexadecimal escape sequences shall be terminated
@@ -352,13 +359,8 @@ void MISRAStmtRule::CheckCompositeMixTypeExpr(const clang::BinaryOperator *stmt)
   auto bt_rhs = clang::cast<clang::BuiltinType>(rhs_type);
   if (!bt_lhs->isInteger() || !bt_rhs->isInteger()) return;
 
-  auto unify = [](const clang::BuiltinType::Kind &kind) -> clang::BuiltinType::Kind {
-    if (kind > clang::BuiltinType::Kind::UInt128)
-      return (clang::BuiltinType::Kind) (kind - 8);
-    else return kind;
-  };
-  auto lhs_kind = unify(bt_lhs->getKind());
-  auto rhs_kind = unify(bt_rhs->getKind());
+  auto lhs_kind = UnifyBTTypeKind(bt_lhs->getKind());
+  auto rhs_kind = UnifyBTTypeKind(bt_rhs->getKind());
 
   using Stmt = clang::Stmt;
   if (lhs_kind < rhs_kind) {
@@ -395,6 +397,9 @@ void MISRAStmtRule::CheckCompositeExprCastToWiderType(const clang::CStyleCastExp
   auto sub_expr = stmt->getSubExpr()->IgnoreParenImpCasts();
   auto sub_type = sub_expr->getType();
   auto type = stmt->IgnoreParenImpCasts()->getType();
+  if (!sub_type->isBuiltinType() || !type->isBuiltinType()) return;
+  auto type_kind = UnifyBTTypeKind(clang::dyn_cast<clang::BuiltinType>(type)->getKind());
+  auto subtype_kind = UnifyBTTypeKind(clang::dyn_cast<clang::BuiltinType>(sub_type)->getKind());
 
   if (sub_expr->getStmtClass() != clang::Stmt::BinaryOperatorClass) return;
 //  auto bin_inst = clang::dyn_cast<clang::BinaryOperator>(sub_expr);
@@ -403,9 +408,9 @@ void MISRAStmtRule::CheckCompositeExprCastToWiderType(const clang::CStyleCastExp
   XcalReport *report = XcalCheckerManager::GetReport();
 
   bool need_report = false;
-  if (sub_type < type) {
+  if (subtype_kind < type_kind) {
     need_report = true;
-  } else if (type < sub_type) {
+  } else if (type_kind < subtype_kind) {
     if (type->isUnsignedIntegerType() != sub_type->isUnsignedIntegerType()) {
       need_report = true;
     } else if (type->isIntegerType() != sub_type->isIntegerType()) {
