@@ -397,12 +397,15 @@ void MISRAStmtRule::CheckCompositeExprCastToWiderType(const clang::CStyleCastExp
   auto sub_expr = stmt->getSubExpr()->IgnoreParenImpCasts();
   auto sub_type = sub_expr->getType();
   auto type = stmt->IgnoreParenImpCasts()->getType();
+
+  if (clang::isa<clang::TypedefType>(type)) type = GetRawTypeOfTypedef(type);
+  if (clang::isa<clang::TypedefType>(sub_type)) sub_type = GetRawTypeOfTypedef(sub_type);
+
   if (!sub_type->isBuiltinType() || !type->isBuiltinType()) return;
   auto type_kind = UnifyBTTypeKind(clang::dyn_cast<clang::BuiltinType>(type)->getKind());
   auto subtype_kind = UnifyBTTypeKind(clang::dyn_cast<clang::BuiltinType>(sub_type)->getKind());
 
   if (sub_expr->getStmtClass() != clang::Stmt::BinaryOperatorClass) return;
-//  auto bin_inst = clang::dyn_cast<clang::BinaryOperator>(sub_expr);
 
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
@@ -556,9 +559,25 @@ void MISRAStmtRule::CheckZeroAsPointerConstant(const clang::BinaryOperator *stmt
   auto lhs_type = lhs->getType();
   auto rhs_type = rhs->getType();
 
-  if (!lhs_type->isPointerType() && !rhs_type->isPointerType()) return;
+  if (clang::isa<clang::TypedefType>(lhs_type)) lhs_type = GetRawTypeOfTypedef(lhs_type);
+  if (clang::isa<clang::TypedefType>(rhs_type)) rhs_type = GetRawTypeOfTypedef(rhs_type);
 
-  if (lhs_type->isIntegerType() || rhs_type->isIntegerType()) {
+  bool need_report = false;
+
+  // int a = 2; if (a == NULL)
+  if (!lhs_type->isPointerType() && clang::isa<clang::GNUNullExpr>(rhs)) need_report = true;
+  if (!rhs_type->isPointerType() && clang::isa<clang::GNUNullExpr>(lhs)) need_report = true;
+
+  // int *p2 = (int *)0; if (p2 == 0)
+  if (lhs_type->isPointerType())
+    if (auto literal = clang::dyn_cast<clang::IntegerLiteral>(rhs->IgnoreParenImpCasts()))
+      if (literal->getValue().getZExtValue() == 0) need_report = true;
+
+  if (rhs_type->isPointerType())
+    if (auto literal = clang::dyn_cast<clang::IntegerLiteral>(lhs->IgnoreParenImpCasts()))
+      if (literal->getValue().getZExtValue() == 0) need_report = true;
+
+  if (need_report) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(MISRA, M_R_11_9, stmt);
