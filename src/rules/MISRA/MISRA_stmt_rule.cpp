@@ -343,14 +343,36 @@ void MISRAStmtRule::CheckCompositeMixTypeExpr(const clang::BinaryOperator *stmt)
 
   if (clang::isa<clang::TypedefType>(lhs_type)) lhs_type = GetRawTypeOfTypedef(lhs_type);
   if (clang::isa<clang::TypedefType>(rhs_type)) rhs_type = GetRawTypeOfTypedef(rhs_type);
+  if (!lhs_type->isBuiltinType() || !rhs_type->isBuiltinType()) return;
 
   bool need_report = false;
-  if (lhs_type < rhs_type) {
-    if (lhs->getStmtClass() == clang::Stmt::BinaryOperatorClass) {
+
+  // unify
+  auto bt_lhs = clang::cast<clang::BuiltinType>(lhs_type);
+  auto bt_rhs = clang::cast<clang::BuiltinType>(rhs_type);
+  if (!bt_lhs->isInteger() || !bt_rhs->isInteger()) return;
+
+  auto unify = [](const clang::BuiltinType::Kind &kind) -> clang::BuiltinType::Kind {
+    if (kind > clang::BuiltinType::Kind::UInt128)
+      return (clang::BuiltinType::Kind) (kind - 8);
+    else return kind;
+  };
+  auto lhs_kind = unify(bt_lhs->getKind());
+  auto rhs_kind = unify(bt_rhs->getKind());
+
+  using Stmt = clang::Stmt;
+  if (lhs_kind < rhs_kind) {
+    if (auto lhs_bin_op = clang::dyn_cast<clang::BinaryOperator>(lhs)) {
+      if ((lhs_bin_op->getLHS()->IgnoreParenImpCasts()->getStmtClass() == Stmt::IntegerLiteralClass) &&
+          (lhs_bin_op->getRHS()->IgnoreParenImpCasts()->getStmtClass() == Stmt::IntegerLiteralClass))
+        return;
       need_report = true;
     }
-  } else if (rhs_type < lhs_type) {
-    if (rhs->getStmtClass() == clang::Stmt::BinaryOperatorClass) {
+  } else if (rhs_kind < lhs_kind) {
+    if (auto rhs_bin_op = clang::dyn_cast<clang::BinaryOperator>(rhs)) {
+      if ((rhs_bin_op->getLHS()->IgnoreParenImpCasts()->getStmtClass() == Stmt::IntegerLiteralClass) &&
+          (rhs_bin_op->getRHS()->IgnoreParenImpCasts()->getStmtClass() == Stmt::IntegerLiteralClass))
+        return;
       need_report = true;
     }
   }
