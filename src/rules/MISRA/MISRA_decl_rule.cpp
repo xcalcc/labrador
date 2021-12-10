@@ -90,6 +90,23 @@ bool MISRADeclRule::IsSingleTemplateTypeParamFunction(const clang::Decl *decl) {
   return false;
 }
 
+/*
+ * check if pointer nested more than tow levels
+ */
+bool MISRADeclRule::IsPointerNestedMoreThanTwoLevel(clang::QualType decl_type) {
+  if (decl_type->isPointerType()) {
+    int nested_level = 0;
+    auto pointee_type = decl_type->getPointeeType();
+    if (pointee_type->isPointerType()) {
+      auto nested_type = pointee_type->getPointeeType();
+      if (nested_type->isPointerType()) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 /* MISRA
  * Rule: 2.3
  * A project should not contain unused type declarations

@@ -46,12 +46,16 @@ private:
 
   const clang::CXXRecordDecl *GetBaseDecl(const clang::CXXBaseSpecifier &BS);
 
+  // check if a function has a single parameter whose type is template type
   bool IsSingleTemplateTypeParamFunction(const clang::Decl *decl);
 
-    /* MISRA
-     * Rule: 2.3
-     * A project should not contain unused type declarations
-     */
+  // check if pointer nested more than tow levels
+  bool IsPointerNestedMoreThanTwoLevel(clang::QualType decl_type);
+
+  /* MISRA
+  * Rule: 2.3
+  * A project should not contain unused type declarations
+  */
   void CheckUnusedTypedef(const clang::VarDecl *decl);
   void CheckUnusedTypedef(const clang::FieldDecl *decl);
   void CheckUnusedTypedef(const clang::TypedefDecl *decl);
@@ -179,6 +183,24 @@ private:
   void CheckUnionKeyword(const clang::TypedefDecl *decl);
 
   /* MISRA
+   * Rule: 5-0-19
+   * The declaration of objects shall contain no more than two levels of pointer indirection.
+   */
+  template <typename T>
+  void CheckPointerNestedLevel(const T *decl) {
+    auto decl_type = decl->getType();
+    if (IsPointerNestedMoreThanTwoLevel(decl_type)) {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+
+      issue = report->ReportIssue("MISRA", M_R_5_0_19, decl);
+      std::string ref_msg = "The declaration of objects shall contain no more than two levels of pointer indirection.";
+      issue->SetRefMsg(ref_msg);
+    }
+  }
+
+
+  /* MISRA
    * Rule: 8-3-1
    * Parameters in an overriding virtual function shall either use the
    * same default arguments as the function they override, or else
@@ -280,10 +302,12 @@ public:
     CheckArrayPartialInitialized(decl);
     CheckDesignatedInitWithImplicitSizeArray(decl);
     CheckVariableAsArrayLength(decl);
+    CheckPointerNestedLevel(decl);
   }
 
   void VisitParmVar(const clang::ParmVarDecl *decl) {
     CheckRestrict<clang::ParmVarDecl>(decl);
+    CheckPointerNestedLevel(decl);
   }
 
   void VisitEnum(const clang::EnumDecl *decl) {
@@ -308,6 +332,7 @@ public:
   void VisitField(const clang::FieldDecl *decl) {
     CheckUnusedTypedef(decl);
     CheckVariableAsArrayLength(decl);
+    CheckPointerNestedLevel(decl);
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {
