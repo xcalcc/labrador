@@ -350,13 +350,13 @@ void MISRAStmtRule::CheckCompositeMixTypeExpr(const clang::BinaryOperator *stmt)
 
   if (clang::isa<clang::TypedefType>(lhs_type)) lhs_type = GetRawTypeOfTypedef(lhs_type);
   if (clang::isa<clang::TypedefType>(rhs_type)) rhs_type = GetRawTypeOfTypedef(rhs_type);
-  if (!lhs_type->isBuiltinType() || !rhs_type->isBuiltinType()) return;
 
   bool need_report = false;
 
   // unify
-  auto bt_lhs = clang::cast<clang::BuiltinType>(lhs_type);
-  auto bt_rhs = clang::cast<clang::BuiltinType>(rhs_type);
+  auto bt_lhs = clang::dyn_cast<clang::BuiltinType>(lhs_type);
+  auto bt_rhs = clang::dyn_cast<clang::BuiltinType>(rhs_type);
+  if (!bt_lhs || !bt_rhs) return;
   if (!bt_lhs->isInteger() || !bt_rhs->isInteger()) return;
 
   auto lhs_kind = UnifyBTTypeKind(bt_lhs->getKind());
@@ -401,9 +401,11 @@ void MISRAStmtRule::CheckCompositeExprCastToWiderType(const clang::CStyleCastExp
   if (clang::isa<clang::TypedefType>(type)) type = GetRawTypeOfTypedef(type);
   if (clang::isa<clang::TypedefType>(sub_type)) sub_type = GetRawTypeOfTypedef(sub_type);
 
-  if (!sub_type->isBuiltinType() || !type->isBuiltinType()) return;
-  auto type_kind = UnifyBTTypeKind(clang::dyn_cast<clang::BuiltinType>(type)->getKind());
-  auto subtype_kind = UnifyBTTypeKind(clang::dyn_cast<clang::BuiltinType>(sub_type)->getKind());
+  auto bt_type = clang::dyn_cast<clang::BuiltinType>(type);
+  auto bt_sub = clang::dyn_cast<clang::BuiltinType>(sub_type);
+  if (!bt_type || !bt_sub) return;
+  auto type_kind = UnifyBTTypeKind(bt_type->getKind());
+  auto subtype_kind = UnifyBTTypeKind(bt_sub->getKind());
 
   if (sub_expr->getStmtClass() != clang::Stmt::BinaryOperatorClass) return;
 
