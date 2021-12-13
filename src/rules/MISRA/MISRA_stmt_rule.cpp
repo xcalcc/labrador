@@ -782,6 +782,13 @@ void MISRAStmtRule::CheckControlStmt(const clang::Expr *stmt) {
       if (unary_op->getOpcode() == clang::UnaryOperator::Opcode::UO_LNot) return;
     }
 
+    // check if it is special case
+    // TODO: this case might need a white list
+    if (auto call_expr = clang::dyn_cast<clang::CallExpr>(stmt)) {
+      auto callee = GetCalleeDecl(call_expr);
+      if (callee && callee->getNameAsString() == "__builtin_expect") return;
+    }
+
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(MISRA, M_R_14_4, stmt);
