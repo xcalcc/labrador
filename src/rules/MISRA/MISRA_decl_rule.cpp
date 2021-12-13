@@ -343,7 +343,7 @@ void MISRADeclRule::CheckInappropriateBitField(const clang::RecordDecl *decl) {
     if (!field->isBitField()) continue;
     bool need_report = false;
     auto type = field->getType();
-    if (!type->isIntegerType()) continue;
+    if (!type->isIntegerType() || type->isBooleanType()) continue;
 
     auto start = src_mgr->getCharacterData(field->getBeginLoc());
     auto end = src_mgr->getCharacterData(field->getEndLoc());
