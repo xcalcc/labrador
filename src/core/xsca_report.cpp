@@ -50,22 +50,21 @@ llvm::cl::opt<std::string> XcalReport::_magic_opt(
 // XcalReport::GetFileIdFromLineTable
 // Get file index used in vtxt file table from file name in LineTable
 unsigned
-XcalReport::GetFileIdFromLineTable(const char *fname)
-{
+XcalReport::GetFileIdFromLineTable(const char *fname) {
   llvm::StringRef strr(fname);
-  clang::LineTableInfo &line_table = const_cast<clang::SourceManager*>(_source_mgr)->getLineTable();
+  clang::LineTableInfo &line_table = const_cast<clang::SourceManager *>(_source_mgr)->getLineTable();
   return _line_table_offset + line_table.getLineTableFilenameID(fname);
 }
 
 // XcalReport::PrintVtxtFileList
 // Print file list to vtxt file to map file id to file name
 void
-XcalReport::PrintVtxtFileList()
-{
+XcalReport::PrintVtxtFileList() {
   DBG_ASSERT(_vtxt_file, "vtxt file not initialized");
   DBG_ASSERT(_source_mgr, "source manager is null");
 
-  fprintf(_vtxt_file, "{\"V\", %s, 0.7.2, 0000000000000000000000000000000000000000000000000000000000000000}\n[\n", _magic_opt.getValue().c_str());
+  fprintf(_vtxt_file, "{\"V\", %s, 0.7.2, 0000000000000000000000000000000000000000000000000000000000000000}\n[\n",
+          _magic_opt.getValue().c_str());
 
   clang::SourceManager::fileinfo_iterator end = _source_mgr->fileinfo_end();
   bool append_comma = false;
@@ -73,23 +72,23 @@ XcalReport::PrintVtxtFileList()
        it != end; ++it) {
 
     // ignore its real filename
-    if (!it->first->tryGetRealPathName().empty()) continue;
+    auto real_name = it->first->tryGetRealPathName();
+    if (!real_name.empty() && (real_name.endswith(".i") || real_name.endswith(".ii"))) continue;
 
     // output comma if necessary
     if (append_comma) {
       fprintf(_vtxt_file, ",\n");
-    }
-    else {
+    } else {
       append_comma = true;
     }
     // output file entry
     fprintf(_vtxt_file, "  {\n    \"fid\" : %d,\n    \"path\" : \"%s\"\n  }",
             it->first->getUID() + 1,
             it->first->getName().rtrim(".i").rtrim(".ii").str().c_str());
-    ++ _line_table_offset;
+    ++_line_table_offset;
   }
 
-  clang::LineTableInfo &line_table = const_cast<clang::SourceManager*>(_source_mgr)->getLineTable();
+  clang::LineTableInfo &line_table = const_cast<clang::SourceManager *>(_source_mgr)->getLineTable();
   for (unsigned int i = 0; i < line_table.getNumFilenames(); ++i) {
     llvm::StringRef fname = line_table.getFilename(i);
     // ignore special names
@@ -98,8 +97,7 @@ XcalReport::PrintVtxtFileList()
     // output comma if necessary
     if (append_comma) {
       fprintf(_vtxt_file, ",\n");
-    }
-    else {
+    } else {
       append_comma = true;
     }
     // output file entry
@@ -113,8 +111,7 @@ XcalReport::PrintVtxtFileList()
 // XcalReport::PrintVtxtIssue
 // Print issue to vtxt file for xcalscan integration
 void
-XcalReport::PrintVtxtIssue(const XcalIssue *issue)
-{
+XcalReport::PrintVtxtIssue(const XcalIssue *issue) {
   // omit this issue if need ignore
   if (issue->IsIgnore()) return;
 
@@ -166,8 +163,7 @@ XcalReport::PrintVtxtIssue(const XcalIssue *issue)
     // output comma if necessary
     if (append_comma) {
       fprintf(_vtxt_file, ",");
-    }
-    else {
+    } else {
       append_comma = true;
     }
     // output path
@@ -188,8 +184,7 @@ XcalReport::PrintVtxtIssue(const XcalIssue *issue)
 // XcalReport::PrintStdoutIssue
 // Print issue to stdout for debug purpose
 void
-XcalReport::PrintStdoutIssue(const XcalIssue *issue)
-{
+XcalReport::PrintStdoutIssue(const XcalIssue *issue) {
   // omit this issue if need ignore
   if (issue->IsIgnore()) return;
 
@@ -213,7 +208,7 @@ bool XcalReport::IsStdLibrary(clang::SourceLocation location) {
   auto src_mgr = XcalCheckerManager::GetSourceManager();
   if (location.isInvalid()) return false;
   if (src_mgr->isInSystemHeader(location) ||
-      src_mgr->isInSystemMacro(location)  ||
+      src_mgr->isInSystemMacro(location) ||
       src_mgr->isWrittenInBuiltinFile(location)) {
     return true;
   }
