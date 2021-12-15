@@ -71,6 +71,10 @@ XcalReport::PrintVtxtFileList()
   bool append_comma = false;
   for (clang::SourceManager::fileinfo_iterator it = _source_mgr->fileinfo_begin();
        it != end; ++it) {
+
+    // ignore its real filename
+    if (!it->first->tryGetRealPathName().empty()) continue;
+
     // output comma if necessary
     if (append_comma) {
       fprintf(_vtxt_file, ",\n");
