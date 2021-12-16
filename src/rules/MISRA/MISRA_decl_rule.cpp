@@ -446,46 +446,6 @@ void MISRADeclRule::CheckImplicitSizeWithExternalArray(const clang::VarDecl *dec
 }
 
 /* MISRA
- * Rule: 8.12
- * Within an enumerator list, the value of an implicitly-specified enumeration constant shall be unique
- */
-void MISRADeclRule::CheckUniqueImplicitEnumerator(const clang::EnumDecl *decl) {
-  bool need_report = false;
-  const clang::EnumConstantDecl *sink = nullptr;
-  XcalIssue *issue = nullptr;
-  XcalReport *report = XcalCheckerManager::GetReport();
-
-  std::unordered_map<long long unsigned, const clang::EnumConstantDecl *> inits;
-  for (const auto &it : decl->enumerators()) {
-    auto val = it->getInitVal().getZExtValue();
-    if (it->getInitExpr() == nullptr) {
-      auto res = inits.find(val);
-      if (res != inits.end()) {
-        need_report = true;
-        sink = it;
-        break;
-      }
-    } else {
-      auto res = inits.find(val);
-      if (res != inits.end()) {
-        if (res->second->getInitExpr() == nullptr) {
-          need_report = true;
-          sink = res->second;
-        }
-      }
-    }
-    inits.insert({val, it});
-  }
-
-  if (need_report) {
-    issue = report->ReportIssue(MISRA, M_R_8_12, decl);
-    std::string ref_msg = "the value of an implicitly-specified enumeration constant shall be unique";
-    issue->SetRefMsg(ref_msg);
-    issue->AddDecl(sink);
-  }
-}
-
-/* MISRA
  * Rule: 9.3
  * Arrays shall not be partially initialized
  */

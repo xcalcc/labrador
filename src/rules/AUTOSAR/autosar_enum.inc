@@ -34,6 +34,7 @@
 #define A7_1_7    "A7_1_7"
 #define A7_2_2    "A7_2_2"
 #define A7_2_3    "A7_2_3"
+#define A7_2_4    "A7_2_4"
 #define A7_3_3    "A7_3_3"
 #define A7_3_4    "A7_3_4"
 #define A7_3_6    "A7_3_6"

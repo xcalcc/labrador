@@ -702,29 +702,29 @@ bool MISRAStmtRule::IsAssignmentStmt(const clang::Stmt *stmt) {
   return false;
 }
 
+void MISRAStmtRule::ReportAssignment(const clang::Stmt *stmt) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(MISRA, M_R_13_4, stmt);
+  std::string ref_msg = "The result of an assignment operator should not be used";
+  issue->SetRefMsg(ref_msg);
+}
+
 void MISRAStmtRule::CheckUsingAssignmentAsResult(const clang::ArraySubscriptExpr *stmt) {
   auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
   if (rhs->getStmtClass() != clang::Stmt::BinaryOperatorClass) return;
-  if (IsAssignmentStmt(rhs)) {
-    XcalIssue *issue = nullptr;
-    XcalReport *report = XcalCheckerManager::GetReport();
-    issue = report->ReportIssue(MISRA, M_R_13_4, stmt);
-    std::string ref_msg = "The result of an assignment operator should not be used";
-    issue->SetRefMsg(ref_msg);
-  }
+  if (IsAssignmentStmt(rhs)) ReportAssignment(stmt);
 }
 
 void MISRAStmtRule::CheckUsingAssignmentAsResult(const clang::BinaryOperator *stmt) {
   auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
-  if (IsAssignmentStmt(rhs)) {
-    XcalIssue *issue = nullptr;
-    XcalReport *report = XcalCheckerManager::GetReport();
-    issue = report->ReportIssue(MISRA, M_R_13_4, stmt);
-    std::string ref_msg = "The result of an assignment operator should not be used";
-    issue->SetRefMsg(ref_msg);
-  }
+  if (IsAssignmentStmt(rhs)) ReportAssignment(stmt);
 }
 
+/* MISRA
+ * Rule: 14.1
+ * A loop counter shall not have essentially floating type
+ */
 void MISRAStmtRule::CheckLoopVariable(const clang::ForStmt *stmt) {
   bool need_report_1 = false;
   auto init_stmt = stmt->getInit();
@@ -769,7 +769,7 @@ void MISRAStmtRule::CheckLoopVariable(const clang::ForStmt *stmt) {
  * The controlling expression of an if statement and the controlling expression
  * of an iteration-statement shall have essentially Boolean type
  */
-void MISRAStmtRule::CheckControlStmt(const clang::Expr *stmt) {
+void MISRAStmtRule::CheckControlStmtImpl(const clang::Expr *stmt) {
   if (stmt == nullptr) return;
   if (!stmt->getType()->isBooleanType()) {
     if (auto const_value = clang::dyn_cast<clang::IntegerLiteral>(stmt)) {
@@ -802,21 +802,21 @@ void MISRAStmtRule::CheckControlStmt(const clang::Expr *stmt) {
   }
 }
 
-void MISRAStmtRule::CheckControlStmt(const clang::IfStmt *stmt) {
-  CheckControlStmt(stmt->getCond()->IgnoreParenImpCasts());
-}
-
-void MISRAStmtRule::CheckControlStmt(const clang::WhileStmt *stmt) {
-  CheckControlStmt(stmt->getCond()->IgnoreParenImpCasts());
-}
-
-void MISRAStmtRule::CheckControlStmt(const clang::DoStmt *stmt) {
-  CheckControlStmt(stmt->getCond()->IgnoreParenImpCasts());
-}
-
-void MISRAStmtRule::CheckControlStmt(const clang::ForStmt *stmt) {
-  CheckControlStmt(stmt->getCond()->IgnoreParenImpCasts());
-}
+//void MISRAStmtRule::CheckControlStmt(const clang::IfStmt *stmt) {
+//  CheckControlStmt(stmt->getCond()->IgnoreParenImpCasts());
+//}
+//
+//void MISRAStmtRule::CheckControlStmt(const clang::WhileStmt *stmt) {
+//  CheckControlStmt(stmt->getCond()->IgnoreParenImpCasts());
+//}
+//
+//void MISRAStmtRule::CheckControlStmt(const clang::DoStmt *stmt) {
+//  CheckControlStmt(stmt->getCond()->IgnoreParenImpCasts());
+//}
+//
+//void MISRAStmtRule::CheckControlStmt(const clang::ForStmt *stmt) {
+//  CheckControlStmt(stmt->getCond()->IgnoreParenImpCasts());
+//}
 
 /* MISRA
  * Rule: 15.2

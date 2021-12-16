@@ -175,10 +175,14 @@ private:
    * The result of an assignment operator should not be used
    */
   bool IsAssignmentStmt(const clang::Stmt *stmt);
-
+  void ReportAssignment(const clang::Stmt *stmt);
   void CheckUsingAssignmentAsResult(const clang::ArraySubscriptExpr *stmt);
-
   void CheckUsingAssignmentAsResult(const clang::BinaryOperator *stmt);
+
+  template<typename T>
+  void CheckUsingAssignmentAsResult(const T *stmt) {
+    if (IsAssignmentStmt(stmt->getCond()->IgnoreParenImpCasts())) ReportAssignment(stmt);
+  }
 
   /* MISRA
    * Rule: 14.1
@@ -192,11 +196,12 @@ private:
    * The controlling expression of an if statement and the controlling expression
    * of an iteration-statement shall have essentially Boolean type
    */
-  void CheckControlStmt(const clang::Expr *stmt);
-  void CheckControlStmt(const clang::IfStmt *stmt);
-  void CheckControlStmt(const clang::WhileStmt *stmt);
-  void CheckControlStmt(const clang::DoStmt *stmt);
-  void CheckControlStmt(const clang::ForStmt *stmt);
+  void CheckControlStmtImpl(const clang::Expr *stmt);
+
+  template<typename T>
+  void CheckControlStmt(const T *stmt) {
+    CheckControlStmtImpl(stmt->getCond()->IgnoreParenImpCasts());
+  }
 
   /* MISRA
    * Rule: 15.2
@@ -451,22 +456,26 @@ public:
 
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckControlStmt(stmt);
+    CheckUsingAssignmentAsResult(stmt);
   }
 
   void VisitWhileStmt(const clang::WhileStmt *stmt) {
     CheckControlStmt(stmt);
     CheckMultiTerminate(stmt);
+    CheckUsingAssignmentAsResult(stmt);
   }
 
   void VisitDoStmt(const clang::DoStmt *stmt) {
     CheckControlStmt(stmt);
     CheckMultiTerminate(stmt);
+    CheckUsingAssignmentAsResult(stmt);
   }
 
   void VisitForStmt(const clang::ForStmt *stmt) {
     CheckControlStmt(stmt);
     CheckMultiTerminate(stmt);
     CheckLoopVariable(stmt);
+    CheckUsingAssignmentAsResult(stmt);
   }
 
   void VisitGotoStmt(const clang::GotoStmt *stmt) {

@@ -64,7 +64,10 @@ bool AUTOSARDeclRule::IsCmp(clang::NamedDecl *decl) const {
   return false;
 }
 
-
+/*
+ * AUTOSAR: A7-2-2
+ * Enumeration underlying base type shall be explicitly defined.
+ */
 void AUTOSARDeclRule::CheckEnumUnderlyingType(const clang::EnumDecl *decl) {
   if (decl->getIntegerTypeSourceInfo()) return;
   XcalIssue *issue = nullptr;
@@ -74,6 +77,10 @@ void AUTOSARDeclRule::CheckEnumUnderlyingType(const clang::EnumDecl *decl) {
   issue->SetRefMsg(ref_msg);
 }
 
+/*
+ * AUTOSAR: A7-2-3
+ * Enumerations shall be declared as scoped enum classes.
+ */
 void AUTOSARDeclRule::CheckEnumScoped(const clang::EnumDecl *decl) {
   if (decl->isScoped()) return;
   XcalIssue *issue = nullptr;
@@ -83,6 +90,50 @@ void AUTOSARDeclRule::CheckEnumScoped(const clang::EnumDecl *decl) {
   issue->SetRefMsg(ref_msg);
 }
 
+/* AUTOSAR
+ * Rule: 7-2-4
+ * Within an enumerator list, the value of an implicitly-specified enumeration constant shall be unique
+ */
+void AUTOSARDeclRule::CheckUniqueImplicitEnumerator(const clang::EnumDecl *decl) {
+  bool need_report = false;
+  const clang::EnumConstantDecl *sink = nullptr;
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  std::unordered_map<long long unsigned, const clang::EnumConstantDecl *> inits;
+  for (const auto &it : decl->enumerators()) {
+    auto val = it->getInitVal().getZExtValue();
+    if (it->getInitExpr() == nullptr) {
+      auto res = inits.find(val);
+      if (res != inits.end()) {
+        need_report = true;
+        sink = it;
+        break;
+      }
+    } else {
+      auto res = inits.find(val);
+      if (res != inits.end()) {
+        if (res->second->getInitExpr() == nullptr) {
+          need_report = true;
+          sink = res->second;
+        }
+      }
+    }
+    inits.insert({val, it});
+  }
+
+  if (need_report) {
+    issue = report->ReportIssue(AUTOSAR, A7_2_4, decl);
+    std::string ref_msg = "the value of an implicitly-specified enumeration constant shall be unique";
+    issue->SetRefMsg(ref_msg);
+    issue->AddDecl(sink);
+  }
+}
+
+/*
+ * AUTOSAR: A7-3-3
+ * There shall be no unnamed namespaces in header files.
+ */
 void AUTOSARDeclRule::CheckUnnamedNamespaceInHeaderFile(const clang::NamespaceDecl *decl) {
   if (!decl->isAnonymousNamespace()) return;
   auto loc = decl->getLocation();
@@ -97,6 +148,10 @@ void AUTOSARDeclRule::CheckUnnamedNamespaceInHeaderFile(const clang::NamespaceDe
   }
 }
 
+/*
+ * AUTOSAR: A7-3-4
+ * Using-directives shall not be used.
+ */
 void AUTOSARDeclRule::CheckUsingDirective(const clang::UsingDirectiveDecl *decl) {
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
@@ -118,6 +173,12 @@ void AUTOSARDeclRule::CheckUsingDirectiveInHeaderFile(const clang::UsingDirectiv
   }
 }
 
+/*
+ * AUTOSAR: A7-3-6
+ * Using-directives and using-declarations
+ * (excluding class scope or function scope using-declarations)
+ * shall not be used in header files.
+ */
 void AUTOSARDeclRule::CheckUsingDeclInHeaderFile(const clang::UsingDecl *decl) {
   clang::Decl *sink = nullptr;
   for (const auto &it : decl->shadows()) {
