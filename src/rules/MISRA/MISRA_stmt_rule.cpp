@@ -291,9 +291,13 @@ void MISRAStmtRule::CheckInappropriateCast(const clang::CStyleCastExpr *stmt) {
  */
 void MISRAStmtRule::CheckCompositeExprAssignToWiderTypeVar(const clang::BinaryOperator *stmt) {
   if (!stmt->isAssignmentOp()) return;
+  auto rhs = stmt->getRHS()->IgnoreCasts();
+
+  // check only when the rhs is binary operator
+  if (rhs->getStmtClass() != clang::Stmt::StmtClass::BinaryOperatorClass) return;
 
   auto lhs_type = stmt->getLHS()->IgnoreParenImpCasts()->getType();
-  auto rhs_type = stmt->getRHS()->IgnoreCasts()->getType();
+  auto rhs_type = rhs->getType();
   bool need_report = false;
 
   /* Get raw type of typedef */
