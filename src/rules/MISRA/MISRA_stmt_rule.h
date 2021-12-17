@@ -181,7 +181,8 @@ private:
 
   template<typename T>
   void CheckUsingAssignmentAsResult(const T *stmt) {
-    if (IsAssignmentStmt(stmt->getCond()->IgnoreParenImpCasts())) ReportAssignment(stmt);
+    auto cond = stmt->getCond()->IgnoreParenImpCasts();
+    if (cond && IsAssignmentStmt(cond)) ReportAssignment(stmt);
   }
 
   /* MISRA

@@ -712,13 +712,14 @@ void MISRAStmtRule::ReportAssignment(const clang::Stmt *stmt) {
 
 void MISRAStmtRule::CheckUsingAssignmentAsResult(const clang::ArraySubscriptExpr *stmt) {
   auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+  if (rhs == nullptr) return;
   if (rhs->getStmtClass() != clang::Stmt::BinaryOperatorClass) return;
   if (IsAssignmentStmt(rhs)) ReportAssignment(stmt);
 }
 
 void MISRAStmtRule::CheckUsingAssignmentAsResult(const clang::BinaryOperator *stmt) {
   auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
-  if (IsAssignmentStmt(rhs)) ReportAssignment(stmt);
+  if (rhs && IsAssignmentStmt(rhs)) ReportAssignment(stmt);
 }
 
 /* MISRA
