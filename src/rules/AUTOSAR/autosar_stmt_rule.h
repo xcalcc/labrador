@@ -37,6 +37,12 @@ private:
 
   bool IsAssign(clang::OverloadedOperatorKind kind) const;
 
+  /* AUTOSAR
+   * Rule: M5-0-3
+   * A cvalue expression shall not be implicitly converted to a different underlying type.
+   */
+  void CheckInappropriateCast(const clang::CStyleCastExpr *stmt);
+
   /*
    * AUTOSAR: A5-1-1
    * Literal values shall not be used apart from type initialization,
@@ -191,6 +197,7 @@ public:
 
   void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {
     CheckUsingUserDefinedConversionOp(stmt);
+    CheckInappropriateCast(stmt);
   }
 };
 
