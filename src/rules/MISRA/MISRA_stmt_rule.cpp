@@ -139,6 +139,7 @@ MISRAStmtRule::RecordThrowObjectTypes(const clang::Stmt *stmt) {
     }
   } else {
     for (const auto &it : stmt->children()) {
+      if (it == nullptr) continue;
       auto sub_res = RecordThrowObjectTypes(it);
       obj_types.insert(obj_types.begin(), sub_res.begin(), sub_res.end());
     }
@@ -1112,6 +1113,7 @@ void MISRAStmtRule::CheckExceptionFeaturesInFenv(const clang::CallExpr *stmt) {
  */
 void MISRAStmtRule::CheckDynamicTypeInCtorAndDtor(const clang::CXXMemberCallExpr *stmt) {
   auto callee = GetCalleeDecl(stmt);
+  if (callee == nullptr) return;
   auto method_decl = clang::dyn_cast<clang::CXXMethodDecl>(callee);
   if (method_decl == nullptr || !method_decl->isVirtual()) return;
   ReportDynamicInCTorAndDtor(stmt);
