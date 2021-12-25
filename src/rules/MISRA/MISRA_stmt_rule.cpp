@@ -63,6 +63,12 @@ clang::BuiltinType::Kind MISRAStmtRule::UnifyBTTypeKind(const clang::BuiltinType
   else return kind;
 }
 
+// check if the expr is an IntegerLiteral expression
+bool MISRAStmtRule::IsIntegerLiteralExpr(const clang::Expr *expr) {
+  clang::Expr::EvalResult eval_result;
+  auto ctx = XcalCheckerManager::GetAstContext();
+  return expr->EvaluateAsInt(eval_result, *ctx);
+}
 
 /* MISRA
  * Rule: 4.1
@@ -218,11 +224,7 @@ void MISRAStmtRule::CheckArithmeticWithDifferentType(const clang::BinaryOperator
   auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
 
   // try to evaluate the expression
-  bool lhs_res, rhs_res;
-  clang::Expr::EvalResult lhs_eval, rhs_eval;
-  lhs_res = lhs->EvaluateAsInt(lhs_eval, *ctx);
-  rhs_res = rhs->EvaluateAsInt(rhs_eval, *ctx);
-  if (lhs_res || rhs_res) return;
+  if (IsIntegerLiteralExpr(lhs) || IsIntegerLiteralExpr(rhs)) return;
 
   if (stmt->isAdditiveOp() || stmt->isComparisonOp() || stmt->isCompoundAssignmentOp()) {
     auto lhs_type = lhs->getType();
@@ -231,8 +233,6 @@ void MISRAStmtRule::CheckArithmeticWithDifferentType(const clang::BinaryOperator
   }
 
   if (need_report) {
-    lhs->dumpColor();
-    rhs->dumpColor();
     issue = report->ReportIssue(MISRA, M_R_10_4, stmt);
     std::string ref_msg = "Both operands of an operator in which the usual"
                           " arithmetic conversions are performed shall have the same essential type category";
@@ -325,15 +325,15 @@ void MISRAStmtRule::CheckCompositeMixTypeExpr(const clang::BinaryOperator *stmt)
   using Stmt = clang::Stmt;
   if (lhs_kind < rhs_kind) {
     if (auto lhs_bin_op = clang::dyn_cast<clang::BinaryOperator>(lhs)) {
-      if ((lhs_bin_op->getLHS()->IgnoreParenImpCasts()->getStmtClass() == Stmt::IntegerLiteralClass) &&
-          (lhs_bin_op->getRHS()->IgnoreParenImpCasts()->getStmtClass() == Stmt::IntegerLiteralClass))
+      if (IsIntegerLiteralExpr(lhs_bin_op->getLHS()->IgnoreParenImpCasts()) &&
+          IsIntegerLiteralExpr(lhs_bin_op->getRHS()->IgnoreParenImpCasts()))
         return;
       need_report = true;
     }
   } else if (rhs_kind < lhs_kind) {
     if (auto rhs_bin_op = clang::dyn_cast<clang::BinaryOperator>(rhs)) {
-      if ((rhs_bin_op->getLHS()->IgnoreParenImpCasts()->getStmtClass() == Stmt::IntegerLiteralClass) &&
-          (rhs_bin_op->getRHS()->IgnoreParenImpCasts()->getStmtClass() == Stmt::IntegerLiteralClass))
+      if (IsIntegerLiteralExpr(rhs_bin_op->getLHS()->IgnoreParenImpCasts()) &&
+          IsIntegerLiteralExpr(rhs_bin_op->getRHS()->IgnoreParenImpCasts()))
         return;
       need_report = true;
     }

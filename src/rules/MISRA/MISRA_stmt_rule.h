@@ -53,6 +53,8 @@ private:
 
   clang::BuiltinType::Kind UnifyBTTypeKind(const clang::BuiltinType::Kind &kind);
 
+  // check if the expr is an IntegerLiteral expression
+  bool IsIntegerLiteralExpr(const clang::Expr *expr);
 
   /* MISRA
    * Rule: 4.1
