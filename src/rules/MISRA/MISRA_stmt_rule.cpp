@@ -209,15 +209,30 @@ bool MISRAStmtRule::IsTypeFit(clang::QualType lhs_type, clang::QualType rhs_type
 void MISRAStmtRule::CheckArithmeticWithDifferentType(const clang::BinaryOperator *stmt) {
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
+  auto ctx = XcalCheckerManager::GetAstContext();
 
   bool need_report = false;
+  using StmtClass = clang::Stmt::StmtClass;
+
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+
+  // try to evaluate the expression
+  bool lhs_res, rhs_res;
+  clang::Expr::EvalResult lhs_eval, rhs_eval;
+  lhs_res = lhs->EvaluateAsInt(lhs_eval, *ctx);
+  rhs_res = rhs->EvaluateAsInt(rhs_eval, *ctx);
+  if (lhs_res || rhs_res) return;
+
   if (stmt->isAdditiveOp() || stmt->isComparisonOp() || stmt->isCompoundAssignmentOp()) {
-    auto lhs_type = stmt->getLHS()->IgnoreParenImpCasts()->getType();
-    auto rhs_type = stmt->getRHS()->IgnoreParenImpCasts()->getType();
+    auto lhs_type = lhs->getType();
+    auto rhs_type = rhs->getType();
     need_report = !IsTypeFit(lhs_type, rhs_type);
   }
 
   if (need_report) {
+    lhs->dumpColor();
+    rhs->dumpColor();
     issue = report->ReportIssue(MISRA, M_R_10_4, stmt);
     std::string ref_msg = "Both operands of an operator in which the usual"
                           " arithmetic conversions are performed shall have the same essential type category";
