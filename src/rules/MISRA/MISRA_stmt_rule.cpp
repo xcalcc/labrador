@@ -759,22 +759,6 @@ void MISRAStmtRule::CheckControlStmtImpl(const clang::Expr *stmt) {
   }
 }
 
-//void MISRAStmtRule::CheckControlStmt(const clang::IfStmt *stmt) {
-//  CheckControlStmt(stmt->getCond()->IgnoreParenImpCasts());
-//}
-//
-//void MISRAStmtRule::CheckControlStmt(const clang::WhileStmt *stmt) {
-//  CheckControlStmt(stmt->getCond()->IgnoreParenImpCasts());
-//}
-//
-//void MISRAStmtRule::CheckControlStmt(const clang::DoStmt *stmt) {
-//  CheckControlStmt(stmt->getCond()->IgnoreParenImpCasts());
-//}
-//
-//void MISRAStmtRule::CheckControlStmt(const clang::ForStmt *stmt) {
-//  CheckControlStmt(stmt->getCond()->IgnoreParenImpCasts());
-//}
-
 /* MISRA
  * Rule: 15.2
  * The goto statement shall jump to a label declared later in the same function
