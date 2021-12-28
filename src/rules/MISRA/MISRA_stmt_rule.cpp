@@ -944,11 +944,17 @@ void MISRAStmtRule::CheckArrayArgumentSize(const clang::CallExpr *stmt) {
  * The value returned by a function having non-void return type shall be used
  */
 void MISRAStmtRule::CheckUnusedCallExprWithoutVoidCast(const clang::CallExpr *stmt) {
+  // check if this function is void return type
+  auto callee = GetCalleeDecl(stmt);
+  if (callee == nullptr) return;
+  if (callee->getReturnType()->isVoidType()) return;
+
   auto ctx = XcalCheckerManager::GetAstContext();
   auto parents = ctx->getParents(*stmt);
   if (parents.size() == 0) return;
   auto parent = parents[0].get<clang::Stmt>();
   if (parent == nullptr) return;
+
   if (auto block = clang::dyn_cast<clang::CompoundStmt>(parent)) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
