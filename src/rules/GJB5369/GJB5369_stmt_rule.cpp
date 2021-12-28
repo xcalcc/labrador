@@ -73,7 +73,7 @@ bool GJB5369StmtRule::HasAssignmentSubStmt(const clang::Stmt *stmt) {
     if (binary->isAssignmentOp()) { return true; }
   }
 
-  for (const auto &it : stmt->children()) {
+  for (const auto &it: stmt->children()) {
     if (auto binary_stmt = clang::dyn_cast<clang::BinaryOperator>(it)) {
       if (binary_stmt->isAssignmentOp()) {
         return true;
@@ -92,7 +92,7 @@ bool GJB5369StmtRule::HasBitwiseSubStmt(const clang::Stmt *stmt) {
     if (binary->isBitwiseOp()) { return true; }
   }
 
-  for (const auto &it : stmt->children()) {
+  for (const auto &it: stmt->children()) {
     if (auto binary_stmt = clang::dyn_cast<clang::BinaryOperator>(it)) {
       if (binary_stmt->isBitwiseOp()) {
         return true;
@@ -110,7 +110,7 @@ bool GJB5369StmtRule::HasCallExpr(const clang::Stmt *stmt) {
   bool has_callexpr = false;
   using StmtClass = clang::Stmt::StmtClass;
   if (stmt->getStmtClass() == StmtClass::CallExprClass) return true;
-  for (const auto &it : stmt->children()) {
+  for (const auto &it: stmt->children()) {
     if (it->getStmtClass() == StmtClass::CallExprClass) return true;
     if (it->child_begin() != it->child_end()) {
       has_callexpr |= HasCallExpr(it);
@@ -193,7 +193,7 @@ void GJB5369StmtRule::CheckIfBrace(const clang::IfStmt *stmt) {
 
   const char *start;
   auto src_mgr = XcalCheckerManager::GetSourceManager();
-  for (const auto &it : stmt->children()) {
+  for (const auto &it: stmt->children()) {
     if (clang::dyn_cast<clang::IfStmt>(it) ||
         it == stmt->getCond()) {
       continue;
@@ -246,7 +246,7 @@ void GJB5369StmtRule::CheckLogicExprParen(const clang::BinaryOperator *stmt) {
  */
 void GJB5369StmtRule::CheckAsmInProcedure(const clang::Stmt *stmt) {
   int stmt_num = 0;
-  for (const auto &it : stmt->children()) {
+  for (const auto &it: stmt->children()) {
     stmt_num++;
     if (it->getStmtClass() == clang::Stmt::StmtClass::GCCAsmStmtClass) {
       if (stmt_num > 1) {
@@ -358,7 +358,7 @@ void GJB5369StmtRule::CheckEmptyIfElseStmt(const clang::IfStmt *stmt) {
       if (_else->child_begin() == _else->child_end()) {
         need_report_else = true;
       } else {
-        for (const auto &it : _else->children()) {
+        for (const auto &it: _else->children()) {
           if (!clang::dyn_cast<clang::NullStmt>(it)) {
             need_report_else = true;
             break;
@@ -478,7 +478,7 @@ bool GJB5369StmtRule::CheckEmptySwitch(const clang::SwitchStmt *stmt) {
  * "case" statement without "break" is forbidden
  */
 bool GJB5369StmtRule::HasBreakStmt(const clang::Stmt *stmt) {
-  for (const auto &child : stmt->children()) {
+  for (const auto &child: stmt->children()) {
     if (child == nullptr) continue;
     if (child->getStmtClass() == clang::Stmt::BreakStmtClass) return true;
   }
@@ -508,9 +508,9 @@ void GJB5369StmtRule::CheckCaseEndWithBreak(const clang::SwitchStmt *stmt) {
          * 2. case: { ...; break; }
          */
         bool has_break = false;
-        for (const auto &sub : it->children()) has_break |= HasBreakStmt(sub);
+        for (const auto &sub: it->children()) has_break |= HasBreakStmt(sub);
         has_break |= ((std::next(it) != case_end) &&
-            (std::next(it)->getStmtClass() == clang::Stmt::BreakStmtClass));
+                      (std::next(it)->getStmtClass() == clang::Stmt::BreakStmtClass));
         if (!has_break && !HasBreakStmt(*it)) {
           if (issue == nullptr) {
             issue = report->ReportIssue(GJB5369, G4_3_1_7, stmt);
@@ -1043,7 +1043,7 @@ void GJB5369StmtRule::CheckParamTypeMismatch(const clang::CallExpr *stmt) {
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
 
-  for (const auto &it : func_decl->parameters()) {
+  for (const auto &it: func_decl->parameters()) {
     auto formal_param_type = it->getType();
     if (formal_param_type->isBuiltinType()) {
       auto real_param_type = stmt->getArg(param_index)->IgnoreParenImpCasts()->getType();
@@ -1267,7 +1267,7 @@ void GJB5369StmtRule::CheckReturnType(const clang::ReturnStmt *stmt) {
  * loop value should be local value
  */
 void GJB5369StmtRule::CheckLoopVariable(const clang::ForStmt *stmt) {
-  bool need_report = false;
+  bool need_report_1 = false, need_report_2;
   auto init_stmt = stmt->getInit();
 
   if (init_stmt == nullptr) { return; }
@@ -1277,24 +1277,42 @@ void GJB5369StmtRule::CheckLoopVariable(const clang::ForStmt *stmt) {
     if (bin_init_stmt->isAssignmentOp() || bin_init_stmt->isCompoundAssignmentOp()) {
       auto lhs_type = lhs->getType();
 
+      // 4.11.1.1
+      if (!lhs_type->isIntegerType()) {
+        need_report_1 = true;
+      }
+
       // 4.11.1.2
       if (auto lhs_ref = clang::dyn_cast<clang::DeclRefExpr>(lhs)) {
         if (auto var_decl = clang::dyn_cast<clang::VarDecl>(lhs_ref->getDecl())) {
           if (!var_decl->isLocalVarDeclOrParm()) {
-            need_report = true;
+            need_report_2 = true;
           }
         } else {
           DBG_WARN(1, "Unknown LHS Decl class");
         }
       }
+    } else if (auto decl_stmt = clang::dyn_cast<clang::DeclStmt>(init_stmt)) {
+      if (!decl_stmt->isSingleDecl()) return;
+      auto decl = decl_stmt->getSingleDecl();
+      if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
+        if (!var_decl->getType()->isIntegerType()) {
+          need_report_1 = true;
+        }
+      }
     }
-
   }
 
-  if (need_report) {
-    XcalIssue *issue = nullptr;
-    XcalReport *report = XcalCheckerManager::GetReport();
+  XcalReport *report = XcalCheckerManager::GetReport();
+  XcalIssue *issue = nullptr;
+  if (need_report_1) {
+    issue = report->ReportIssue(GJB5369, G4_11_1_1, stmt);
+    std::string ref_msg = "Inappropriate loop value type is forbidden";
+    issue->SetRefMsg(ref_msg);
+    issue->AddStmt(init_stmt);
+  }
 
+  if (need_report_2) {
     issue = report->ReportIssue(GJB5369, G4_11_1_2, stmt);
     std::string ref_msg = "Loop value should be local value";
     issue->SetRefMsg(ref_msg);

@@ -56,6 +56,9 @@ private:
   // check if the expr is an IntegerLiteral expression
   bool IsIntegerLiteralExpr(const clang::Expr *expr);
 
+  // report template
+  void ReportTemplate(const std::string &str, const char *rule, const clang::Stmt *stmt);
+
   /* MISRA
    * Rule: 4.1
    * Octal and hexadecimal escape sequences shall be terminated
@@ -191,7 +194,18 @@ private:
    * Rule: 14.1
    * A loop counter shall not have essentially floating type
    */
+  void ReportLoopVariable(const clang::Stmt *stmt);
   void CheckLoopVariable(const clang::ForStmt *stmt);
+  template <typename T>
+  void CheckLoopVariable(const T *stmt) {
+    auto cond = stmt->getCond();
+    if (auto bin_inst = clang::dyn_cast<clang::BinaryOperator>(cond)) {
+      if (bin_inst->getLHS()->IgnoreParenCasts()->getType()->isFloatingType() ||
+          bin_inst->getRHS()->IgnoreParenCasts()->getType()->isFloatingType()) {
+        ReportLoopVariable(cond);
+      }
+    }
+  }
 
 
   /* MISRA
@@ -463,6 +477,7 @@ public:
 
   void VisitWhileStmt(const clang::WhileStmt *stmt) {
     CheckControlStmt(stmt);
+    CheckLoopVariable(stmt);
     CheckMultiTerminate(stmt);
     CheckUsingAssignmentAsResult(stmt);
   }

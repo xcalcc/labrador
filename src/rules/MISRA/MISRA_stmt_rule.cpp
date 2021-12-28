@@ -70,6 +70,15 @@ bool MISRAStmtRule::IsIntegerLiteralExpr(const clang::Expr *expr) {
   return expr->EvaluateAsInt(eval_result, *ctx);
 }
 
+// report template
+void MISRAStmtRule::ReportTemplate(const std::string &str, const char *rule, const clang::Stmt *stmt){
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(MISRA, rule, stmt);
+  issue->SetRefMsg(str);
+}
+
+
 /* MISRA
  * Rule: 4.1
  * Octal and hexadecimal escape sequences shall be terminated
@@ -636,12 +645,9 @@ void MISRAStmtRule::CheckSideEffectWithOrder(const clang::CallExpr *stmt) {
 }
 
 void MISRAStmtRule::ReportSideEffect(const clang::Stmt *stmt) {
-  XcalIssue *issue = nullptr;
-  XcalReport *report = XcalCheckerManager::GetReport();
-  issue = report->ReportIssue(MISRA, M_R_13_2, stmt);
   std::string ref_msg = "The value of an expression and its persistent side effects"
                         " shall be the same under all permitted evaluation orders";
-  issue->SetRefMsg(ref_msg);
+  ReportTemplate(ref_msg, M_R_13_2, stmt);
 }
 
 
@@ -659,11 +665,8 @@ bool MISRAStmtRule::IsAssignmentStmt(const clang::Stmt *stmt) {
 }
 
 void MISRAStmtRule::ReportAssignment(const clang::Stmt *stmt) {
-  XcalIssue *issue = nullptr;
-  XcalReport *report = XcalCheckerManager::GetReport();
-  issue = report->ReportIssue(MISRA, M_R_13_4, stmt);
   std::string ref_msg = "The result of an assignment operator should not be used";
-  issue->SetRefMsg(ref_msg);
+  ReportTemplate(ref_msg, M_R_13_4, stmt);
 }
 
 void MISRAStmtRule::CheckUsingAssignmentAsResult(const clang::ArraySubscriptExpr *stmt) {
@@ -682,8 +685,13 @@ void MISRAStmtRule::CheckUsingAssignmentAsResult(const clang::BinaryOperator *st
  * Rule: 14.1
  * A loop counter shall not have essentially floating type
  */
+void MISRAStmtRule::ReportLoopVariable(const clang::Stmt *stmt) {
+  std::string ref_msg = "A loop counter shall not have essentially floating type";
+  ReportTemplate(ref_msg, M_R_14_1, stmt);
+}
+
 void MISRAStmtRule::CheckLoopVariable(const clang::ForStmt *stmt) {
-  bool need_report_1 = false;
+  bool need_report = false;
   auto init_stmt = stmt->getInit();
 
   if (init_stmt == nullptr) { return; }
@@ -693,30 +701,22 @@ void MISRAStmtRule::CheckLoopVariable(const clang::ForStmt *stmt) {
     if (bin_init_stmt->isAssignmentOp() || bin_init_stmt->isCompoundAssignmentOp()) {
       auto lhs_type = lhs->getType();
 
-      // 4.11.1.1
-      if (!lhs_type->isIntegerType()) {
-        need_report_1 = true;
+      if (lhs_type->isFloatingType()) {
+        need_report = true;
       }
-
 
     } else if (auto decl_stmt = clang::dyn_cast<clang::DeclStmt>(init_stmt)) {
       if (!decl_stmt->isSingleDecl()) return;
       auto decl = decl_stmt->getSingleDecl();
       if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
-        if (!var_decl->getType()->isIntegerType()) {
-          need_report_1 = true;
+        if (var_decl->getType()->isFloatingType()) {
+          need_report = true;
         }
       }
     }
 
-    if (need_report_1) {
-      XcalIssue *issue = nullptr;
-      XcalReport *report = XcalCheckerManager::GetReport();
-
-      issue = report->ReportIssue(MISRA, M_R_14_1, stmt);
-      std::string ref_msg = "Inappropriate loop value type is forbidden";
-      issue->SetRefMsg(ref_msg);
-      issue->AddStmt(init_stmt);
+    if (need_report) {
+      ReportLoopVariable(init_stmt);
     }
   }
 }
