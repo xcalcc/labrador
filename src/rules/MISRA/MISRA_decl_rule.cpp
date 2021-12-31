@@ -463,6 +463,9 @@ void MISRADeclRule::CheckArrayPartialInitialized(const clang::VarDecl *decl) {
   if (initList == nullptr) return;
 
   auto inits = initList->inits();
+
+  if (inits.size() == size) return;
+
   if (inits.size() == 1) {
     auto head = inits[0];
     if (auto literal = clang::dyn_cast<clang::IntegerLiteral>(head)) {
@@ -470,8 +473,6 @@ void MISRADeclRule::CheckArrayPartialInitialized(const clang::VarDecl *decl) {
         return;
       }
     }
-  } else if (inits.size() == size) {
-    return;
   }
 
   XcalIssue *issue = nullptr;
