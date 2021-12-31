@@ -171,7 +171,6 @@ private:
    */
   bool isInc(const clang::Expr *expr);
   void CheckSideEffectWithOrder(const clang::BinaryOperator *stmt);
-  void CheckSideEffectWithOrder(const clang::ArraySubscriptExpr *stmt);
   void CheckSideEffectWithOrder(const clang::CallExpr *stmt);
   void ReportSideEffect(const clang::Stmt *stmt);
 
@@ -467,7 +466,6 @@ public:
 
   void VisitArraySubscriptExpr(const clang::ArraySubscriptExpr *stmt) {
     CheckUsingAssignmentAsResult(stmt);
-    CheckSideEffectWithOrder(stmt);
   }
 
   void VisitIfStmt(const clang::IfStmt *stmt) {

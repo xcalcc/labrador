@@ -629,12 +629,6 @@ void MISRAStmtRule::CheckSideEffectWithOrder(const clang::BinaryOperator *stmt) 
   }
 }
 
-void MISRAStmtRule::CheckSideEffectWithOrder(const clang::ArraySubscriptExpr *stmt) {
-  if (isInc(stmt->getIdx()->IgnoreParenImpCasts())) {
-    ReportSideEffect(stmt);
-  }
-}
-
 void MISRAStmtRule::CheckSideEffectWithOrder(const clang::CallExpr *stmt) {
   for (const auto &args : stmt->arguments()) {
     if (isInc(args)) {
