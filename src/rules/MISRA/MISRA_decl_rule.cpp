@@ -973,7 +973,7 @@ void MISRADeclRule::CheckUnPrivateCopyAssigmentOpOfAbstractClass(const clang::CX
 
   std::unordered_set<const clang::Decl *> sinks;
   for (const auto &it : decl->methods()) {
-    if (!it->isCopyAssignmentOperator()) continue;
+    if (!it->isCopyAssignmentOperator() || it->isImplicit()) continue;
     if (it->getAccess() == clang::AS_public) {
       sinks.insert(it);
     }
