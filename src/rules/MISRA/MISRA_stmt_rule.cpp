@@ -759,7 +759,7 @@ void MISRAStmtRule::CheckControlStmtImpl(const clang::Expr *stmt) {
  */
 void MISRAStmtRule::CheckGotoBackward(const clang::GotoStmt *stmt) {
   auto loc = stmt->getBeginLoc();
-  auto target = stmt->getLabel()->getLocation();
+  auto target = stmt->getLabel()->getStmt()->getBeginLoc();
   auto src_mgr = XcalCheckerManager::GetSourceManager();
   bool need_report = false;
   if (!src_mgr->isWrittenInSameFile(loc, target)) {
