@@ -148,9 +148,17 @@ void MISRADeclRule::CheckUnusedTypedef() {
       const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
       [&used_typedefs, &issue, &report](const std::string &x, const clang::Decl *decl,
                                         IdentifierManager *id_mgr) -> void {
+        auto src_mgr = XcalCheckerManager::GetSourceManager();
         auto typedef_decl = clang::dyn_cast<const clang::TypedefDecl>(decl);
+
         if (used_typedefs->find(reinterpret_cast<const clang::TypedefDecl *const>(typedef_decl)) ==
             used_typedefs->end()) {
+
+          // check if this typedef is in a header file
+          auto location = typedef_decl->getLocation();
+          auto filename = src_mgr->getFilename(location);
+          if (filename.endswith(".h")) return;
+
           if (issue == nullptr) {
             issue = report->ReportIssue(MISRA, M_R_2_3, decl);
             std::string ref_msg = "A project should not contain unused type declarations: ";
