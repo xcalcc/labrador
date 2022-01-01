@@ -71,7 +71,7 @@ bool MISRAStmtRule::IsIntegerLiteralExpr(const clang::Expr *expr) {
 }
 
 // report template
-void MISRAStmtRule::ReportTemplate(const std::string &str, const char *rule, const clang::Stmt *stmt){
+void MISRAStmtRule::ReportTemplate(const std::string &str, const char *rule, const clang::Stmt *stmt) {
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
   issue = report->ReportIssue(MISRA, rule, stmt);
@@ -508,7 +508,16 @@ void MISRAStmtRule::CheckAssignRemoveConstOrVolatile(const clang::BinaryOperator
   if (auto cast_inst = clang::dyn_cast<clang::CastExpr>(rhs)) {
     auto sub_type = cast_inst->getSubExpr()->IgnoreParenImpCasts()->getType();
     if (!sub_type->isPointerType()) return;
-    if (sub_type->getPointeeType().isConstQualified() || sub_type->getPointeeType().isVolatileQualified()) {
+
+    bool isConst = false, isVolatile = false;
+    isConst = sub_type->getPointeeType().isConstQualified();
+    isVolatile = sub_type->getPointeeType().isVolatileQualified();
+    if (!isConst && !isVolatile) return;
+
+    auto cast_type = cast_inst->getType();
+    if (!cast_type->isPointerType()) return;
+    if ((!cast_type->getPointeeType().isConstQualified() && isConst) ||
+        (!cast_type->getPointeeType().isVolatileQualified() && isVolatile)) {
       XcalIssue *issue = nullptr;
       XcalReport *report = XcalCheckerManager::GetReport();
       issue = report->ReportIssue(MISRA, M_R_11_8, stmt);
