@@ -671,6 +671,7 @@ void MISRAStmtRule::CheckUsingAssignmentAsResult(const clang::ArraySubscriptExpr
 }
 
 void MISRAStmtRule::CheckUsingAssignmentAsResult(const clang::BinaryOperator *stmt) {
+  if (stmt->getOpcode() == clang::BO_Comma) return;
   auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
   if (rhs && IsAssignmentStmt(rhs)) ReportAssignment(stmt);
 }
