@@ -423,8 +423,14 @@ void MISRAStmtRule::CheckCastBetweenIntAndPointer(const clang::CastExpr *stmt) {
  * A conversion should not be performed from pointer to void into pointer to object
  */
 void MISRAStmtRule::CheckVoidPointerToOtherTypePointer(const clang::CastExpr *stmt) {
+  auto ctx = XcalCheckerManager::GetAstContext();
   auto type = stmt->IgnoreParenImpCasts()->getType();
   auto sub_type = stmt->getSubExpr()->IgnoreParenImpCasts()->getType();
+
+  // except for (void *)0
+  auto sub_stmt = stmt->getSubExpr();
+  if (sub_stmt->IgnoreCasts()->isNullPointerConstant(*ctx, clang::Expr::NPC_ValueDependentIsNull))
+    return;
 
   if (type->isPointerType() && sub_type->isVoidPointerType()) {
     XcalIssue *issue = nullptr;
