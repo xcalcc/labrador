@@ -73,7 +73,7 @@ bool GJB5369StmtRule::HasAssignmentSubStmt(const clang::Stmt *stmt) {
     if (binary->isAssignmentOp()) { return true; }
   }
 
-  for (const auto &it: stmt->children()) {
+  for (const auto &it : stmt->children()) {
     if (auto binary_stmt = clang::dyn_cast<clang::BinaryOperator>(it)) {
       if (binary_stmt->isAssignmentOp()) {
         return true;
@@ -92,7 +92,7 @@ bool GJB5369StmtRule::HasBitwiseSubStmt(const clang::Stmt *stmt) {
     if (binary->isBitwiseOp()) { return true; }
   }
 
-  for (const auto &it: stmt->children()) {
+  for (const auto &it : stmt->children()) {
     if (auto binary_stmt = clang::dyn_cast<clang::BinaryOperator>(it)) {
       if (binary_stmt->isBitwiseOp()) {
         return true;
@@ -110,7 +110,7 @@ bool GJB5369StmtRule::HasCallExpr(const clang::Stmt *stmt) {
   bool has_callexpr = false;
   using StmtClass = clang::Stmt::StmtClass;
   if (stmt->getStmtClass() == StmtClass::CallExprClass) return true;
-  for (const auto &it: stmt->children()) {
+  for (const auto &it : stmt->children()) {
     if (it->getStmtClass() == StmtClass::CallExprClass) return true;
     if (it->child_begin() != it->child_end()) {
       has_callexpr |= HasCallExpr(it);
@@ -193,7 +193,7 @@ void GJB5369StmtRule::CheckIfBrace(const clang::IfStmt *stmt) {
 
   const char *start;
   auto src_mgr = XcalCheckerManager::GetSourceManager();
-  for (const auto &it: stmt->children()) {
+  for (const auto &it : stmt->children()) {
     if (clang::dyn_cast<clang::IfStmt>(it) ||
         it == stmt->getCond()) {
       continue;
@@ -246,7 +246,7 @@ void GJB5369StmtRule::CheckLogicExprParen(const clang::BinaryOperator *stmt) {
  */
 void GJB5369StmtRule::CheckAsmInProcedure(const clang::Stmt *stmt) {
   int stmt_num = 0;
-  for (const auto &it: stmt->children()) {
+  for (const auto &it : stmt->children()) {
     stmt_num++;
     if (it->getStmtClass() == clang::Stmt::StmtClass::GCCAsmStmtClass) {
       if (stmt_num > 1) {
@@ -358,7 +358,7 @@ void GJB5369StmtRule::CheckEmptyIfElseStmt(const clang::IfStmt *stmt) {
       if (_else->child_begin() == _else->child_end()) {
         need_report_else = true;
       } else {
-        for (const auto &it: _else->children()) {
+        for (const auto &it : _else->children()) {
           if (!clang::dyn_cast<clang::NullStmt>(it)) {
             need_report_else = true;
             break;
@@ -419,22 +419,15 @@ void GJB5369StmtRule::CheckSwitchWithoutDefaultStmt(const clang::SwitchStmt *stm
       if (caseList->getStmtClass() ==
           clang::Stmt::StmtClass::DefaultStmtClass) {
         has_default = true;
-        break;
+        if (has_other) break;
       } else {
         has_other = true;
       }
     } while ((caseList = caseList->getNextSwitchCase()) != nullptr);
   }
 
-
-  XcalIssue *no_default_issue = nullptr, *no_case_issue = nullptr;
+  XcalIssue *no_case_issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
-
-  if (!has_default) {
-    no_default_issue = report->ReportIssue(GJB5369, G4_3_1_4, stmt);
-    std::string ref_msg = R"("default" statement should be used in the "switch" statement)";
-    no_default_issue->SetRefMsg(ref_msg);
-  }
 
   if (!has_other &&
       ((caseList == nullptr) || (caseList->getNextSwitchCase() == nullptr))) {
@@ -478,7 +471,7 @@ bool GJB5369StmtRule::CheckEmptySwitch(const clang::SwitchStmt *stmt) {
  * "case" statement without "break" is forbidden
  */
 bool GJB5369StmtRule::HasBreakStmt(const clang::Stmt *stmt) {
-  for (const auto &child: stmt->children()) {
+  for (const auto &child : stmt->children()) {
     if (child == nullptr) continue;
     if (child->getStmtClass() == clang::Stmt::BreakStmtClass) return true;
   }
@@ -508,7 +501,7 @@ void GJB5369StmtRule::CheckCaseEndWithBreak(const clang::SwitchStmt *stmt) {
          * 2. case: { ...; break; }
          */
         bool has_break = false;
-        for (const auto &sub: it->children()) has_break |= HasBreakStmt(sub);
+        for (const auto &sub : it->children()) has_break |= HasBreakStmt(sub);
         has_break |= ((std::next(it) != case_end) &&
                       (std::next(it)->getStmtClass() == clang::Stmt::BreakStmtClass));
         if (!has_break && !HasBreakStmt(*it)) {
@@ -1043,7 +1036,7 @@ void GJB5369StmtRule::CheckParamTypeMismatch(const clang::CallExpr *stmt) {
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
 
-  for (const auto &it: func_decl->parameters()) {
+  for (const auto &it : func_decl->parameters()) {
     auto formal_param_type = it->getType();
     if (formal_param_type->isBuiltinType()) {
       auto real_param_type = stmt->getArg(param_index)->IgnoreParenImpCasts()->getType();
@@ -1410,7 +1403,7 @@ void GJB5369StmtRule::CheckRecordInitType(const clang::InitListExpr *stmt) {
   if (!stmt->getType()->isRecordType()) return;
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
-  for (const auto &it: stmt->children()) {
+  for (const auto &it : stmt->children()) {
     if (it->getStmtClass() == clang::Stmt::StmtClass::ImplicitCastExprClass) {
       if (issue == nullptr) {
         issue = report->ReportIssue(GJB5369, G4_13_1_2, stmt);

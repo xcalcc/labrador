@@ -136,6 +136,7 @@ private:
   /*
    * GJB5369: 4.3.1.4
    * "default" statement should be used in the "switch" statement
+   * INFO: MOVED TO MISRA
    *
    * GJB5369: 4.3.1.6
    * "switch" only containing "default" is forbidden

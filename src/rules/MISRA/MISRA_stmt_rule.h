@@ -246,6 +246,12 @@ private:
   }
 
   /* MISRA
+   * Rule: 16.4
+   * Every switch statement shall have a default label
+   */
+  void CheckSwitchWithoutDefault(const clang::SwitchStmt *stmt);
+
+  /* MISRA
    * Rule: 16.5
    * A default label shall appear as either the first or the last switch label of a switch statement
    */
@@ -499,6 +505,7 @@ public:
   }
 
   void VisitSwitchStmt(const clang::SwitchStmt *stmt) {
+    CheckSwitchWithoutDefault(stmt);
     CheckDefaultStmtPosition(stmt);
     CheckCaseStmtNum(stmt);
   }

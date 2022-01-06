@@ -82,6 +82,7 @@
 #define M_R_15_3    "MSR_15_3"
 #define M_R_15_4    "MSR_15_4"
 
+#define M_R_16_4    "MSR_16_4"
 #define M_R_16_5    "MSR_16_5"
 #define M_R_16_6    "MSR_16_6"
 #define M_R_16_7    "MSR_16_7"
