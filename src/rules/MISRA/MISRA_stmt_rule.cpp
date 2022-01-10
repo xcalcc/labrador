@@ -432,7 +432,7 @@ void MISRAStmtRule::CheckVoidPointerToOtherTypePointer(const clang::CastExpr *st
   if (sub_stmt->IgnoreCasts()->isNullPointerConstant(*ctx, clang::Expr::NPC_ValueDependentIsNull))
     return;
 
-  if (type->isPointerType() && sub_type->isVoidPointerType()) {
+  if ((type->isPointerType() && !type->isVoidPointerType()) && sub_type->isVoidPointerType()) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(MISRA, M_R_11_5, stmt);
