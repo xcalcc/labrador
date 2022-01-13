@@ -57,7 +57,10 @@ private:
   bool IsIntegerLiteralExpr(const clang::Expr *expr);
 
   // check if the expr has side effect
-  bool HasSideEffect(const clang::Stmt *expr);
+  bool HasSideEffect(const clang::Stmt *stmt);
+
+  // check if the expr has Inc/Dec expr
+  bool HasIncOrDecExpr(const clang::Stmt *stmt);
 
   // report template
   void ReportTemplate(const std::string &str, const char *rule, const clang::Stmt *stmt);
@@ -188,6 +191,13 @@ private:
   void CheckSideEffectWithOrder(const clang::BinaryOperator *stmt);
   void CheckSideEffectWithOrder(const clang::CallExpr *stmt);
   void ReportSideEffect(const clang::Stmt *stmt);
+
+  /* MISRA
+   * Rule: 13.3
+   * A full expression containing an increment (++) or decrement (--) operator should have no other potential side
+   * effects other than that caused by the increment or decrement operator
+   */
+  void CheckMultiIncOrDecExpr(const clang::BinaryOperator *stmt);
 
   /* MISRA
    * Rule: 13.4
@@ -456,6 +466,7 @@ public:
     CheckBitwiseWithOutParen(stmt);
     CheckUnsignedIntWrapAround(stmt);
     CheckRHSOfLogicalOpHasSideEffect(stmt);
+    CheckMultiIncOrDecExpr(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {

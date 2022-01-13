@@ -70,19 +70,31 @@ bool MISRAStmtRule::IsIntegerLiteralExpr(const clang::Expr *expr) {
   return expr->EvaluateAsInt(eval_result, *ctx);
 }
 
-// check if the expr has side effect
-bool MISRAStmtRule::HasSideEffect(const clang::Stmt *expr) {
+// check if the stmt has side effect
+bool MISRAStmtRule::HasSideEffect(const clang::Stmt *stmt) {
   bool res = false;
 
-  if (auto unary = clang::dyn_cast<clang::UnaryOperator>(expr)) {
+  if (auto unary = clang::dyn_cast<clang::UnaryOperator>(stmt)) {
     if (unary->isIncrementDecrementOp()) return true;
-  } else if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(expr)) {
+  } else if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(stmt)) {
     auto decl = decl_ref->getDecl();
     if (decl->getType().isVolatileQualified()) return true;
   }
 
-  for (const auto &it : expr->children()) {
+  for (const auto &it : stmt->children()) {
     if (HasSideEffect(it)) return true;
+  }
+  return false;
+}
+
+// check if the expr has Inc/Dec expr
+bool MISRAStmtRule::HasIncOrDecExpr(const clang::Stmt *stmt) {
+  if (auto unary = clang::dyn_cast<clang::UnaryOperator>(stmt)) {
+    if (unary->isIncrementDecrementOp()) return true;
+  }
+
+  for (const auto &it : stmt->children()) {
+    if (HasIncOrDecExpr(it)) return true;
   }
   return false;
 }
@@ -697,6 +709,30 @@ void MISRAStmtRule::ReportSideEffect(const clang::Stmt *stmt) {
   ReportTemplate(ref_msg, M_R_13_2, stmt);
 }
 
+/* MISRA
+ * Rule: 13.3
+ * A full expression containing an increment (++) or decrement (--) operator should have no other potential side
+ * effects other than that caused by the increment or decrement operator
+ */
+void MISRAStmtRule::CheckMultiIncOrDecExpr(const clang::BinaryOperator *stmt) {
+  bool need_report = false;
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+  if (stmt->isAssignmentOp() || stmt->isCompoundAssignmentOp()) {
+    if (HasIncOrDecExpr(lhs) || HasIncOrDecExpr(rhs)) need_report = true;
+  } else {
+    if (HasIncOrDecExpr(lhs) && HasIncOrDecExpr(rhs)) need_report = true;
+  }
+
+  if (need_report) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_13_3, stmt);
+    std::string ref_msg = "A full expression containing an increment (++) or decrement (--) operator should have no "
+                          "other potential side effects other than that caused by the increment or decrement operator";
+    issue->SetRefMsg(ref_msg);
+  }
+}
 
 /* MISRA
  * Rule: 13.4
