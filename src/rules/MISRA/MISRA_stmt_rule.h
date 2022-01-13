@@ -165,6 +165,12 @@ private:
   void CheckCommaStmt(const clang::BinaryOperator *stmt);
 
   /* MISRA
+   * Rule: 12.4
+   * Evaluation of constant expressions should not lead to unsigned integer wrap-around
+   */
+  void CheckUnsignedIntWrapAround(const clang::BinaryOperator *stmt);
+
+  /* MISRA
    * Rule: 13.1
    * Initializer lists shall not contain persistent side effects
    */
@@ -352,12 +358,6 @@ private:
   }
   void CheckDynamicTypeInCtorAndDtor(const clang::CXXMemberCallExpr *stmt);
   void ReportDynamicInCTorAndDtor(const clang::Stmt *stmt);
-
-  /* MISRA
-   * Rule: 12.4
-   * Evaluation of constant expressions should not lead to unsigned integer wrap-around
-   */
-  void CheckUnsignedIntWrapAround(const clang::BinaryOperator *stmt);
 
   /*
    * QUAN ZHI temp

@@ -11,6 +11,7 @@ Rule		Kind		Implementation
 2.5
 2.6         Decl        CheckUnusedLabelInFunction
 2.7         Decl        CheckUnusedParameters
+4.1         Stmt        CheckOctalAndHexadecimalEscapeWithoutTerminated
 4.2         Diag        HandleDiagnostic
 
 
@@ -50,17 +51,39 @@ Rule		Kind		Implementation
 11.3                    GJB5369 4.12.1.1 -> CheckPointerCast
 11.4        Stmt        CheckCastBetweenIntAndPointerÏ
 11.5        Stmt        CheckVoidPointerToOtherTypePointer
-11.6        Stmt        CheckÏArithTypeCastToVoidPointerType
+11.6        Stmt        CheckArithTypeCastToVoidPointerType
 11.7        Stmt        CheckCastBetweenPointerAndNonIntType
 11.8        Stmt        CheckAssignRemoveConstOrVolatile
 11.9        Stmt        CheckZeroAsPointerConstant
 
 12.2        Stmt        CheckShiftOutOfRange
 12.3        Stmt        CheckCommaStmt
+12.4        Stmt        CheckUnsignedIntWrapAround
 
+13.1        Stmt        CheckSideEffectWithinInitListExpr
+13.2        Stmt        CheckSideEffectWithOrder
+13.4        Stmt        CheckUsingAssignmentAsResult
 13.5 TODO: double check
+14.1        Stmt        CheckLoopVariable
+14.4        Stmt        CheckControlStmtImpl
+15.2        Stmt        CheckGotoBackward
+15.3        Stmt        CheckLabelNotEncloseWithGoto
+15.4        Stmt        CheckMultiTerminate
 15.5
 15.6
 16.3
-16.4
+16.4        Stmt        CheckSwitchWithoutDefault
+16.5        Stmt        CheckDefaultStmtPosition
+16.6        Stmt        CheckCaseStmtNum
 17.4 TODO:
+17.5        Stmt        CheckArrayArgumentSize
+17.7        Stmt        CheckUnusedCallExprWithoutVoidCast
+17.8        Stmt        CheckModifyParameters
+18.4        Stmt        CheckAddOrSubOnPointer
+21.3        Stmt        CheckStdMemoryAllocationFunction
+21.6        Stmt        CheckIOFunctionInStdio
+21.7        Stmt        CheckIntConvertFunctionInStdlib
+21.8        Stmt        CheckSystemFuncInStdlib
+21.9        Stmt        CheckBsearchAndQsortInStdlib
+21.10       Stmt        CheckTimeFunctionInStdlib
+21.12       Stmt        CheckExceptionFeaturesInFenv
