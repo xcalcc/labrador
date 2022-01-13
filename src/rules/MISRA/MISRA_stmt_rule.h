@@ -212,6 +212,13 @@ private:
   void CheckRHSOfLogicalOpHasSideEffect(const clang::BinaryOperator *stmt);
 
   /* MISRA
+   * Rule: 13.6
+   * The operand of the sizeof operator shall not contain any expression which
+   * has potential side effects
+   */
+  void CheckSideEffectInSizeof(const clang::UnaryExprOrTypeTraitExpr *stmt);
+
+  /* MISRA
    * Rule: 14.1
    * A loop counter shall not have essentially floating type
    */
@@ -572,6 +579,10 @@ public:
 
   void VisitInitListExpr(const clang::InitListExpr *stmt) {
     CheckSideEffectWithinInitListExpr(stmt);
+  }
+
+  void VisitUnaryExprOrTypeTraitExpr(const clang::UnaryExprOrTypeTraitExpr *stmt) {
+    CheckSideEffectInSizeof(stmt);
   }
 
 }; // MISRAStmtRule

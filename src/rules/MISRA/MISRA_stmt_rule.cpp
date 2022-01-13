@@ -746,6 +746,31 @@ void MISRAStmtRule::CheckRHSOfLogicalOpHasSideEffect(const clang::BinaryOperator
 }
 
 /* MISRA
+ * Rule: 13.6
+ * The operand of the sizeof operator shall not contain any expression which
+ * has potential side effects
+ */
+void MISRAStmtRule::CheckSideEffectInSizeof(const clang::UnaryExprOrTypeTraitExpr *stmt) {
+  bool need_report = false;
+  if (stmt->getKind() == clang::UnaryExprOrTypeTrait::UETT_SizeOf) {
+    for (const auto &it : stmt->children()) {
+      if (HasSideEffect(it)) {
+        need_report = true;
+        break;
+      }
+    }
+  }
+
+  if (need_report) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_13_6, stmt);
+    std::string ref_msg = "The operand of the sizeof operator shall not contain any expression which has potential side effects";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+/* MISRA
  * Rule: 14.1
  * A loop counter shall not have essentially floating type
  */

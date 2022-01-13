@@ -63,7 +63,8 @@ Rule		Kind		Implementation
 13.1        Stmt        CheckSideEffectWithinInitListExpr
 13.2        Stmt        CheckSideEffectWithOrder
 13.4        Stmt        CheckUsingAssignmentAsResult
-13.5 TODO: double check
+13.5        Stmt        CheckRHSOfLogicalOpHasSideEffect
+13.6        Stmt        CheckSideEffectInSizeof
 14.1        Stmt        CheckLoopVariable
 14.4        Stmt        CheckControlStmtImpl
 15.2        Stmt        CheckGotoBackward
