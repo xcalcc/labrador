@@ -70,6 +70,23 @@ bool MISRAStmtRule::IsIntegerLiteralExpr(const clang::Expr *expr) {
   return expr->EvaluateAsInt(eval_result, *ctx);
 }
 
+// check if the expr has side effect
+bool MISRAStmtRule::HasSideEffect(const clang::Stmt *expr) {
+  bool res = false;
+
+  if (auto unary = clang::dyn_cast<clang::UnaryOperator>(expr)) {
+    if (unary->isIncrementDecrementOp()) return true;
+  } else if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(expr)) {
+    auto decl = decl_ref->getDecl();
+    if (decl->getType().isVolatileQualified()) return true;
+  }
+
+  for (const auto &it : expr->children()) {
+    if (HasSideEffect(it)) return true;
+  }
+  return false;
+}
+
 // report template
 void MISRAStmtRule::ReportTemplate(const std::string &str, const char *rule, const clang::Stmt *stmt) {
   XcalIssue *issue = nullptr;
@@ -629,12 +646,7 @@ void MISRAStmtRule::CheckSideEffectWithinInitListExpr(const clang::InitListExpr 
   std::vector<const clang::Expr *> sinks;
   for (const auto &it : stmt->inits()) {
     auto init = it->IgnoreParenImpCasts();
-    if (auto unary = clang::dyn_cast<clang::UnaryOperator>(init)) {
-      if (unary->isIncrementDecrementOp()) sinks.push_back(unary);
-    } else if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(init)) {
-      auto decl = decl_ref->getDecl();
-      if (decl->getType().isVolatileQualified()) sinks.push_back(init);
-    }
+    if (HasSideEffect(init)) sinks.push_back(it);
   }
 
   if (!sinks.empty()) {
@@ -715,6 +727,22 @@ void MISRAStmtRule::CheckUsingAssignmentAsResult(const clang::BinaryOperator *st
   if (stmt->getOpcode() == clang::BO_Comma) return;
   auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
   if (rhs && IsAssignmentStmt(rhs)) ReportAssignment(stmt);
+}
+
+/* MISRA
+ * Rule: 13.5
+ * The right hand operand of a logical && or || operator shall not contain
+ * persistent side effects
+ */
+void MISRAStmtRule::CheckRHSOfLogicalOpHasSideEffect(const clang::BinaryOperator *stmt) {
+  if (!stmt->isLogicalOp()) return;
+  if (HasSideEffect(stmt->getRHS()->IgnoreParenImpCasts())) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_13_5, stmt);
+    std::string ref_msg = "The right hand operand of a logical && or || operator shall not contain persistent side effects";
+    issue->SetRefMsg(ref_msg);
+  }
 }
 
 /* MISRA

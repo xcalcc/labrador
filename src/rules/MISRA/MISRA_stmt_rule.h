@@ -56,6 +56,9 @@ private:
   // check if the expr is an IntegerLiteral expression
   bool IsIntegerLiteralExpr(const clang::Expr *expr);
 
+  // check if the expr has side effect
+  bool HasSideEffect(const clang::Stmt *expr);
+
   // report template
   void ReportTemplate(const std::string &str, const char *rule, const clang::Stmt *stmt);
 
@@ -200,6 +203,13 @@ private:
     auto cond = stmt->getCond()->IgnoreParenImpCasts();
     if (cond && IsAssignmentStmt(cond)) ReportAssignment(stmt);
   }
+
+  /* MISRA
+   * Rule: 13.5
+   * The right hand operand of a logical && or || operator shall not contain
+   * persistent side effects
+   */
+  void CheckRHSOfLogicalOpHasSideEffect(const clang::BinaryOperator *stmt);
 
   /* MISRA
    * Rule: 14.1
@@ -438,6 +448,7 @@ public:
     CheckSideEffectWithOrder(stmt);
     CheckBitwiseWithOutParen(stmt);
     CheckUnsignedIntWrapAround(stmt);
+    CheckRHSOfLogicalOpHasSideEffect(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
