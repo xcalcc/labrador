@@ -165,6 +165,12 @@ private:
   void CheckCommaStmt(const clang::BinaryOperator *stmt);
 
   /* MISRA
+   * Rule: 13.1
+   * Initializer lists shall not contain persistent side effects
+   */
+  void CheckSideEffectWithinInitListExpr(const clang::InitListExpr *stmt);
+
+  /* MISRA
    * Rule: 13.2
    * The value of an expression and its persistent side
    * effects shall be the same under all permitted evaluation orders
@@ -551,6 +557,10 @@ public:
 
   void VisitStringLiteral(const clang::StringLiteral *stmt) {
     CheckOctalAndHexadecimalEscapeWithoutTerminated(stmt);
+  }
+
+  void VisitInitListExpr(const clang::InitListExpr *stmt) {
+    CheckSideEffectWithinInitListExpr(stmt);
   }
 
 }; // MISRAStmtRule

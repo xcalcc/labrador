@@ -622,6 +622,32 @@ void MISRAStmtRule::CheckCommaStmt(const clang::BinaryOperator *stmt) {
 }
 
 /* MISRA
+ * Rule: 13.1
+ * Initializer lists shall not contain persistent side effects
+ */
+void MISRAStmtRule::CheckSideEffectWithinInitListExpr(const clang::InitListExpr *stmt) {
+  std::vector<const clang::Expr *> sinks;
+  for (const auto &it : stmt->inits()) {
+    auto init = it->IgnoreParenImpCasts();
+    if (auto unary = clang::dyn_cast<clang::UnaryOperator>(init)) {
+      if (unary->isIncrementDecrementOp()) sinks.push_back(unary);
+    } else if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(init)) {
+      auto decl = decl_ref->getDecl();
+      if (decl->getType().isVolatileQualified()) sinks.push_back(init);
+    }
+  }
+
+  if (!sinks.empty()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_13_1, stmt);
+    std::string ref_msg = "Initializer lists shall not contain persistent side effects";
+    issue->SetRefMsg(ref_msg);
+    for (const auto &it : sinks) issue->AddStmt(it);
+  }
+}
+
+/* MISRA
  * Rule: 13.2
  * The value of an expression and its persistent side
  * effects shall be the same under all permitted evaluation orders
