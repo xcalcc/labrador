@@ -385,6 +385,30 @@ void MISRADeclRule::CheckInappropriateBitField(const clang::RecordDecl *decl) {
 }
 
 /* MISRA
+ * Rule: 6.2
+ * A typedef name shall be a unique identifier
+ */
+void MISRADeclRule::CheckSingleBitSignedValue(const clang::RecordDecl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  for (const auto &it : decl->fields()) {
+    if (it->getType()->isSignedIntegerType() && it->isBitField()) {
+      auto bit_width = it->getBitWidthValue(decl->getASTContext());
+      if (bit_width < 2) {
+        if (issue == nullptr) {
+          issue = report->ReportIssue(MISRA, M_R_6_2, decl);
+          std::string ref_msg = "Signed-value must be longer than two bits: ";
+          ref_msg += decl->getNameAsString();
+          issue->SetRefMsg(ref_msg);
+        }
+        issue->AddDecl(&(*it));
+      }
+    }
+  }
+}
+
+/* MISRA
  * Rule: 7.4
  * A string literal shall not be assigned to an object unless the object’s type is “pointer to const-qualified char”
  */

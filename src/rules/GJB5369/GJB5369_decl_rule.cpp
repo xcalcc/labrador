@@ -891,30 +891,6 @@ void GJB5369DeclRule::CheckFunctionPointer(const clang::VarDecl *decl) {
 }
 
 /*
- * GJB5369: 4.6.1.6
- * signed-value must be longer than two bits
- */
-void GJB5369DeclRule::CheckSingleBitSignedValue(const clang::RecordDecl *decl) {
-  XcalIssue *issue = nullptr;
-  XcalReport *report = XcalCheckerManager::GetReport();
-
-  for (const auto &it : decl->fields()) {
-    if (it->getType()->isSignedIntegerType() && it->isBitField()) {
-      auto bit_width = it->getBitWidthValue(decl->getASTContext());
-      if (bit_width < 2) {
-        if (issue == nullptr) {
-          issue = report->ReportIssue(GJB5369, G4_6_1_6, decl);
-          std::string ref_msg = "Signed-value must be longer than two bits: ";
-          ref_msg += decl->getNameAsString();
-          issue->SetRefMsg(ref_msg);
-        }
-        issue->AddDecl(&(*it));
-      }
-    }
-  }
-}
-
-/*
  * GJB5369: 4.6.1.7
  * bits can only be defined as signed/unsigned int type
  */

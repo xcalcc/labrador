@@ -430,6 +430,46 @@ void MISRAStmtRule::CheckCompositeExprCastToWiderType(const clang::CStyleCastExp
 }
 
 /* MISRA
+ * Rule: 11.2
+ * Conversions shall not be performed between a pointer to an incomplete type and any other type
+ */
+void MISRAStmtRule::CheckIncompleteTypePointerCastToAnotherType(const clang::CStyleCastExpr *stmt) {
+  auto sub_type = stmt->getSubExpr()->IgnoreParenImpCasts()->getType();
+  if (!sub_type->isPointerType()) return;
+
+  auto pointee_type = clang::cast<clang::PointerType>(sub_type)->getPointeeType();
+  if (!pointee_type->isStructureType()) return;
+  auto struct_decl = pointee_type->getAs<clang::RecordType>()->getDecl();
+  if (!struct_decl || (!struct_decl->isCompleteDefinition())) return;
+
+  if (sub_type == stmt->getType()) return;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(MISRA, M_R_11_2, stmt);
+  std::string ref_msg = "Conversions shall not be performed between a pointer to an "
+                        "incomplete type and any other type";
+  issue->SetRefMsg(ref_msg);
+}
+
+/* MISRA
+ * Rule: 11.3
+ * A cast shall not be performed between a pointer to object type and a pointer to a different object type
+ */
+void MISRAStmtRule::CheckCastPointerToDifferentType(const clang::CStyleCastExpr *stmt) {
+  auto type = stmt->getType();
+  auto sub_type = stmt->getSubExpr()->IgnoreParenImpCasts()->getType();
+  if (type != sub_type) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_11_3, stmt);
+    std::string ref_msg = "A cast shall not be performed between a pointer to "
+                          "object type and a pointer to a different object type";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+/* MISRA
  * Rule: 11.4
  * A conversion should not be performed between a pointer to object and an integer type
  */

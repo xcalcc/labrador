@@ -122,6 +122,18 @@ private:
   void CheckCompositeExprCastToWiderType(const clang::CStyleCastExpr *stmt);
 
   /* MISRA
+   * Rule: 11.2
+   * Conversions shall not be performed between a pointer to an incomplete type and any other type
+   */
+  void CheckIncompleteTypePointerCastToAnotherType(const clang::CStyleCastExpr *stmt);
+
+  /* MISRA
+   * Rule: 11.3
+   * A cast shall not be performed between a pointer to object type and a pointer to a different object type
+   */
+  void CheckCastPointerToDifferentType(const clang::CStyleCastExpr *stmt);
+
+  /* MISRA
    * Rule: 11.4
    * A conversion should not be performed between a pointer to object and an integer type
    */
@@ -496,6 +508,8 @@ public:
     CheckVoidPointerToOtherTypePointer(stmt);
     CheckArithTypeCastToVoidPointerType(stmt);
     CheckCastBetweenPointerAndNonIntType(stmt);
+    CheckIncompleteTypePointerCastToAnotherType(stmt);
+    CheckCastPointerToDifferentType(stmt);
   }
 
   void VisitImplicitCastExpr(const clang::ImplicitCastExpr *stmt) {

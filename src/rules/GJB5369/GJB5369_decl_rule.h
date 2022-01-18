@@ -219,8 +219,9 @@ private:
   /*
    * GJB5369: 4.6.1.6
    * signed-value must be longer than two bits
+   * INFO: MOVED TO MISRA 6.2
    */
-  void CheckSingleBitSignedValue(const clang::RecordDecl *decl);
+
 
   /*
    * GJB5369: 4.6.1.7
@@ -342,7 +343,6 @@ public:
     CheckTypedefBasicType(decl);
     checkExplicitCharType(decl);
     CheckPointerNestedLevel(decl);
-    CheckSingleBitSignedValue(decl);
     CheckBitsIfInteger(decl);
   }
 
@@ -354,7 +354,6 @@ public:
     CheckTypedefBasicType(decl);
     checkExplicitCharType(decl);
     CheckPointerNestedLevel(decl);
-    CheckSingleBitSignedValue(decl);
     CheckBitsIfInteger(decl);
   }
 

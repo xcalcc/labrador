@@ -23,7 +23,7 @@ Rule		Kind		Implementation
 5.7
 6.1         Decl        CheckInappropriateBitField
 
-6.2                     GJB5369 4.6.1.6 -> CheckSingleBitSignedValueÏ
+6.2                     CheckSingleBitSignedValue
 7.1
 7.2
 7.3
