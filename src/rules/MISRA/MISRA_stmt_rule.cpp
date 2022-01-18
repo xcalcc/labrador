@@ -231,6 +231,48 @@ void MISRAStmtRule::CheckAddOrSubOnCharacter(const clang::BinaryOperator *stmt) 
   }
 }
 
+/*
+ * MISRA: 10.3
+ * The value of an expression shall not be assigned to an object with a narrower
+ * essential type or of a different essential type category
+ */
+void MISRAStmtRule::CheckIntToShorter(const clang::BinaryOperator *stmt) {
+  if (!stmt->isAssignmentOp() && !stmt->isCompoundAssignmentOp()) return;
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS();
+
+  auto rhs_cast = clang::dyn_cast<clang::CastExpr>(rhs);
+  if (!rhs_cast) return;
+
+  if (auto subStmtBT = clang::dyn_cast<clang::BuiltinType>(rhs_cast->getSubExpr()->IgnoreParenImpCasts()->getType())) {
+    auto stmtBT = clang::dyn_cast<clang::BuiltinType>(rhs_cast->getType());
+    // check if stmt is builtin type
+    if (stmtBT == nullptr) return;
+
+    if (subStmtBT->isInteger() && stmtBT->isInteger()) {
+      // convert signed type to unsigned type to compare size
+      auto resolve = [&](const clang::BuiltinType *type) -> clang::BuiltinType::Kind {
+        if (type->isUnsignedInteger()) {
+          return static_cast<clang::BuiltinType::Kind>(type->getKind() - clang::BuiltinType::Kind::Bool);
+        }
+        return type->getKind();
+      };
+
+      auto stmtKind = resolve(stmtBT);
+      auto subStmtKind = resolve(subStmtBT);
+
+      if (stmtKind < subStmtKind) {
+        XcalIssue *issue = nullptr;
+        XcalReport *report = XcalCheckerManager::GetReport();
+
+        issue = report->ReportIssue(MISRA, M_R_10_3, stmt);
+        std::string ref_msg = "Convert int to shorter int carefully";
+        issue->SetRefMsg(ref_msg);
+      }
+    }
+  }
+}
+
 /* MISRA
  * Rule: 10.4
  * Both operands of an operator in which the usual arithmetic conversions are performed

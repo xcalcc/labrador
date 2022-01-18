@@ -652,41 +652,6 @@ void GJB8114StmtRule::CheckDoubleToFloat(const clang::CastExpr *stmt) {
   }
 }
 
-
-/*
- * GJB8114: 5.10.2.3
- * Convert int to shorter int carefully
- */
-void GJB8114StmtRule::CheckIntToShorter(const clang::CastExpr *stmt) {
-  if (auto subStmtBT = clang::dyn_cast<clang::BuiltinType>(stmt->getSubExpr()->IgnoreParenImpCasts()->getType())) {
-    auto stmtBT = clang::dyn_cast<clang::BuiltinType>(stmt->getType());
-    // check if stmt is builtin type
-    if (stmtBT == nullptr) return;
-
-    if (subStmtBT->isInteger() && stmtBT->isInteger()) {
-      // convert signed type to unsigned type to compare size
-      auto resolve = [&](const clang::BuiltinType *type) -> clang::BuiltinType::Kind {
-        if (type->isUnsignedInteger()) {
-          return static_cast<clang::BuiltinType::Kind>(type->getKind() - clang::BuiltinType::Kind::Bool);
-        }
-        return type->getKind();
-      };
-
-      auto stmtKind = resolve(stmtBT);
-      auto subStmtKind = resolve(subStmtBT);
-
-      if (stmtKind < subStmtKind) {
-        XcalIssue *issue = nullptr;
-        XcalReport *report = XcalCheckerManager::GetReport();
-
-        issue = report->ReportIssue(GJB8114, G5_10_2_3, stmt);
-        std::string ref_msg = "Convert int to shorter int carefully";
-        issue->SetRefMsg(ref_msg);
-      }
-    }
-  }
-}
-
 /*
  * GJB8114: 5.12.1.1
  * Comparing logic values is forbidden

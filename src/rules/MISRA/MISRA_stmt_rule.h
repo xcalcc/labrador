@@ -87,6 +87,13 @@ private:
    */
   void CheckAddOrSubOnCharacter(const clang::BinaryOperator *stmt);
 
+  /*
+   * MISRA: 10.3
+   * The value of an expression shall not be assigned to an object with a narrower
+   * essential type or of a different essential type category
+   */
+  void CheckIntToShorter(const clang::BinaryOperator *stmt);
+
   /* MISRA
    * Rule: 10.4
    * Both operands of an operator in which the usual arithmetic conversions are performed
@@ -479,6 +486,7 @@ public:
     CheckUnsignedIntWrapAround(stmt);
     CheckRHSOfLogicalOpHasSideEffect(stmt);
     CheckMultiIncOrDecExpr(stmt);
+    CheckIntToShorter(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {

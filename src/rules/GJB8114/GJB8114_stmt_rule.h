@@ -254,12 +254,6 @@ private:
   void CheckDoubleToFloat(const clang::CastExpr *stmt);
 
   /*
-   * GJB8114: 5.10.2.3
-   * Convert int to shorter int carefully
-   */
-  void CheckIntToShorter(const clang::CastExpr *stmt);
-
-  /*
    * GJB8114: 5.12.1.1
    * Comparing logic values is forbidden
    */
@@ -409,12 +403,10 @@ public:
 
   void VisitImplicitCastExpr(const clang::ImplicitCastExpr *stmt) {
     CheckDoubleToFloat(stmt);
-    CheckIntToShorter(stmt);
   }
 
   void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {
     CheckDoubleToFloat(stmt);
-    CheckIntToShorter(stmt);
     CheckCStyleCastInCPPFile(stmt);
   }
 

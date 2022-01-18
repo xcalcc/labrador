@@ -47,8 +47,8 @@ Rule		Kind		Implementation
 10.7        Stmt        CheckCompositeMixTypeExpr
 10.8        Stmt        CheckCompositeExprCastToWiderType
 
-11.2                    GJB5369 4.12.1.1 -> CheckPointerCast
-11.3                    GJB5369 4.12.1.1 -> CheckPointerCast
+11.2                    CheckIncompleteTypePointerCastToAnotherType
+11.3                    CheckCastPointerToDifferentType
 11.4        Stmt        CheckCastBetweenIntAndPointerÏ
 11.5        Stmt        CheckVoidPointerToOtherTypePointer
 11.6        Stmt        CheckArithTypeCastToVoidPointerType
