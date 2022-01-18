@@ -966,6 +966,18 @@ void MISRAStmtRule::CheckControlStmtImpl(const clang::Expr *stmt) {
   }
 }
 
+/*
+ * MISRA: 15.1
+ * The goto statement should not be used
+ */
+void MISRAStmtRule::CheckGotoStmt(const clang::GotoStmt *stmt) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(MISRA, M_R_15_1, stmt);
+  std::string ref_msg = "\"goto\" statement is forbidden";
+  issue->SetRefMsg(ref_msg);
+}
+
 /* MISRA
  * Rule: 15.2
  * The goto statement shall jump to a label declared later in the same function
@@ -1057,6 +1069,21 @@ void MISRAStmtRule::CheckMultiTerminate(const clang::Stmt *stmt) {
                           "statement used to terminate any iteration statement";
     issue->SetRefMsg(ref_msg);
     for (const auto &it : _terminates) issue->AddStmt(it);
+  }
+}
+
+/* MISRA
+ * Rule: 15.7
+ * All if ... else if constructs shall be terminated with an else statement
+ */
+void MISRAStmtRule::CheckIfWithoutElseStmt(const clang::IfStmt *stmt) {
+  if (!stmt->hasElseStorage()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(MISRA, M_R_15_7, stmt);
+    std::string ref_msg = "All if ... else if constructs shall be terminated with an else statement";
+    issue->SetRefMsg(ref_msg);
   }
 }
 

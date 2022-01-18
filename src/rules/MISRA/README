@@ -67,11 +67,13 @@ Rule		Kind		Implementation
 13.6        Stmt        CheckSideEffectInSizeof
 14.1        Stmt        CheckLoopVariable
 14.4        Stmt        CheckControlStmtImpl
+15.1        Stmt        CheckGotoStmt
 15.2        Stmt        CheckGotoBackward
 15.3        Stmt        CheckLabelNotEncloseWithGoto
 15.4        Stmt        CheckMultiTerminate
 15.5
 15.6
+15.7        Stmt        CheckIfWithoutElseStmt
 16.3
 16.4        Stmt        CheckSwitchWithoutDefault
 16.5        Stmt        CheckDefaultStmtPosition

@@ -130,8 +130,9 @@ private:
   /*
    * GJB5369: 4.3.1.2
    * 'else' must be used in the "if...else if" statement
+   * INFO: MOVED TO MISRA 15.7
    */
-  void CheckIfWithoutElseStmt(const clang::IfStmt *stmt);
+
 
   /*
    * GJB5369: 4.3.1.4
@@ -179,12 +180,6 @@ private:
    * using pointer in the algebraic operation should be careful
    */
   void CheckPointerCalculateStmt(const clang::BinaryOperator *stmt);
-
-  /*
-   * GJB5369: 4.5.1.2
-   * "goto" statement is forbidden
-   */
-  void CheckGotoStmt(const clang::GotoStmt *stmt);
 
   /*
    * GJB5369: 4.5.2.1
@@ -597,7 +592,6 @@ public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckIfBrace(stmt);
     CheckEmptyIfElseStmt(stmt);
-    CheckIfWithoutElseStmt(stmt);
     CheckAssignInLogicExpr(stmt);
     CheckFalseIfCondition(stmt);
     CheckAssignInCondition(stmt);
@@ -647,7 +641,6 @@ public:
   }
 
   void VisitGotoStmt(const clang::GotoStmt *stmt) {
-    CheckGotoStmt(stmt);
   }
 
   void VisitCallExpr(const clang::CallExpr *stmt) {

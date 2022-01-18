@@ -277,6 +277,12 @@ private:
     CheckControlStmtImpl(stmt->getCond()->IgnoreParenImpCasts());
   }
 
+  /*
+   * MISRA: 15.1
+   * The goto statement should not be used
+   */
+  void CheckGotoStmt(const clang::GotoStmt *stmt);
+
   /* MISRA
    * Rule: 15.2
    * The goto statement shall jump to a label declared later in the same function
@@ -302,6 +308,12 @@ private:
     _terminates.clear();
     CheckMultiTerminate(stmt->getBody());
   }
+
+  /* MISRA
+   * Rule: 15.7
+   * All if ... else if constructs shall be terminated with an else statement
+   */
+  void CheckIfWithoutElseStmt(const clang::IfStmt *stmt);
 
   /* MISRA
    * Rule: 16.4
@@ -534,6 +546,7 @@ public:
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckControlStmt(stmt);
     CheckUsingAssignmentAsResult(stmt);
+    CheckIfWithoutElseStmt(stmt);
   }
 
   void VisitWhileStmt(const clang::WhileStmt *stmt) {
@@ -557,6 +570,7 @@ public:
   }
 
   void VisitGotoStmt(const clang::GotoStmt *stmt) {
+    CheckGotoStmt(stmt);
     CheckGotoBackward(stmt);
     CheckLabelNotEncloseWithGoto(stmt);
   }

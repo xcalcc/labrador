@@ -388,21 +388,6 @@ void GJB5369StmtRule::CheckEmptyIfElseStmt(const clang::IfStmt *stmt) {
 }
 
 /*
- * GJB5369: 4.3.1.2
- * 'else' must be used in the "if...else if" statement
- */
-void GJB5369StmtRule::CheckIfWithoutElseStmt(const clang::IfStmt *stmt) {
-  if (!stmt->hasElseStorage()) {
-    XcalIssue *issue = nullptr;
-    XcalReport *report = XcalCheckerManager::GetReport();
-
-    issue = report->ReportIssue(GJB5369, G4_3_1_2, stmt);
-    std::string ref_msg = "'else' must be used in the \"if...else if\" statement";
-    issue->SetRefMsg(ref_msg);
-  }
-}
-
-/*
  * GJB5369: 4.3.1.4
  * "default" statement should be used in the "switch" statement
  *
@@ -589,18 +574,6 @@ void GJB5369StmtRule::CheckPointerCalculateStmt(const clang::BinaryOperator *stm
       issue->AddStmt(rhs);
     }
   }
-}
-
-/*
- * GJB5369: 4.5.1.2
- * "goto" statement is forbidden
- */
-void GJB5369StmtRule::CheckGotoStmt(const clang::GotoStmt *stmt) {
-  XcalIssue *issue = nullptr;
-  XcalReport *report = XcalCheckerManager::GetReport();
-  issue = report->ReportIssue(GJB5369, G4_5_1_2, stmt);
-  std::string ref_msg = "\"goto\" statement is forbidden";
-  issue->SetRefMsg(ref_msg);
 }
 
 /*
