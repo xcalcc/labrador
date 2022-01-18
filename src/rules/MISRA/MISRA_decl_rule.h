@@ -93,6 +93,12 @@ private:
   void CheckTypedefUnique();
 
   /* MISRA
+   * Rule: 5.7
+   * A tag name shall be a unique identifier
+   */
+  void CheckTageUnique();
+
+  /* MISRA
    * Rule 6.1
    * Bit-fields shall only be declared with an appropriate type
    * Note: This assumes that the "int" type is 32 bit
@@ -291,6 +297,7 @@ public:
     CheckUndistinctExternalIdent();
     CheckIdentifierNameConflict();
 //    CheckTypedefUnique();
+//    CheckTageUnique();
     CheckThrownUnSpecifiedType();
   }
 

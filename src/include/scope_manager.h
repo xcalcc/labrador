@@ -161,7 +161,7 @@ public:
 
   /* Check if the identifier is in the type map. */
   template<bool _RECURSIVE>
-  bool HasRecordName(const std::string &var_name) const;
+  bool HasNRecordName(const std::string &var_name, uint64_t N) const;
 
   /* Check if the identifier is in the value map. */
   template<bool _RECURSIVE>
@@ -361,8 +361,8 @@ public:
   }
 
   template<bool _RECURSIVE>
-  bool HasRecordName(const std::string &var_name) const {
-    return _identifiers->HasRecordName<_RECURSIVE>(var_name);
+  bool HasNRecordName(const std::string &var_name, uint64_t N) const {
+    return _identifiers->HasNRecordName<_RECURSIVE>(var_name, N);
   }
 
   template<bool _RECURSIVE>
@@ -554,20 +554,21 @@ IdentifierManager::HasVariableName(const std::string &var_name) const {
   return res;
 }  // IdentifierManager::HasVariableName
 
-// IdentifierManager::HasRecordName
+// IdentifierManager::HasNRecordName
 // implement because it depends on the definition of ScopeManager
 template<bool _RECURSIVE> inline bool
-IdentifierManager::HasRecordName(const std::string &var_name) const {
-  bool res = _id_to_type.count(var_name) > 0;
+IdentifierManager::HasNRecordName(const std::string &var_name, uint64_t N) const {
+  auto count = _id_to_type.count(var_name);
+  bool res = count >= N;
   if (_RECURSIVE && !res) {
     for (const auto &it : _scope->Children()) {
-      res = it->HasRecordName<_RECURSIVE>(var_name);
+      res = it->HasNRecordName<_RECURSIVE>(var_name, N - count);
       if (res)
         break;
     }
   }
   return res;
-}  // IdentifierManager::HasRecordName
+}  // IdentifierManager::HasNRecordName
 
 // IdentifierManager::HasValueName
 // implement because it depends on the definition of ScopeManager

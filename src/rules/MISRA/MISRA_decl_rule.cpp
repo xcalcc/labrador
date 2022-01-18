@@ -336,6 +336,33 @@ void MISRADeclRule::CheckTypedefUnique() {
 }
 
 /* MISRA
+ * Rule: 5.7
+ * A tag name shall be a unique identifier
+ */
+void MISRADeclRule::CheckTageUnique() {
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+  constexpr uint32_t kind = IdentifierManager::TYPE;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  top_scope->TraverseAll<kind,
+      const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+      [&issue, &report, &top_scope](const std::string &name, const clang::Decl *decl, IdentifierManager *id_mgr) {
+        if (top_scope->HasNRecordName<true>(name, 2)) {
+          if (issue == nullptr) {
+            issue = report->ReportIssue(MISRA, M_R_5_7, decl);
+            std::string ref_msg = "A tag name shall be a unique identifier";
+            issue->SetRefMsg(ref_msg);
+          } else {
+            issue->AddDecl(decl);
+          }
+        }
+      }, true);
+}
+
+/* MISRA
  * Rule 6.1
  * Bit-fields shall only be declared with an appropriate type
  * Note: This assumes that the "int" type is 32 bit
