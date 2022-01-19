@@ -1465,6 +1465,20 @@ void MISRAStmtRule::CheckUnsignedIntWrapAround(const clang::BinaryOperator *stmt
 }
 
 /*
+ * MISRA: 3-1-2
+ * Functions shall not be declared at block scope.
+ */
+void MISRAStmtRule::CheckFunctionDeclInBlock(const clang::DeclStmt *stmt) {
+  if (clang::isa<clang::FunctionDecl>(stmt->getSingleDecl())) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_3_1_2, stmt);
+    std::string ref_msg = "Functions shall not be declared at block scope.";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+/*
  * MISRA: 4-5-1
  * Expressions with type bool shall not be used as operands to built-in operators
  * other than the assignment operator =, the logical operators &&, ||, !, the

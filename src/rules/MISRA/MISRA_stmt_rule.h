@@ -429,6 +429,12 @@ private:
   void CheckBitwiseWithOutParen(const clang::BinaryOperator *stmt);
 
   /*
+   * MISRA: 3-1-2
+   * Functions shall not be declared at block scope.
+   */
+  void CheckFunctionDeclInBlock(const clang::DeclStmt *stmt);
+
+  /*
    * MISRA: 4-5-1
    * Expressions with type bool shall not be used as operands to built-in operators
    * other than the assignment operator =, the logical operators &&, ||, !, the
@@ -680,6 +686,10 @@ public:
 
   void VisitReturnStmt(const clang::ReturnStmt *stmt) {
     CheckReturnParamRefOrPtr(stmt);
+  }
+
+  void VisitDeclStmt(const clang::DeclStmt *stmt) {
+    CheckFunctionDeclInBlock(stmt);
   }
 
 }; // MISRAStmtRule

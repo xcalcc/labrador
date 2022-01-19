@@ -688,7 +688,6 @@ void MISRADeclRule::CheckObjectOrFunctionConflictWithType() {
       [&issue, &report](const std::string &name, const clang::Decl *decl, IdentifierManager *id_mgr) {
         bool res = false;
         if (auto record = clang::dyn_cast<clang::RecordDecl>(decl)) {
-          record->dumpColor();
           auto record_name = record->getNameAsString();
           res = id_mgr->HasFunctionName(record_name);
           res |= id_mgr->HasVariableName<false>(record_name);
