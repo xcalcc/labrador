@@ -472,6 +472,14 @@ void MISRAStmtRule::CheckCompositeExprCastToWiderType(const clang::CStyleCastExp
 }
 
 /* MISRA
+ * Rule: 11.1
+ * Conversions shall not be performed between a pointer to a function and any other type
+ */
+void MISRAStmtRule::CheckCastFunctionPointerType(const clang::CStyleCastExpr *stmt) {
+
+}
+
+/* MISRA
  * Rule: 11.2
  * Conversions shall not be performed between a pointer to an incomplete type and any other type
  */
@@ -479,7 +487,9 @@ void MISRAStmtRule::CheckIncompleteTypePointerCastToAnotherType(const clang::CSt
   auto sub_type = stmt->getSubExpr()->IgnoreParenImpCasts()->getType();
   if (!sub_type->isPointerType()) return;
 
-  auto pointee_type = clang::cast<clang::PointerType>(sub_type)->getPointeeType();
+  auto pointee = clang::dyn_cast<clang::PointerType>(sub_type);
+  if (!pointee) return;
+  auto pointee_type = pointee->getPointeeType();
   if (!pointee_type->isStructureType()) return;
   auto struct_decl = pointee_type->getAs<clang::RecordType>()->getDecl();
   if (!struct_decl || (!struct_decl->isCompleteDefinition())) return;
@@ -1452,6 +1462,22 @@ void MISRAStmtRule::CheckUnsignedIntWrapAround(const clang::BinaryOperator *stmt
     std::string ref_msg = "Evaluation of constant expressions should not lead to unsigned integer wrap-around";
     issue->SetRefMsg(ref_msg);
   }
+}
+
+/*
+ * MISRA: 4-5-1
+ * Expressions with type bool shall not be used as operands to built-in operators
+ * other than the assignment operator =, the logical operators &&, ||, !, the
+ * equality operators == and !=, the unary & operator, and the conditional operator.
+ */
+void MISRAStmtRule::CheckBoolUsedAsNonLogicalOperand(const clang::BinaryOperator *stmt) {
+  if (stmt->isLogicalOp() || stmt->isAssignmentOp()) return;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(MISRA, M_R_4_5_1, stmt);
+  std::string ref_msg = "Bool shall be used as logical operands";
+  issue->SetRefMsg(ref_msg);
 }
 
 /* MISRA

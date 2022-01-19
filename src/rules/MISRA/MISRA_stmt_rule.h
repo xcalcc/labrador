@@ -129,6 +129,12 @@ private:
   void CheckCompositeExprCastToWiderType(const clang::CStyleCastExpr *stmt);
 
   /* MISRA
+   * Rule: 11.1
+   * Conversions shall not be performed between a pointer to a function and any other type
+   */
+  void CheckCastFunctionPointerType(const clang::CStyleCastExpr *stmt);
+
+  /* MISRA
    * Rule: 11.2
    * Conversions shall not be performed between a pointer to an incomplete type and any other type
    */
@@ -423,6 +429,14 @@ private:
   void CheckBitwiseWithOutParen(const clang::BinaryOperator *stmt);
 
   /*
+   * MISRA: 4-5-1
+   * Expressions with type bool shall not be used as operands to built-in operators
+   * other than the assignment operator =, the logical operators &&, ||, !, the
+   * equality operators == and !=, the unary & operator, and the conditional operator.
+   */
+  void CheckBoolUsedAsNonLogicalOperand(const clang::BinaryOperator *stmt);
+
+  /*
    * MISRA: 15-0-2
    * An exception object should not have pointer type.
    */
@@ -499,6 +513,7 @@ public:
     CheckRHSOfLogicalOpHasSideEffect(stmt);
     CheckMultiIncOrDecExpr(stmt);
     CheckIntToShorter(stmt);
+    CheckBoolUsedAsNonLogicalOperand(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {

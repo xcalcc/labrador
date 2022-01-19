@@ -271,21 +271,13 @@ private:
 
 public:
   void Finalize() {
-    TRACE0();
     CheckUnusedStaticFunction();
-    TRACE0();
     CheckOmitInitValueDependOnSystem();
-    TRACE0();
     CheckInitWithDecl();
-    TRACE0();
     CheckVariableConflictWithFunction();
-    TRACE0();
     CheckVariableConflictWithIdentifiers();
-    TRACE0();
     CheckVariableConflictWithEnumElem();
-    TRACE0();
     CheckVariableConflictWithTypeDef();
-    TRACE0();
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {
