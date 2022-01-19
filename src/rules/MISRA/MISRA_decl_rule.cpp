@@ -669,6 +669,45 @@ void MISRADeclRule::CheckUnionKeyword(const clang::TypedefDecl *decl) {
 }
 
 /* MISRA
+ * Rule: 2-10-6
+ * If an identifier refers to a type, it shall not also refer to an
+ * object or a function in the same scope.
+ */
+void MISRADeclRule::CheckObjectOrFunctionConflictWithType() {
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+
+  constexpr uint32_t kind = IdentifierManager::VAR | IdentifierManager::TYPE |
+                            IdentifierManager::FUNCTION;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  top_scope->TraverseAll<kind,
+      const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+      [&issue, &report](const std::string &name, const clang::Decl *decl, IdentifierManager *id_mgr) {
+        bool res = false;
+        if (auto record = clang::dyn_cast<clang::RecordDecl>(decl)) {
+          record->dumpColor();
+          auto record_name = record->getNameAsString();
+          res = id_mgr->HasFunctionName(record_name);
+          res |= id_mgr->HasVariableName<false>(record_name);
+          res |= id_mgr->HasTypeDef<false>(record_name);
+        }
+        if (res) {
+          if (issue == nullptr) {
+            issue = report->ReportIssue(MISRA, M_R_2_10_6, decl);
+            std::string ref_msg = "If an identifier refers to a type, it shall not also refer to an "
+                                  "object or a function in the same scope.";
+            issue->SetRefMsg(ref_msg);
+          } else {
+            issue->AddDecl(decl);
+          }
+        }
+      }, true);
+}
+
+/* MISRA
  * Rule: 8-3-1
  * Parameters in an overriding virtual function shall either use the
  * same default arguments as the function they override, or else

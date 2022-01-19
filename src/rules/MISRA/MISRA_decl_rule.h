@@ -189,6 +189,13 @@ private:
   void CheckUnionKeyword(const clang::TypedefDecl *decl);
 
   /* MISRA
+   * Rule: 2-10-6
+   * If an identifier refers to a type, it shall not also refer to an
+   * object or a function in the same scope.
+   */
+  void CheckObjectOrFunctionConflictWithType();
+
+  /* MISRA
    * Rule: 5-0-19
    * The declaration of objects shall contain no more than two levels of pointer indirection.
    */
@@ -299,6 +306,7 @@ public:
 //    CheckTypedefUnique();
 //    CheckTageUnique();
     CheckThrownUnSpecifiedType();
+    CheckObjectOrFunctionConflictWithType();
   }
 
   void VisitVar(const clang::VarDecl *decl) {
