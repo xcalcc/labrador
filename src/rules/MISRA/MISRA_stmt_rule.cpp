@@ -1634,6 +1634,29 @@ void MISRAStmtRule::CheckForStmtLoopCounter(const clang::ForStmt *stmt) {
 }
 
 /*
+ * MISRA: 7-5-3
+ * A function shall not return a reference or a pointer to a parameter that is
+ * passed by reference or const reference.
+ */
+void MISRAStmtRule::CheckReturnParamRefOrPtr(const clang::ReturnStmt *stmt) {
+  auto val = stmt->getRetValue()->IgnoreParenImpCasts();
+  auto type = XcalCheckerManager::GetCurrentFunction()->getReturnType();
+  if (!type->isPointerType() && !type->isReferenceType()) return;
+
+  if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(val)) {
+    auto decl = clang::dyn_cast<clang::ParmVarDecl>(decl_ref->getDecl());
+    if (decl == nullptr) return;
+  }
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(MISRA, M_R_7_5_3, stmt);
+  std::string ref_msg = "A function shall not return a reference or a pointer to a parameter that is passed "
+                        "by reference or const reference.";
+  issue->SetRefMsg(ref_msg);
+}
+
+/*
  * MISRA: 15-0-2
  * An exception object should not have pointer type.
  */

@@ -458,6 +458,13 @@ private:
   void CheckForStmtLoopCounter(const clang::ForStmt *stmt);
 
   /*
+   * MISRA: 7-5-3
+   * A function shall not return a reference or a pointer to a parameter that is
+   * passed by reference or const reference.
+   */
+  void CheckReturnParamRefOrPtr(const clang::ReturnStmt *stmt);
+
+  /*
    * MISRA: 15-0-2
    * An exception object should not have pointer type.
    */
@@ -669,6 +676,10 @@ public:
 
   void VisitUnaryExprOrTypeTraitExpr(const clang::UnaryExprOrTypeTraitExpr *stmt) {
     CheckSideEffectInSizeof(stmt);
+  }
+
+  void VisitReturnStmt(const clang::ReturnStmt *stmt) {
+    CheckReturnParamRefOrPtr(stmt);
   }
 
 }; // MISRAStmtRule
