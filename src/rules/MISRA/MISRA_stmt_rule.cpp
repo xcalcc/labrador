@@ -1472,6 +1472,9 @@ void MISRAStmtRule::CheckUnsignedIntWrapAround(const clang::BinaryOperator *stmt
  */
 void MISRAStmtRule::CheckBoolUsedAsNonLogicalOperand(const clang::BinaryOperator *stmt) {
   if (stmt->isLogicalOp() || stmt->isAssignmentOp()) return;
+  auto lhs_type = stmt->getLHS()->IgnoreParenImpCasts()->getType();
+  auto rhs_type = stmt->getRHS()->IgnoreParenImpCasts()->getType();
+  if (!lhs_type->isBooleanType() && !rhs_type->isBooleanType()) return;
 
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
