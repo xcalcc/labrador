@@ -1592,6 +1592,48 @@ void MISRAStmtRule::CheckDownCastToDerivedClass(const clang::CastExpr *stmt) {
 }
 
 /*
+ * MISRA: 6-5-2
+ * If loop-counter is not modified by -- or ++, then, within condition, the loop-counter
+ * shall only be used as an operand to <=, <, > or >=.
+ */
+void MISRAStmtRule::CheckForStmtLoopCounter(const clang::ForStmt *stmt) {
+  auto init = stmt->getInit();
+  auto cond = stmt->getCond();
+  auto inc = stmt->getInc();
+
+  // get loop-counter
+  const clang::VarDecl *loop_counter = nullptr;
+  if (auto bin_op = clang::dyn_cast<clang::BinaryOperator>(init)) {
+    if (!bin_op->isAssignmentOp()) return;
+    auto lhs = bin_op->getLHS()->IgnoreParenImpCasts();
+    if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(lhs))
+      loop_counter = clang::dyn_cast<clang::VarDecl>(decl_ref->getDecl());
+  } else if (auto decl_stmt = clang::dyn_cast<clang::DeclStmt>(init)) {
+    loop_counter = clang::dyn_cast<clang::VarDecl>(decl_stmt->getSingleDecl());
+  }
+  if (loop_counter == nullptr) return;
+
+
+  if (auto unary_op = clang::dyn_cast<clang::UnaryOperator>(inc)) {
+    if (unary_op->isIncrementDecrementOp()) return;
+  }
+
+  if (auto bin_op = clang::dyn_cast<clang::BinaryOperator>(cond)) {
+    if (bin_op->isComparisonOp()) {
+      auto op = bin_op->getOpcode();
+      if (op >= clang::BO_LT && op <= clang::BO_GE) return;
+    }
+  }
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(MISRA, M_R_6_5_2, stmt);
+  std::string ref_msg = "If loop-counter is not modified by -- or ++, then, within condition, the loop-counter"
+                        "shall only be used as an operand to <=, <, > or >=";
+  issue->SetRefMsg(ref_msg);
+}
+
+/*
  * MISRA: 15-0-2
  * An exception object should not have pointer type.
  */

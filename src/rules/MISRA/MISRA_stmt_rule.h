@@ -451,6 +451,13 @@ private:
   void CheckIfBrace(const clang::IfStmt *stmt);
 
   /*
+   * MISRA: 6-5-2
+   * If loop-counter is not modified by -- or ++, then, within condition, the loop-counter
+   * shall only be used as an operand to <=, <, > or >=.
+   */
+  void CheckForStmtLoopCounter(const clang::ForStmt *stmt);
+
+  /*
    * MISRA: 15-0-2
    * An exception object should not have pointer type.
    */
@@ -598,6 +605,7 @@ public:
     CheckMultiTerminate(stmt);
     CheckLoopVariable(stmt);
     CheckUsingAssignmentAsResult(stmt);
+    CheckForStmtLoopCounter(stmt);
   }
 
   void VisitGotoStmt(const clang::GotoStmt *stmt) {
