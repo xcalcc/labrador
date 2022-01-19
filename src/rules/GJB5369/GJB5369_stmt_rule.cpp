@@ -184,34 +184,6 @@ void GJB5369StmtRule::CheckLoopBrace(const clang::ForStmt *stmt) {
 }
 
 /*
- * GJB5369: 4.2.1.3
- * if/else block must be enclosed in braces
- */
-void GJB5369StmtRule::CheckIfBrace(const clang::IfStmt *stmt) {
-  XcalIssue *issue = nullptr;
-  XcalReport *report = XcalCheckerManager::GetReport();
-
-  const char *start;
-  auto src_mgr = XcalCheckerManager::GetSourceManager();
-  for (const auto &it : stmt->children()) {
-    if (clang::dyn_cast<clang::IfStmt>(it) ||
-        it == stmt->getCond()) {
-      continue;
-    }
-    auto body_loc = it->getBeginLoc();
-    start = src_mgr->getCharacterData(body_loc);
-    if (*start != '{') {
-      if (issue == nullptr) {
-        issue = report->ReportIssue(GJB5369, G4_2_1_3, stmt);
-        std::string ref_msg = "if/else block must be enclosed in braces";
-        issue->SetRefMsg(ref_msg);
-      }
-      issue->AddStmt(&(*it));
-    }
-  }
-}
-
-/*
  * GJB5369: 4.2.1.4
  * logic expression should be enclosed in parentheses
  */

@@ -1480,6 +1480,80 @@ void MISRAStmtRule::CheckBoolUsedAsNonLogicalOperand(const clang::BinaryOperator
   issue->SetRefMsg(ref_msg);
 }
 
+/*
+ * MISRA: A4-10-2
+ * Literal zero (0) shall not be used as the null-pointer-constant.
+ */
+void MISRAStmtRule::CheckUsingNullWithPointer(const clang::BinaryOperator *stmt) {
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+
+  // reuturn if not operating on pointer
+  if (!lhs->getType()->isPointerType()) return;
+
+  if (auto literal = clang::dyn_cast<clang::IntegerLiteral>(rhs)) {
+    int value;
+    clang::Expr::EvalResult eval_result;
+    auto ctx = XcalCheckerManager::GetAstContext();
+
+    // try to fold the const expr
+    if (literal->EvaluateAsInt(eval_result, *ctx)) {
+      value = eval_result.Val.getInt().getZExtValue();
+    } else {
+      value = literal->getValue().getZExtValue();
+    }
+    if (value != 0) return;
+
+    // check if rhs is NULL
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    auto data = src_mgr->getCharacterData(literal->getBeginLoc());
+    auto end = src_mgr->getCharacterData(literal->getEndLoc());
+    std::string init_val;
+    while (data != end) {
+      init_val += *data;
+      data++;
+    }
+
+    if (init_val != "NULL") {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+      issue = report->ReportIssue(MISRA, M_R_4_10_2, stmt);
+      std::string ref_msg = "Using NULL to stand a nullptr instead of using 0";
+      issue->SetRefMsg(ref_msg);
+    }
+  }
+}
+
+/*
+ * MISRA: 6-4-1
+ * An if ( condition ) construct shall be followed by a compound statement.
+ * The else keyword shall be followed by either a compound statement, or
+ * another if statement.
+ */
+void MISRAStmtRule::CheckIfBrace(const clang::IfStmt *stmt) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  const char *start;
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  for (const auto &it : stmt->children()) {
+    if (clang::dyn_cast<clang::IfStmt>(it) ||
+        it == stmt->getCond()) {
+      continue;
+    }
+    auto body_loc = it->getBeginLoc();
+    start = src_mgr->getCharacterData(body_loc);
+    if (*start != '{') {
+      if (issue == nullptr) {
+        issue = report->ReportIssue(MISRA, M_R_6_4_1, stmt);
+        std::string ref_msg = "if/else block must be enclosed in braces";
+        issue->SetRefMsg(ref_msg);
+      }
+      issue->AddStmt(&(*it));
+    }
+  }
+}
+
 /* MISRA
  * Rule: 5-2-3
  * cast from base class to derived class cannot have polymorphic type

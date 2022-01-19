@@ -118,9 +118,12 @@
 
 // misra cpp
 #define M_R_4_5_1    "M_R_4_5_1"
+#define M_R_4_10_2   "M_R_4_10_2"
 #define M_R_5_0_19   "MSR_5_0_19"
 #define M_R_5_2_2    "MSR_5_2_2"
 #define M_R_5_2_3    "MSR_5_2_3"
+#define M_R_6_4_1    "M_R_6_4_1"
+
 
 #define M_R_8_3_1    "MSR_8_3_1"
 #define M_R_8_5_3    "MSR_8_5_3"

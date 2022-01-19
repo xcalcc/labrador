@@ -68,8 +68,8 @@ private:
   /*
    * GJB8114: 5.3.1.9
    * Using NULL to stand a nullptr instead of using 0
+   * INFO: MOVED TO MISRA-2008 A4-10-2
    */
-  void CheckUsingNullWithPointer(const clang::BinaryOperator *stmt);
 
   /*
    * GJB8114: 5.4.1.8
@@ -370,7 +370,6 @@ public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
     CheckAssignToPointerParam(stmt);
-    CheckUsingNullWithPointer(stmt);
     CheckUsingEnumByOtherTypeVar(stmt);
     CheckIntegerDivision(stmt);
     CheckLiteralSuffix(stmt);

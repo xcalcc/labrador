@@ -437,6 +437,20 @@ private:
   void CheckBoolUsedAsNonLogicalOperand(const clang::BinaryOperator *stmt);
 
   /*
+   * MISRA: 4-10-2
+   * Literal zero (0) shall not be used as the null-pointer- constant.
+   */
+  void CheckUsingNullWithPointer(const clang::BinaryOperator *stmt);
+
+  /*
+   * MISRA: 6-4-1
+   * An if ( condition ) construct shall be followed by a compound statement.
+   * The else keyword shall be followed by either a compound statement, or
+   * another if statement.
+   */
+  void CheckIfBrace(const clang::IfStmt *stmt);
+
+  /*
    * MISRA: 15-0-2
    * An exception object should not have pointer type.
    */
@@ -514,6 +528,7 @@ public:
     CheckMultiIncOrDecExpr(stmt);
     CheckIntToShorter(stmt);
     CheckBoolUsedAsNonLogicalOperand(stmt);
+    CheckUsingNullWithPointer(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
@@ -562,6 +577,7 @@ public:
     CheckControlStmt(stmt);
     CheckUsingAssignmentAsResult(stmt);
     CheckIfWithoutElseStmt(stmt);
+    CheckIfBrace(stmt);
   }
 
   void VisitWhileStmt(const clang::WhileStmt *stmt) {

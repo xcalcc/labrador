@@ -88,8 +88,8 @@ private:
   /*
    * GJB5369: 4.2.1.3
    * if/else block must be enclosed in braces
+   * INFO: MOVED TO MISRA 6-4-1
    */
-  void CheckIfBrace(const clang::IfStmt *stmt);
 
   /*
    * GJB5369: 4.2.1.4
@@ -590,7 +590,6 @@ public:
   }
 
   void VisitIfStmt(const clang::IfStmt *stmt) {
-    CheckIfBrace(stmt);
     CheckEmptyIfElseStmt(stmt);
     CheckAssignInLogicExpr(stmt);
     CheckFalseIfCondition(stmt);
