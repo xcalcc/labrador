@@ -275,7 +275,6 @@ void MISRADeclRule::CheckUndistinctExternalIdent() {
  * An identifier declared in an inner scope shall not hide an identifier declared in an outer scope
  */
 void MISRADeclRule::CheckIdentifierNameConflict() {
-#if 0
   auto scope_mgr = XcalCheckerManager::GetScopeManager();
   auto top_scope = scope_mgr->GlobalScope();
   constexpr uint32_t kind = IdentifierManager::VAR | IdentifierManager::TYPEDEF;
@@ -304,7 +303,6 @@ void MISRADeclRule::CheckIdentifierNameConflict() {
           }
         }
       }, true);
-#endif
 }
 
 /* MISRA
