@@ -196,6 +196,24 @@ private:
   void CheckObjectOrFunctionConflictWithType();
 
   /* MISRA
+   * Rule: 3-3-1
+   * Objects or functions with external linkage shall be declared in a header file.
+   */
+  template<typename TYPE>
+  void CheckExternObjInHeaderFile(const TYPE *decl) {
+    if (decl->getStorageClass() != clang::SC_Extern) return;
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    auto location = decl->getBeginLoc();
+
+    if (!src_mgr->getFilename(location).endswith(".h")) return;
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_3_3_1, decl);
+    std::string ref_msg = "Objects or functions with external linkage shall be declared in a header file.";
+    issue->SetRefMsg(ref_msg);
+  }
+
+  /* MISRA
    * Rule: 5-0-19
    * The declaration of objects shall contain no more than two levels of pointer indirection.
    */
@@ -318,6 +336,7 @@ public:
     CheckDesignatedInitWithImplicitSizeArray(decl);
     CheckVariableAsArrayLength(decl);
     CheckPointerNestedLevel(decl);
+    CheckExternObjInHeaderFile(decl);
   }
 
   void VisitParmVar(const clang::ParmVarDecl *decl) {
@@ -341,6 +360,7 @@ public:
     CheckStaticBetweenBracket(decl);
     CheckExplicitConstructorWithSingleParam(decl);
     CheckExceptionSpecification(decl);
+    CheckExternObjInHeaderFile(decl);
   }
 
   void VisitField(const clang::FieldDecl *decl) {
