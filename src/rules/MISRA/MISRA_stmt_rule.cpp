@@ -1469,6 +1469,7 @@ void MISRAStmtRule::CheckUnsignedIntWrapAround(const clang::BinaryOperator *stmt
  * Functions shall not be declared at block scope.
  */
 void MISRAStmtRule::CheckFunctionDeclInBlock(const clang::DeclStmt *stmt) {
+  if (!stmt->isSingleDecl()) return;
   if (clang::isa<clang::FunctionDecl>(stmt->getSingleDecl())) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
