@@ -1470,12 +1470,18 @@ void MISRAStmtRule::CheckUnsignedIntWrapAround(const clang::BinaryOperator *stmt
  */
 void MISRAStmtRule::CheckFunctionDeclInBlock(const clang::DeclStmt *stmt) {
   if (!stmt->isSingleDecl()) return;
-  if (clang::isa<clang::FunctionDecl>(stmt->getSingleDecl())) {
-    XcalIssue *issue = nullptr;
-    XcalReport *report = XcalCheckerManager::GetReport();
-    issue = report->ReportIssue(MISRA, M_R_3_1_2, stmt);
-    std::string ref_msg = "Functions shall not be declared at block scope.";
-    issue->SetRefMsg(ref_msg);
+  auto ctx = XcalCheckerManager::GetAstContext();
+  auto parents = ctx->getParents(*stmt);
+  if (parents.empty()) return;
+  auto parent = parents[0].get<clang::Stmt>();
+  if (auto compound_stmt = clang::dyn_cast<clang::CompoundStmt>(parent)) {
+    if (clang::isa<clang::FunctionDecl>(stmt->getSingleDecl())) {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+      issue = report->ReportIssue(MISRA, M_R_3_1_2, stmt);
+      std::string ref_msg = "Functions shall not be declared at block scope.";
+      issue->SetRefMsg(ref_msg);
+    }
   }
 }
 

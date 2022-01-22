@@ -295,7 +295,6 @@ void MISRADeclRule::CheckIdentifierNameConflict() {
             ref_msg += var_decl->getNameAsString();
             issue->SetRefMsg(ref_msg);
           } else {
-            var_decl->dumpColor();
             issue->AddDecl(var_decl);
           }
           for (const auto &it : vars) {
