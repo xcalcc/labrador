@@ -89,6 +89,7 @@ bool MISRAStmtRule::HasSideEffect(const clang::Stmt *stmt) {
 
 // check if the expr has Inc/Dec expr
 bool MISRAStmtRule::HasIncOrDecExpr(const clang::Stmt *stmt) {
+  if (stmt == nullptr) return false;
   if (auto unary = clang::dyn_cast<clang::UnaryOperator>(stmt)) {
     if (unary->isIncrementDecrementOp()) return true;
   }
@@ -1619,8 +1620,11 @@ void MISRAStmtRule::CheckDownCastToDerivedClass(const clang::CastExpr *stmt) {
  */
 void MISRAStmtRule::CheckForStmtLoopCounter(const clang::ForStmt *stmt) {
   auto init = stmt->getInit();
+  if (init == nullptr) return;
   auto cond = stmt->getCond();
+  if (cond == nullptr) return;
   auto inc = stmt->getInc();
+  if (inc == nullptr) return;
 
   // get loop-counter
   const clang::VarDecl *loop_counter = nullptr;
