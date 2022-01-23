@@ -1668,9 +1668,23 @@ void MISRAStmtRule::CheckReturnParamRefOrPtr(const clang::ReturnStmt *stmt) {
   auto type = XcalCheckerManager::GetCurrentFunction()->getReturnType();
   if (!type->isPointerType() && !type->isReferenceType()) return;
 
-  if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(val)) {
-    auto decl = clang::dyn_cast<clang::ParmVarDecl>(decl_ref->getDecl());
-    if (decl == nullptr) return;
+  if (type->isPointerType()) {
+    if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(val)) {
+      if (auto decl = clang::dyn_cast<clang::ParmVarDecl>(decl_ref->getDecl())) {
+        // ignore int *f(int *a) { return a; }
+        if (type == decl->getType()) return;
+      } else return;
+    } else if (auto unary_op = clang::dyn_cast<clang::UnaryOperator>(val)) {
+      if (unary_op->getOpcode() != clang::UO_AddrOf) return;
+      if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(unary_op->getSubExpr())) {
+        if (!clang::isa<clang::ParmVarDecl>(decl_ref->getDecl())) return;
+      } else return;
+    } else return;
+  } else {
+    if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(val)) {
+      if (!clang::isa<clang::ParmVarDecl>(decl_ref->getDecl()))
+        return;
+    } else return;
   }
 
   XcalIssue *issue = nullptr;
