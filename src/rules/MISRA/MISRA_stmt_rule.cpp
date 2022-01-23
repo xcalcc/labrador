@@ -1088,14 +1088,17 @@ void MISRAStmtRule::CheckMultiTerminate(const clang::Stmt *stmt) {
  * All if ... else if constructs shall be terminated with an else statement
  */
 void MISRAStmtRule::CheckIfWithoutElseStmt(const clang::IfStmt *stmt) {
-  if (!stmt->hasElseStorage()) {
-    XcalIssue *issue = nullptr;
-    XcalReport *report = XcalCheckerManager::GetReport();
+  if (!stmt->hasElseStorage()) return;
 
-    issue = report->ReportIssue(MISRA, M_R_15_7, stmt);
-    std::string ref_msg = "All if ... else if constructs shall be terminated with an else statement";
-    issue->SetRefMsg(ref_msg);
-  }
+  auto elif = clang::dyn_cast<clang::IfStmt>(stmt->getElse());
+  if (!elif) return;
+  if (elif->hasElseStorage()) return;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(MISRA, M_R_15_7, stmt);
+  std::string ref_msg = "All if ... else if constructs shall be terminated with an else statement";
+  issue->SetRefMsg(ref_msg);
 }
 
 /* MISRA
