@@ -446,7 +446,7 @@ private:
    * MISRA: 4-10-2
    * Literal zero (0) shall not be used as the null-pointer- constant.
    */
-  void CheckUsingNullWithPointer(const clang::BinaryOperator *stmt);
+  void CheckUsingNullWithPointer(const clang::ImplicitCastExpr *stmt);
 
   /*
    * MISRA: 6-4-1
@@ -548,7 +548,6 @@ public:
     CheckMultiIncOrDecExpr(stmt);
     CheckIntToShorter(stmt);
     CheckBoolUsedAsNonLogicalOperand(stmt);
-    CheckUsingNullWithPointer(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
@@ -587,6 +586,7 @@ public:
     CheckVoidPointerToOtherTypePointer(stmt);
     CheckArithTypeCastToVoidPointerType(stmt);
     CheckCastBetweenPointerAndNonIntType(stmt);
+    CheckUsingNullWithPointer(stmt);
   }
 
   void VisitArraySubscriptExpr(const clang::ArraySubscriptExpr *stmt) {
