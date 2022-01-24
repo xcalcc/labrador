@@ -56,11 +56,15 @@ private:
   * Rule: 2.3
   * A project should not contain unused type declarations
   */
-  void CheckUnusedTypedef(const clang::VarDecl *decl);
-  void CheckUnusedTypedef(const clang::FieldDecl *decl);
+  void CheckUnusedTypedef(clang::QualType type);
+  void CheckUnusedTypedef(const clang::FunctionDecl *decl);
   void CheckUnusedTypedef(const clang::TypedefDecl *decl);
-
   void CheckUnusedTypedef();
+  template<typename TYPE>
+  void CheckUnusedTypedef(const TYPE *decl) {
+    auto type = decl->getType();
+    CheckUnusedTypedef(type);
+  }
 
   /* MISRA
    * Rule: 2.6
@@ -179,6 +183,7 @@ private:
    * Variable-length array types shall not be used
    */
   void CheckVariableAsArrayLength(const clang::VarDecl *decl);
+
   void CheckVariableAsArrayLength(const clang::FieldDecl *decl);
 
   /* MISRA
@@ -186,6 +191,7 @@ private:
    * The union keyword should not be used
    */
   void CheckUnionKeyword(const clang::RecordDecl *decl);
+
   void CheckUnionKeyword(const clang::TypedefDecl *decl);
 
   /* MISRA
@@ -217,7 +223,7 @@ private:
    * Rule: 5-0-19
    * The declaration of objects shall contain no more than two levels of pointer indirection.
    */
-  template <typename T>
+  template<typename T>
   void CheckPointerNestedLevel(const T *decl) {
     auto decl_type = decl->getType();
     if (IsPointerNestedMoreThanTwoLevel(decl_type)) {
@@ -328,7 +334,7 @@ public:
   }
 
   void VisitVar(const clang::VarDecl *decl) {
-    CheckUnusedTypedef(decl);
+    CheckUnusedTypedef<clang::VarDecl>(decl);
     CheckStringLiteralToNonConstChar(decl);
     CheckImplicitSizeWithExternalArray(decl);
     CheckRestrict<clang::VarDecl>(decl);
@@ -354,6 +360,7 @@ public:
   }
 
   void VisitFunction(const clang::FunctionDecl *decl) {
+    CheckUnusedTypedef(decl);
     CheckUnusedParameters(decl);
     CheckStaticSpecifier(decl);
     CheckInlineFunctionWithExternalLinkage(decl);
@@ -364,7 +371,7 @@ public:
   }
 
   void VisitField(const clang::FieldDecl *decl) {
-    CheckUnusedTypedef(decl);
+    CheckUnusedTypedef<clang::FieldDecl>(decl);
     CheckVariableAsArrayLength(decl);
     CheckPointerNestedLevel(decl);
   }

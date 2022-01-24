@@ -111,16 +111,28 @@ bool MISRADeclRule::IsPointerNestedMoreThanTwoLevel(clang::QualType decl_type) {
  * Rule: 2.3
  * A project should not contain unused type declarations
  */
-void MISRADeclRule::CheckUnusedTypedef(const clang::VarDecl *decl) {
-  auto type = decl->getType();
+void MISRADeclRule::CheckUnusedTypedef(clang::QualType type) {
   if (auto typedefType = clang::dyn_cast<clang::TypedefType>(type)) {
     auto typedecl = typedefType->getDecl();
     _used_typedef.insert(typedecl);
+  } else if (auto pt_tp = clang::dyn_cast<clang::PointerType>(type)) {
+    CheckUnusedTypedef(pt_tp->getPointeeType());
+  } else if (auto decayed_tp = clang::dyn_cast<clang::DecayedType>(type)) {
+    CheckUnusedTypedef(decayed_tp->getOriginalType());
+  } else {
+    /* ... */
   }
 }
 
-void MISRADeclRule::CheckUnusedTypedef(const clang::FieldDecl *decl) {
-  auto type = decl->getType();
+void MISRADeclRule::CheckUnusedTypedef(const clang::FunctionDecl *decl) {
+  // check parameters
+  for (const auto &it : decl->parameters()) {
+    it->dumpColor();
+    CheckUnusedTypedef(it);
+  }
+
+  // check return value
+  auto type = decl->getReturnType();
   if (auto typedefType = clang::dyn_cast<clang::TypedefType>(type)) {
     auto typedecl = typedefType->getDecl();
     _used_typedef.insert(typedecl);
@@ -131,6 +143,7 @@ void MISRADeclRule::CheckUnusedTypedef(const clang::TypedefDecl *decl) {
   auto type = decl->getTypeSourceInfo()->getType();
   if (auto typedef_type = clang::dyn_cast<clang::TypedefType>(type)) {
     auto typedef_decl = typedef_type->getDecl();
+    typedef_decl->dumpColor();
     _used_typedef.insert(typedef_decl);
   }
 }
@@ -157,7 +170,7 @@ void MISRADeclRule::CheckUnusedTypedef() {
           // check if this typedef is in a header file
           auto location = typedef_decl->getLocation();
           auto filename = src_mgr->getFilename(location);
-          if (filename.endswith(".h")) return;
+          if (filename.endswith(".h") || decl->isUsed()) return;
 
           if (issue == nullptr) {
             issue = report->ReportIssue(MISRA, M_R_2_3, decl);
