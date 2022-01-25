@@ -126,10 +126,9 @@ void MISRADeclRule::CheckUnusedTypedef(clang::QualType type) {
 
 void MISRADeclRule::CheckUnusedTypedef(const clang::FunctionDecl *decl) {
   // check parameters
-  for (const auto &it : decl->parameters()) {
-    it->dumpColor();
+  for (const auto &it : decl->parameters())
     CheckUnusedTypedef(it);
-  }
+
 
   // check return value
   auto type = decl->getReturnType();
@@ -143,7 +142,6 @@ void MISRADeclRule::CheckUnusedTypedef(const clang::TypedefDecl *decl) {
   auto type = decl->getTypeSourceInfo()->getType();
   if (auto typedef_type = clang::dyn_cast<clang::TypedefType>(type)) {
     auto typedef_decl = typedef_type->getDecl();
-    typedef_decl->dumpColor();
     _used_typedef.insert(typedef_decl);
   }
 }
