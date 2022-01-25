@@ -191,20 +191,17 @@ void MISRADeclRule::CheckUnusedLabelInFunction() {
   auto top_scope = scope_mgr->GlobalScope();
   constexpr uint32_t kind = IdentifierManager::LABEL;
 
-  XcalIssue *issue = nullptr;
-  XcalReport *report = XcalCheckerManager::GetReport();
   top_scope->TraverseAll<kind,
       const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
-      [&issue, &report](const std::string &x, const clang::Decl *decl, IdentifierManager *id_mgr) -> void {
+      [](const std::string &x, const clang::Decl *decl, IdentifierManager *id_mgr) -> void {
+        XcalIssue *issue = nullptr;
+        XcalReport *report = XcalCheckerManager::GetReport();
+
         if (!decl->isUsed()) {
-          if (issue == nullptr) {
-            issue = report->ReportIssue(MISRA, M_R_2_6, decl);
-            std::string ref_msg = "A project should not contain unused type declarations: ";
-            ref_msg += clang::dyn_cast<clang::LabelDecl>(decl)->getNameAsString();
-            issue->SetRefMsg(ref_msg);
-          } else {
-            issue->AddDecl(decl);
-          }
+          issue = report->ReportIssue(MISRA, M_R_2_6, decl);
+          std::string ref_msg = "A project should not contain unused type declarations: ";
+          ref_msg += clang::dyn_cast<clang::LabelDecl>(decl)->getNameAsString();
+          issue->SetRefMsg(ref_msg);
         }
       }, true);
 }
@@ -242,14 +239,14 @@ void MISRADeclRule::CheckUndistinctExternalIdent() {
   auto top_scope = scope_mgr->GlobalScope();
   constexpr uint32_t kind = IdentifierManager::VAR;
 
-  XcalIssue *issue = nullptr;
-  XcalReport *report = XcalCheckerManager::GetReport();
-
   std::unordered_map<std::string, const clang::VarDecl *> vars;
 
   top_scope->TraverseAll<kind,
       const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
-      [&vars, &issue, &report](const std::string &x, const clang::Decl *decl, IdentifierManager *id_mgr) -> void {
+      [&vars](const std::string &x, const clang::Decl *decl, IdentifierManager *id_mgr) -> void {
+        XcalIssue *issue = nullptr;
+        XcalReport *report = XcalCheckerManager::GetReport();
+
         const auto *var_decl = clang::dyn_cast<clang::VarDecl>(decl);
         if (var_decl) {
           auto name = var_decl->getNameAsString();
@@ -259,14 +256,10 @@ void MISRADeclRule::CheckUndistinctExternalIdent() {
             for (const auto &it : vars) {
               if (name.substr(0, 31) == it.first.substr(0, 31)) {
                 found = true;
-                if (issue == nullptr) {
-                  issue = report->ReportIssue(MISRA, M_R_5_1, it.second);
-                  std::string ref_msg = "External identifiers shall be distinct: ";
-                  ref_msg += var_decl->getNameAsString();
-                  issue->SetRefMsg(ref_msg);
-                } else {
-                  issue->AddDecl(it.second);
-                }
+                issue = report->ReportIssue(MISRA, M_R_5_1, it.second);
+                std::string ref_msg = "External identifiers shall be distinct: ";
+                ref_msg += var_decl->getNameAsString();
+                issue->SetRefMsg(ref_msg);
                 issue->AddDecl(var_decl);
               }
             }
@@ -289,7 +282,6 @@ void MISRADeclRule::CheckIdentifierNameConflict() {
   auto scope_mgr = XcalCheckerManager::GetScopeManager();
   auto top_scope = scope_mgr->GlobalScope();
   constexpr uint32_t kind = IdentifierManager::VAR | IdentifierManager::TYPEDEF;
-
 
   top_scope->TraverseAll<kind,
       const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
@@ -688,13 +680,14 @@ void MISRADeclRule::CheckObjectOrFunctionConflictWithType() {
   constexpr uint32_t kind = IdentifierManager::VAR | IdentifierManager::TYPE |
                             IdentifierManager::FUNCTION;
 
-  XcalIssue *issue = nullptr;
-  XcalReport *report = XcalCheckerManager::GetReport();
 
   top_scope->TraverseAll<kind,
       const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
-      [&issue, &report](const std::string &name, const clang::Decl *decl, IdentifierManager *id_mgr) {
+      [](const std::string &name, const clang::Decl *decl, IdentifierManager *id_mgr) {
         bool res = false;
+        XcalIssue *issue = nullptr;
+        XcalReport *report = XcalCheckerManager::GetReport();
+
         if (auto record = clang::dyn_cast<clang::RecordDecl>(decl)) {
           auto record_name = record->getNameAsString();
           res = id_mgr->HasFunctionName(record_name);
@@ -702,14 +695,10 @@ void MISRADeclRule::CheckObjectOrFunctionConflictWithType() {
           res |= id_mgr->HasTypeDef<false>(record_name);
         }
         if (res) {
-          if (issue == nullptr) {
-            issue = report->ReportIssue(MISRA, M_R_2_10_6, decl);
-            std::string ref_msg = "If an identifier refers to a type, it shall not also refer to an "
-                                  "object or a function in the same scope.";
-            issue->SetRefMsg(ref_msg);
-          } else {
-            issue->AddDecl(decl);
-          }
+          issue = report->ReportIssue(MISRA, M_R_2_10_6, decl);
+          std::string ref_msg = "If an identifier refers to a type, it shall not also refer to an "
+                                "object or a function in the same scope.";
+          issue->SetRefMsg(ref_msg);
         }
       }, true);
 }
@@ -1210,12 +1199,9 @@ void MISRADeclRule::CheckThrownUnSpecifiedType() {
   auto top_scope = scope_mgr->GlobalScope();
   constexpr uint32_t kind = IdentifierManager::FUNCTION;
 
-  XcalIssue *issue = nullptr;
-  XcalReport *report = XcalCheckerManager::GetReport();
-
   top_scope->TraverseAll<kind,
       const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
-      [&issue, &report, &top_scope](const std::string &x, const clang::Decl *decl, IdentifierManager *id_mgr) -> void {
+      [&top_scope](const std::string &x, const clang::Decl *decl, IdentifierManager *id_mgr) -> void {
         bool need_report = false;
         auto func = clang::cast<clang::FunctionDecl>(decl);
         auto except_types = top_scope->GetExceptionSpec(func);
@@ -1229,6 +1215,8 @@ void MISRADeclRule::CheckThrownUnSpecifiedType() {
         }
 
         if (need_report) {
+          XcalIssue *issue = nullptr;
+          XcalReport *report = XcalCheckerManager::GetReport();
           issue = report->ReportIssue(MISRA, M_R_15_5_2, decl);
           std::string ref_msg = "Function decl with exception spec, throw exception can be of indicated type in its decl";
           issue->SetRefMsg(ref_msg);
