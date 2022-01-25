@@ -117,17 +117,17 @@
 #define M_R_21_12   "MSR_21_12"
 
 // misra cpp
-#define M_R_2_10_6   "M_R_2_10_6"
-#define M_R_3_1_2    "M_R_3_1_2"
-#define M_R_3_3_1    "M_R_3_3_1"
-#define M_R_4_5_1    "M_R_4_5_1"
-#define M_R_4_10_2   "M_R_4_10_2"
+#define M_R_2_10_6   "MSR_2_10_6"
+#define M_R_3_1_2    "MSR_3_1_2"
+#define M_R_3_3_1    "MSR_3_3_1"
+#define M_R_4_5_1    "MSR_4_5_1"
+#define M_R_4_10_2   "MSR_4_10_2"
 #define M_R_5_0_19   "MSR_5_0_19"
 #define M_R_5_2_2    "MSR_5_2_2"
 #define M_R_5_2_3    "MSR_5_2_3"
-#define M_R_6_4_1    "M_R_6_4_1"
-#define M_R_6_5_2    "M_R_6_5_2"
-#define M_R_7_5_3    "M_R_7_5_3"
+#define M_R_6_4_1    "MSR_6_4_1"
+#define M_R_6_5_2    "MSR_6_5_2"
+#define M_R_7_5_3    "MSR_7_5_3"
 
 
 #define M_R_8_3_1    "MSR_8_3_1"

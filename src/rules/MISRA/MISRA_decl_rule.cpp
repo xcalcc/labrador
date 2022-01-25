@@ -290,24 +290,24 @@ void MISRADeclRule::CheckIdentifierNameConflict() {
   auto top_scope = scope_mgr->GlobalScope();
   constexpr uint32_t kind = IdentifierManager::VAR | IdentifierManager::TYPEDEF;
 
-  XcalIssue *issue = nullptr;
-  XcalReport *report = XcalCheckerManager::GetReport();
+
   top_scope->TraverseAll<kind,
       const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
-      [&issue, &report](const std::string &var_name, const clang::Decl *decl, IdentifierManager *id_mgr) -> void {
+      [](const std::string &var_name, const clang::Decl *decl, IdentifierManager *id_mgr) -> void {
         std::vector<const clang::VarDecl *> vars;
+        XcalIssue *issue = nullptr;
+        XcalReport *report = XcalCheckerManager::GetReport();
+
+        if (clang::isa<clang::ParmVarDecl>(decl) || var_name.empty()) return;
         id_mgr->GetOuterVariables(var_name, vars);
 
         if (!vars.empty()) {
-          auto var_decl = clang::dyn_cast<clang::VarDecl>(decl);
-          if (issue == nullptr) {
-            issue = report->ReportIssue(MISRA, M_R_5_3, decl);
-            std::string ref_msg = "External identifiers shall be distinct: ";
-            ref_msg += var_decl->getNameAsString();
-            issue->SetRefMsg(ref_msg);
-          } else {
-            issue->AddDecl(var_decl);
-          }
+          auto var_decl = clang::dyn_cast<clang::NamedDecl>(decl);
+          if (var_decl == nullptr) return;
+          issue = report->ReportIssue(MISRA, M_R_5_3, decl);
+          std::string ref_msg = "External identifiers shall be distinct: ";
+          ref_msg += var_decl->getNameAsString();
+          issue->SetRefMsg(ref_msg);
           for (const auto &it : vars) {
             issue->AddDecl(&(*it));
           }

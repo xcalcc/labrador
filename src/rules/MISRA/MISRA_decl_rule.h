@@ -323,7 +323,7 @@ private:
 
 public:
   void Finalize() {
-    CheckUnusedTypedef();
+//    CheckUnusedTypedef();
     CheckUnusedLabelInFunction();
     CheckUndistinctExternalIdent();
     CheckIdentifierNameConflict();
