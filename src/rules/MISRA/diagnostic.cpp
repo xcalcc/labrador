@@ -31,6 +31,9 @@ void MISRADiagnostic::HandleDiagnostic(clang::DiagnosticsEngine::Level diagnosti
   clang::SourceLocation location = diagnosticInfo.getLocation();
   auto msg = diagnosticMessage.c_str();
 
+#ifdef Is_True_On
+  printf("%u\n", diagnosticInfo.getID());
+#endif
   switch (diagnosticInfo.getID()) {
     case 1067:  // MISRA 4.2
       AddIssue(M_R_4_2, "Trigraphs should not be used", location);
@@ -45,6 +48,7 @@ void MISRADiagnostic::HandleDiagnostic(clang::DiagnosticsEngine::Level diagnosti
     case 5942:
       AddIssue(M_R_5_2_2, msg, location);
       break;
+    case 4518:
     case 5705:  // MISRA 9.4
       AddIssue(M_R_9_4, msg, location);
       break;
