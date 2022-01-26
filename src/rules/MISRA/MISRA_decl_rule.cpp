@@ -547,18 +547,69 @@ void MISRADeclRule::CheckArrayPartialInitialized(const clang::VarDecl *decl) {
  * Where designated initializers are used to initialize an array object the size of the array shall be specified explicitly
  */
 void MISRADeclRule::CheckDesignatedInitWithImplicitSizeArray(const clang::VarDecl *decl) {
-#if 0
   auto type = decl->getType();
   if (!type->isArrayType()) return;
+  auto arr_type = clang::dyn_cast<clang::ArrayType>(type);
+  if (arr_type && arr_type->getElementType()->isArrayType()) return;
   if (!decl->hasInit()) return;
 
+
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  {
+    auto var_loc = decl->getLocation();
+    auto end_loc = decl->getEndLoc();
+    auto var_pos = src_mgr->getCharacterData(var_loc);
+    auto end_pos = src_mgr->getCharacterData(end_loc);
+    if (var_pos == end_pos) return;
+    while (*var_pos != '[') {
+      var_pos++;
+      if (var_pos == end_pos) break;
+    }
+
+    // eat '['
+    var_pos++;
+    // return if size is specified
+    if (*var_pos != ']') return;
+  }
+
+  bool with_designated = false;
   auto inits = clang::dyn_cast<clang::InitListExpr>(decl->getInit());
-  for (const auto &it : inits->inits()) {
-    if (it->getStmtClass() == clang::Stmt::DesignatedInitExprClass) {
-      it->dumpColor();
+  if (!inits) return;
+  auto init_loc = inits->getBeginLoc();
+  auto end_loc = inits->getEndLoc();
+  auto init_pos = src_mgr->getCharacterData(init_loc);
+  auto end_pos = src_mgr->getCharacterData(end_loc);
+  // eat '{'
+  if (*init_pos == '{') init_pos++;
+  init_loc.dump(*src_mgr);
+  while (init_pos != end_pos) {
+    bool need_eat = false;
+    /* parse init expr, split with ',' */
+    if (*init_pos == '[') {
+      with_designated = true;
+      break;
+    } else {
+      while (*init_pos != ',') {
+        init_pos++;
+        if (init_pos == end_pos) {
+          need_eat = false;
+          break;
+        }
+        need_eat = true;
+      }
+      // eat ','
+      if (need_eat) init_pos++;
     }
   }
-#endif
+
+  if (with_designated) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_9_5, decl);
+    std::string ref_msg = "Where designated initializers are used to initialize an array object the size of the array "
+                          "shall be specified explicitly";
+    issue->SetRefMsg(ref_msg);
+  }
 }
 
 /* MISRA

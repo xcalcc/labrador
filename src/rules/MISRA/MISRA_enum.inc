@@ -52,6 +52,7 @@
 
 #define M_R_9_3     "MSR_9_3"
 #define M_R_9_4     "MSR_9_4"
+#define M_R_9_5     "M_R_9_5"
 
 #define M_R_10_2    "MSR_10_2"
 #define M_R_10_3    "MSR_10_3"

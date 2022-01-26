@@ -30,6 +30,7 @@ void MISRADiagnostic::HandleDiagnostic(clang::DiagnosticsEngine::Level diagnosti
   diagnosticInfo.FormatDiagnostic(diagnosticMessage);
   clang::SourceLocation location = diagnosticInfo.getLocation();
   auto msg = diagnosticMessage.c_str();
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
 
 #ifdef Is_True_On
   printf("%u\n", diagnosticInfo.getID());
@@ -52,6 +53,9 @@ void MISRADiagnostic::HandleDiagnostic(clang::DiagnosticsEngine::Level diagnosti
     case 5705:  // MISRA 9.4
       AddIssue(M_R_9_4, msg, location);
       break;
+    case clang::diag::ext_designated_init_array: {
+      break;
+    }
     case 5418:  // MISRA 13.4
       AddIssue(M_R_13_4, msg, location);
       break;
