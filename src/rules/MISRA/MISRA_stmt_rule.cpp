@@ -493,13 +493,13 @@ void MISRAStmtRule::CheckIncompleteTypePointerCastToAnotherType(const clang::CSt
   auto pointee_type = pointee->getPointeeType();
   if (!pointee_type->isStructureType()) return;
   auto struct_decl = pointee_type->getAs<clang::RecordType>()->getDecl();
-  if (!struct_decl || (!struct_decl->isCompleteDefinition())) return;
+  if (!struct_decl || !struct_decl->isCompleteDefinition()) return;
 
   if (sub_type == stmt->getType()) return;
 
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
-  issue = report->ReportIssue(MISRA, M_R_11_2, stmt);
+  issue = report->ReportIssue(MISRA, M_R_11_2, stmt->getSubExpr()->IgnoreParenImpCasts());
   std::string ref_msg = "Conversions shall not be performed between a pointer to an "
                         "incomplete type and any other type";
   issue->SetRefMsg(ref_msg);
