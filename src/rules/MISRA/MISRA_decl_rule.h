@@ -140,6 +140,12 @@ private:
   void CheckImplicitSizeWithExternalArray(const clang::VarDecl *decl);
 
   /* MISRA
+   * Rule: 8.12
+   * Within an enumerator list, the value of an implicitly-specified enumeration constant shall be unique
+   */
+  void CheckNonUniqueValueOfEnum(const clang::EnumDecl *decl);
+
+  /* MISRA
    * Rule: 8.14
    * The restrict type qualifier shall not be used
    */
@@ -352,6 +358,7 @@ public:
 
   void VisitEnum(const clang::EnumDecl *decl) {
     CheckEnumDeclInit(decl);
+    CheckNonUniqueValueOfEnum(decl);
   }
 
   void VisitTypedef(const clang::TypedefDecl *decl) {

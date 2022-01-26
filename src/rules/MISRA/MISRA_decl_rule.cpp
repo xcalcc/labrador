@@ -505,6 +505,30 @@ void MISRADeclRule::CheckImplicitSizeWithExternalArray(const clang::VarDecl *dec
 }
 
 /* MISRA
+ * Rule: 8.12
+ * Within an enumerator list, the value of an implicitly-specified enumeration constant shall be unique
+ */
+void MISRADeclRule::CheckNonUniqueValueOfEnum(const clang::EnumDecl *decl) {
+  std::unordered_map<uint64_t, const clang::EnumConstantDecl *> vals;
+  for (const auto &it : decl->enumerators()) {
+    auto val = it->getInitVal().getZExtValue();
+    auto res = vals.find(val);
+    if (res == vals.end()) vals.emplace(val, it);
+    else {
+      if (it->getInitExpr() && res->second->getInitExpr()) continue;
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+      issue = report->ReportIssue(MISRA, M_R_8_12, decl);
+      std::string ref_msg = "Within an enumerator list, the value of an implicitly-specified enumeration constant shall be unique";
+      issue->SetRefMsg(ref_msg);
+      issue->AddDecl(it);
+      issue->AddDecl(res->second);
+      return;
+    }
+  }
+}
+
+/* MISRA
  * Rule: 9.3
  * Arrays shall not be partially initialized
  */
@@ -581,7 +605,6 @@ void MISRADeclRule::CheckDesignatedInitWithImplicitSizeArray(const clang::VarDec
   auto end_pos = src_mgr->getCharacterData(end_loc);
   // eat '{'
   if (*init_pos == '{') init_pos++;
-  init_loc.dump(*src_mgr);
   while (init_pos != end_pos) {
     bool need_eat = false;
     /* parse init expr, split with ',' */
