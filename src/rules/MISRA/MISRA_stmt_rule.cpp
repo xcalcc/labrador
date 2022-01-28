@@ -918,24 +918,21 @@ void MISRAStmtRule::CheckLoopVariable(const clang::ForStmt *stmt) {
 
     if (bin_init_stmt->isAssignmentOp() || bin_init_stmt->isCompoundAssignmentOp()) {
       auto lhs_type = lhs->getType();
-
       if (lhs_type->isFloatingType()) {
         need_report = true;
       }
-
-    } else if (auto decl_stmt = clang::dyn_cast<clang::DeclStmt>(init_stmt)) {
-      if (!decl_stmt->isSingleDecl()) return;
-      auto decl = decl_stmt->getSingleDecl();
-      if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
-        if (var_decl->getType()->isFloatingType()) {
-          need_report = true;
-        }
+    }
+  } else if (auto decl_stmt = clang::dyn_cast<clang::DeclStmt>(init_stmt)) {
+    if (!decl_stmt->isSingleDecl()) return;
+    auto decl = decl_stmt->getSingleDecl();
+    if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
+      if (var_decl->getType()->isFloatingType()) {
+        need_report = true;
       }
     }
-
-    if (need_report) {
-      ReportLoopVariable(init_stmt);
-    }
+  }
+  if (need_report) {
+    ReportLoopVariable(init_stmt);
   }
 }
 
@@ -1519,7 +1516,8 @@ void MISRAStmtRule::CheckUsingNullWithPointer(const clang::ImplicitCastExpr *stm
   auto sub_expr = stmt->getSubExpr()->IgnoreParenImpCasts();
 
   auto k1 = stmt->isNullPointerConstant(*ctx, clang::Expr::NullPointerConstantValueDependence::NPC_NeverValueDependent);
-  auto k2 = sub_expr->isNullPointerConstant(*ctx, clang::Expr::NullPointerConstantValueDependence::NPC_NeverValueDependent);
+  auto k2 = sub_expr->isNullPointerConstant(*ctx,
+                                            clang::Expr::NullPointerConstantValueDependence::NPC_NeverValueDependent);
   auto zero_literal = clang::Expr::NullPointerConstantKind::NPCK_ZeroLiteral;
 
   if (k1 == zero_literal && k2 == zero_literal) {
