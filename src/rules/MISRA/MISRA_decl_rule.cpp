@@ -608,6 +608,12 @@ void MISRADeclRule::CheckDesignatedInitWithImplicitSizeArray(const clang::VarDec
   while (init_pos != end_pos) {
     bool need_eat = false;
     /* parse init expr, split with ',' */
+    // eat space
+    while (std::isspace(*init_pos)) {
+      init_pos++;
+      if (init_pos == end_pos) break;
+    }
+    if (init_pos == end_pos) break;
     if (*init_pos == '[') {
       with_designated = true;
       break;
