@@ -56,6 +56,9 @@ void MISRADiagnostic::HandleDiagnostic(clang::DiagnosticsEngine::Level diagnosti
     case clang::diag::ext_designated_init_array: {
       break;
     }
+    case clang::diag::warn_unsequenced_mod_use:
+      AddIssue(M_R_13_2, msg, location);
+      break;
     case 5418:  // MISRA 13.4
       AddIssue(M_R_13_4, msg, location);
       break;
