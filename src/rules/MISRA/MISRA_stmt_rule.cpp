@@ -491,9 +491,9 @@ void MISRAStmtRule::CheckIncompleteTypePointerCastToAnotherType(const clang::CSt
   auto pointee = clang::dyn_cast<clang::PointerType>(sub_type);
   if (!pointee) return;
   auto pointee_type = pointee->getPointeeType();
-  if (!pointee_type->isStructureType()) return;
+  if (!pointee_type->isRecordType()) return;
   auto struct_decl = pointee_type->getAs<clang::RecordType>()->getDecl();
-  if (!struct_decl || !struct_decl->isCompleteDefinition()) return;
+  if (!struct_decl || struct_decl->isCompleteDefinition()) return;
 
   if (sub_type == stmt->getType()) return;
 
