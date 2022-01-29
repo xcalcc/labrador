@@ -52,10 +52,10 @@ private:
   // check if pointer nested more than tow levels
   bool IsPointerNestedMoreThanTwoLevel(clang::QualType decl_type);
 
-  /* MISRA
-  * Rule: 2.3
-  * A project should not contain unused type declarations
-  */
+    /* MISRA
+    * Rule: 2.3
+    * A project should not contain unused type declarations
+    */
   void CheckUnusedTypedef(clang::QualType type);
   void CheckUnusedTypedef(const clang::FunctionDecl *decl);
   void CheckUnusedTypedef(const clang::TypedefDecl *decl);
@@ -120,6 +120,12 @@ private:
    * A string literal shall not be assigned to an object unless the object’s type is “pointer to const-qualified char”
    */
   void CheckStringLiteralToNonConstChar(const clang::VarDecl *decl);
+
+  /* MISRA
+   * Rule: 8.2
+   * Function types shall be in prototype form with named parameters
+   */
+  void CheckParameterNoIdentifier(const clang::FunctionDecl *decl);
 
   /* MISRA
    * Rule: 8.8
@@ -375,6 +381,7 @@ public:
     CheckExplicitConstructorWithSingleParam(decl);
     CheckExceptionSpecification(decl);
     CheckExternObjInHeaderFile(decl);
+    CheckParameterNoIdentifier(decl);
   }
 
   void VisitField(const clang::FieldDecl *decl) {

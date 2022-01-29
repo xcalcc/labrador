@@ -101,8 +101,8 @@ private:
 
   /* GJB5369: 4.1.1.7
    * Only type but no identifiers in function prototype.
+   * INFO: MOVED TO MISRA 8.2
    */
-  void CheckParameterNoIdentifier(const clang::FunctionDecl *decl);
 
   /* GJB5369: 4.1.1.9
    * redefining the keywords of C/C++ is forbidden
@@ -319,7 +319,6 @@ public:
   }
 
   void VisitFunction(const clang::FunctionDecl *decl) {
-    CheckParameterNoIdentifier(decl);
     CheckParameterTypeDecl(decl);
     CheckDifferentParamForms(decl);
     CheckFunctionAsParameter(decl);

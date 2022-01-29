@@ -108,6 +108,19 @@ void MISRAStmtRule::ReportTemplate(const std::string &str, const char *rule, con
   issue->SetRefMsg(str);
 }
 
+/*
+ * check if it is CaseStmt/DefaultStmt
+ */
+bool MISRAStmtRule::IsCaseStmt(const clang::Stmt *stmt) {
+  using StmtClass = clang::Stmt::StmtClass;
+  auto stmtClass = stmt->getStmtClass();
+  if ((stmtClass == StmtClass::CaseStmtClass) ||
+      (stmtClass == StmtClass::DefaultStmtClass)) {
+    return true;
+  }
+  return false;
+}
+
 
 /* MISRA
  * Rule: 4.1
@@ -1096,6 +1109,55 @@ void MISRAStmtRule::CheckIfWithoutElseStmt(const clang::IfStmt *stmt) {
   issue = report->ReportIssue(MISRA, M_R_15_7, stmt);
   std::string ref_msg = "All if ... else if constructs shall be terminated with an else statement";
   issue->SetRefMsg(ref_msg);
+}
+
+/* MISRA
+ * Rule: 16.3
+ * Every switch statement shall have a default label
+ */
+bool MISRAStmtRule::HasBreakStmt(const clang::Stmt *stmt) {
+  for (const auto &child : stmt->children()) {
+    if (child == nullptr) continue;
+    if (child->getStmtClass() == clang::Stmt::BreakStmtClass) return true;
+  }
+  return false;
+}
+
+void MISRAStmtRule::CheckCaseEndWithBreak(const clang::SwitchStmt *stmt) {
+  using StmtClass = clang::Stmt::StmtClass;
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  auto switch_body = stmt->getBody();
+  if (switch_body != nullptr) {
+
+    auto it = switch_body->child_begin();
+    auto case_end = switch_body->child_end();
+
+    bool need_report = false;
+    for (; it != case_end; it++) {
+      if (IsCaseStmt(*it)) {
+        /*
+         * 1. case: ...; break;
+         * 2. case: { ...; break; }
+         */
+        bool has_break = false;
+        for (const auto &sub : it->children()) has_break |= HasBreakStmt(sub);
+        has_break |= ((std::next(it) != case_end) &&
+                      (std::next(it)->getStmtClass() == clang::Stmt::BreakStmtClass));
+        if (!has_break && !HasBreakStmt(*it)) {
+          if (issue == nullptr) {
+            issue = report->ReportIssue(MISRA, M_R_16_3, stmt);
+            std::string ref_msg = R"("case" statement without "break" is forbidden)";
+            issue->SetRefMsg(ref_msg);
+          }
+          issue->AddStmt(*it);
+        }
+      }
+    }
+  }
 }
 
 /* MISRA

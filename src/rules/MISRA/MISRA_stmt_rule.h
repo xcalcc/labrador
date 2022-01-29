@@ -65,6 +65,9 @@ private:
   // report template
   void ReportTemplate(const std::string &str, const char *rule, const clang::Stmt *stmt);
 
+  // check if it is CaseStmt/DefaultStmt
+  bool IsCaseStmt(const clang::Stmt *stmt);
+
   /* MISRA
    * Rule: 4.1
    * Octal and hexadecimal escape sequences shall be terminated
@@ -320,6 +323,13 @@ private:
    * All if ... else if constructs shall be terminated with an else statement
    */
   void CheckIfWithoutElseStmt(const clang::IfStmt *stmt);
+
+  /* MISRA
+   * Rule: 16.3
+   * Every switch statement shall have a default label
+   */
+  bool HasBreakStmt(const clang::Stmt *stmt);
+  void CheckCaseEndWithBreak(const clang::SwitchStmt *stmt);
 
   /* MISRA
    * Rule: 16.4
@@ -631,6 +641,7 @@ public:
     CheckSwitchWithoutDefault(stmt);
     CheckDefaultStmtPosition(stmt);
     CheckCaseStmtNum(stmt);
+    CheckCaseEndWithBreak(stmt);
   }
 
   void VisitCXXTypeidExpr(const clang::CXXTypeidExpr *stmt) {

@@ -456,6 +456,23 @@ void MISRADeclRule::CheckStringLiteralToNonConstChar(const clang::VarDecl *decl)
 }
 
 /* MISRA
+ * Rule: 8.2
+ * Function types shall be in prototype form with named parameters
+ */
+void MISRADeclRule::CheckParameterNoIdentifier(const clang::FunctionDecl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  for (const auto &it : decl->parameters()) {
+    if (it->getNameAsString().empty()) {
+      issue = report->ReportIssue(MISRA, M_R_8_2, decl);
+      std::string ref_msg = "Function types shall be in prototype form with named parameters";
+      issue->SetRefMsg(ref_msg);
+    }
+  }
+}
+
+/* MISRA
  * Rule: 8.8
  * The static storage class specifier shall be used in all declarations of objects and functions that have internal linkage
  */

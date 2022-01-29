@@ -324,23 +324,6 @@ void GJB5369DeclRule::CheckParameterTypeDecl(const clang::FunctionDecl *decl) {
   //    }
 }
 
-/* GJB5369: 4.1.1.7
- * Only type but no identifiers in function prototype.
- */
-void GJB5369DeclRule::CheckParameterNoIdentifier(const clang::FunctionDecl *decl) {
-  XcalIssue *issue = nullptr;
-  XcalReport *report = XcalCheckerManager::GetReport();
-
-  for (const auto &it : decl->parameters()) {
-    if (it->getNameAsString().empty()) {
-      issue = report->ReportIssue(GJB5369, G4_1_1_7, decl);
-      std::string ref_msg = "Only type but no identifiers in function: ";
-      ref_msg += decl->getNameAsString();
-      issue->SetRefMsg(ref_msg);
-    }
-  }
-}
-
 /* GJB5369: 4.1.1.9
  * redefining the keywords of C/C++ is forbidden
  */
