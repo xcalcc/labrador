@@ -91,6 +91,12 @@ private:
   void CheckIdentifierNameConflict();
 
   /* MISRA
+   * Rule: 5.5
+   * Identifiers shall be distinct from macro names
+   */
+  void CheckIdentifiedMacro();
+
+  /* MISRA
    * Rule: 5.6
    * A typedef name shall be a unique identifier
    */
@@ -343,6 +349,7 @@ public:
 //    CheckTageUnique();
     CheckThrownUnSpecifiedType();
     CheckObjectOrFunctionConflictWithType();
+    CheckIdentifiedMacro();
   }
 
   void VisitVar(const clang::VarDecl *decl) {

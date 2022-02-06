@@ -29,6 +29,8 @@
 #include "clang/AST/Decl.h"
 #include "llvm/ADT/PointerIntPair.h"
 #include "clang/Basic/SourceManager.h"
+#include "clang/Lex/Token.h"
+#include "clang/Lex/MacroInfo.h"
 #include <vector>
 #include <unordered_map>
 
@@ -475,12 +477,15 @@ public:
 
 };  // LexicalScope
 
+typedef std::unordered_map<std::string, const clang::MacroDirective *> MacroMap;
+
 // class ScopeManager
 // manages all scope in tree structure
 class ScopeManager {
 private:
   std::unique_ptr<LexicalScope> _root;       // root scope
   LexicalScope                 *_current;    // current scope
+  MacroMap                      _macro_map;  // macro map
 
   ScopeManager(const ScopeManager&)
   = delete;
@@ -535,6 +540,15 @@ public:
 
   void DumpAll() const {
     _root->Dump(true);
+  }
+
+  void AddMacro(const std::string &MacroNameTok, const clang::MacroDirective *MD) {
+    DBG_ASSERT(_macro_map.find(MacroNameTok) == _macro_map.end(), "Macro already exists");
+    _macro_map.emplace(MacroNameTok, MD);
+  }
+
+  const MacroMap &GetMacroMap() const {
+    return _macro_map;
   }
 
 };  // ScopeManager

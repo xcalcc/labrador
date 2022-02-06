@@ -39,6 +39,13 @@ public:
 private:
 
   /* MISRA
+   * Rule: 5.5
+   * Identifiers shall be distinct from macro names
+   */
+  void CheckRecordMacroName(const clang::Token &MacroNameTok,
+                            const clang::MacroDirective *MD);
+
+  /* MISRA
    * Rule: 17.1
    * The features of <stdarg.h> shall not be used
    * Rule: 21.5
@@ -55,6 +62,7 @@ private:
 public:
   void MacroDefined(const clang::Token &MacroNameTok,
                     const clang::MacroDirective *MD) {
+    CheckRecordMacroName(MacroNameTok, MD);
   }
 
   void MacroExpands(const clang::Token &MacroNameTok,

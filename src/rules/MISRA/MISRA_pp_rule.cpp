@@ -29,6 +29,30 @@ namespace xsca {
 namespace rule {
 
 /* MISRA
+ * Rule: 5.5
+ * Identifiers shall be distinct from macro names
+ */
+void MISRAPPRule::CheckRecordMacroName(const clang::Token &MacroNameTok, const clang::MacroDirective *MD) {
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  auto macro_info = MD->getMacroInfo();
+  auto macro_loc = macro_info->getDefinitionLoc();
+  auto end_loc = macro_info->getDefinitionEndLoc();
+  const char *start = src_mgr->getCharacterData(macro_loc);
+  const char *end = src_mgr->getCharacterData(end_loc);
+
+  std::string name;
+  while (start != end) {
+    if (*start == '(') break;
+    name += *start;
+    start++;
+  }
+  if (!name.empty()) {
+    scope_mgr->AddMacro(name, MD);
+  }
+}
+
+/* MISRA
  * Rule: 17.1
  * The features of <stdarg.h> shall not be used
  * Rule: 21.5

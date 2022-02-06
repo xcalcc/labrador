@@ -308,6 +308,40 @@ void MISRADeclRule::CheckIdentifierNameConflict() {
 }
 
 /* MISRA
+ * Rule: 5.5
+ * Identifiers shall be distinct from macro names
+ */
+void MISRADeclRule::CheckIdentifiedMacro() {
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+  constexpr uint32_t kind = IdentifierManager::VAR;
+
+  for (const auto &it : scope_mgr->GetMacroMap()) {
+    top_scope->TraverseAll<kind,
+        const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+        [&it](const std::string &name, const clang::Decl *decl, IdentifierManager *id_mgr) {
+          XcalIssue *issue = nullptr;
+          XcalReport *report = XcalCheckerManager::GetReport();
+
+          bool need_report = false;
+          if (name == it.first) {
+            need_report = true;
+          } else {
+            if (name.length() > 31 && it.first.length() > 31) {
+              if (strncmp(name.c_str(), it.first.c_str(), 30) == 0)
+                need_report = true;
+            }
+          }
+          if (need_report == true) {
+            issue = report->ReportIssue(MISRA, M_R_5_5, it.second->getLocation());
+            std::string ref_msg = "Identifiers shall be distinct from macro names";
+            issue->SetRefMsg(ref_msg);
+          }
+        }, true);
+  }
+}
+
+/* MISRA
  * Rule: 5.6
  * A typedef name shall be a unique identifier
  */
