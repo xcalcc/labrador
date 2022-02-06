@@ -1094,6 +1094,25 @@ void MISRAStmtRule::CheckMultiTerminate(const clang::Stmt *stmt) {
 }
 
 /* MISRA
+ * Rule: 15.6
+ * The body of an iteration-statement or a selection-statement shall be a compound-statement
+ */
+void MISRAStmtRule::CheckIfWithCompoundStmt(const clang::IfStmt *stmt) {
+  auto then = stmt->getThen();
+  if (then && clang::isa<clang::CompoundStmt>(then)) return;
+  if (stmt->hasElseStorage()) {
+    if (clang::isa<clang::CompoundStmt>(stmt->getElse())) return;
+  }
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(MISRA, M_R_15_6, stmt);
+  std::string ref_msg = "The body of an iteration-statement or a selection-statement"
+                        "shall be a compound-statement";
+  issue->SetRefMsg(ref_msg);
+}
+
+/* MISRA
  * Rule: 15.7
  * All if ... else if constructs shall be terminated with an else statement
  */

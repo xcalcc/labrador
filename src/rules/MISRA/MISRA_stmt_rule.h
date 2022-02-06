@@ -319,6 +319,22 @@ private:
   }
 
   /* MISRA
+   * Rule: 15.6
+   * The body of an iteration-statement or a selection-statement shall be a compound-statement
+   */
+  void CheckIfWithCompoundStmt(const clang::IfStmt *stmt);
+  template<typename TYPE>
+  void CheckLoopOrSwitchWithCompoundStmt(const TYPE *stmt) {
+    if (clang::isa<clang::CompoundStmt>(stmt->getBody())) return;
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_15_6, stmt);
+    std::string ref_msg = "The body of an iteration-statement or a selection-statement"
+                          "shall be a compound-statement";
+    issue->SetRefMsg(ref_msg);
+  }
+
+  /* MISRA
    * Rule: 15.7
    * All if ... else if constructs shall be terminated with an else statement
    */
@@ -608,6 +624,7 @@ public:
     CheckUsingAssignmentAsResult(stmt);
     CheckIfWithoutElseStmt(stmt);
     CheckIfBrace(stmt);
+    CheckIfWithCompoundStmt(stmt);
   }
 
   void VisitWhileStmt(const clang::WhileStmt *stmt) {
@@ -615,12 +632,14 @@ public:
     CheckLoopVariable(stmt);
     CheckMultiTerminate(stmt);
     CheckUsingAssignmentAsResult(stmt);
+    CheckLoopOrSwitchWithCompoundStmt(stmt);
   }
 
   void VisitDoStmt(const clang::DoStmt *stmt) {
     CheckControlStmt(stmt);
     CheckMultiTerminate(stmt);
     CheckUsingAssignmentAsResult(stmt);
+    CheckLoopOrSwitchWithCompoundStmt(stmt);
   }
 
   void VisitForStmt(const clang::ForStmt *stmt) {
@@ -629,6 +648,7 @@ public:
     CheckLoopVariable(stmt);
     CheckUsingAssignmentAsResult(stmt);
     CheckForStmtLoopCounter(stmt);
+    CheckLoopOrSwitchWithCompoundStmt(stmt);
   }
 
   void VisitGotoStmt(const clang::GotoStmt *stmt) {
@@ -642,6 +662,7 @@ public:
     CheckDefaultStmtPosition(stmt);
     CheckCaseStmtNum(stmt);
     CheckCaseEndWithBreak(stmt);
+    CheckLoopOrSwitchWithCompoundStmt(stmt);
   }
 
   void VisitCXXTypeidExpr(const clang::CXXTypeidExpr *stmt) {
