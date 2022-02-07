@@ -323,16 +323,7 @@ void MISRADeclRule::CheckIdentifiedMacro() {
           XcalIssue *issue = nullptr;
           XcalReport *report = XcalCheckerManager::GetReport();
 
-          bool need_report = false;
-          if (name == it.first) {
-            need_report = true;
-          } else {
-            if (name.length() > 31 && it.first.length() > 31) {
-              if (strncmp(name.c_str(), it.first.c_str(), 30) == 0)
-                need_report = true;
-            }
-          }
-          if (need_report == true) {
+          if (strncmp(name.c_str(), it.first.c_str(), 31) == 0) {
             issue = report->ReportIssue(MISRA, M_R_5_5, it.second->getLocation());
             std::string ref_msg = "Identifiers shall be distinct from macro names";
             issue->SetRefMsg(ref_msg);
