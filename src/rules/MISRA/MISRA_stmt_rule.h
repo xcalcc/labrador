@@ -68,6 +68,13 @@ private:
   // check if it is CaseStmt/DefaultStmt
   bool IsCaseStmt(const clang::Stmt *stmt);
 
+  // get builtin type of typedef
+  clang::QualType GetUnderlyingType(clang::QualType type);
+  clang::QualType GetUnderlyingType(clang::QualType *type);
+
+  // get builtin type kind
+  clang::BuiltinType::Kind GetBTKind(clang::QualType type);
+
   /* MISRA
    * Rule: 4.1
    * Octal and hexadecimal escape sequences shall be terminated
@@ -470,9 +477,16 @@ private:
 
   /*
    * MISRA: 4-10-2
-   * Literal zero (0) shall not be used as the null-pointer- constant.
+   * Literal zero (0) shall not be used as the null-pointer-constant.
    */
   void CheckUsingNullWithPointer(const clang::ImplicitCastExpr *stmt);
+
+  /*
+   * MISRA: 5-0-8
+   * An explicit integral or floating-point conversion shall not increase the size of the
+   * underlying type of a cvalue expression.
+   */
+  void CheckExplictCastOnIntOrFloatIncreaseSize(const clang::CXXNamedCastExpr *stmt);
 
   /*
    * MISRA: 6-4-1
@@ -676,6 +690,7 @@ public:
 
   void VisitCXXStaticCastExpr(const clang::CXXStaticCastExpr *stmt) {
     CheckDownCastToDerivedClass(stmt);
+    CheckExplictCastOnIntOrFloatIncreaseSize(stmt);
   };
 
   void VisitCXXMemberCallExpr(const clang::CXXMemberCallExpr *stmt) {

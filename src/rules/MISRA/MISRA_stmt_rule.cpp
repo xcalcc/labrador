@@ -121,6 +121,34 @@ bool MISRAStmtRule::IsCaseStmt(const clang::Stmt *stmt) {
   return false;
 }
 
+/*
+ * get builtin type of typedef
+ */
+clang::QualType MISRAStmtRule::GetUnderlyingType(clang::QualType *type) {
+  return GetUnderlyingType(*type);
+}
+
+clang::QualType MISRAStmtRule::GetUnderlyingType(clang::QualType type) {
+  if (auto type_def = clang::dyn_cast<clang::TypedefType>(type)) {
+    return type_def->desugar();
+  } else if (auto elaborated_type = clang::dyn_cast<clang::ElaboratedType>(type)){
+    return elaborated_type->desugar();
+  } else if (auto substtmp_type = clang::dyn_cast<clang::SubstTemplateTypeParmType>(type)) {
+    return substtmp_type->desugar();
+  }
+  return type;
+}
+
+// get builtin type kind
+clang::BuiltinType::Kind MISRAStmtRule::GetBTKind(clang::QualType type) {
+  auto ud_type = GetUnderlyingType(type);
+  while (!clang::isa<clang::BuiltinType>(ud_type)) {
+    ud_type = GetUnderlyingType(ud_type);
+  }
+  DBG_ASSERT(ud_type->isBuiltinType(), "This is not BuiltinType");
+  return clang::cast<clang::BuiltinType>(ud_type)->getKind();
+}
+
 
 /* MISRA
  * Rule: 4.1
@@ -1607,6 +1635,43 @@ void MISRAStmtRule::CheckUsingNullWithPointer(const clang::ImplicitCastExpr *stm
     issue = report->ReportIssue(MISRA, M_R_4_10_2, stmt);
     std::string ref_msg = "Using NULL to stand a nullptr instead of using 0";
     issue->SetRefMsg(ref_msg);
+  }
+}
+
+/*
+ * MISRA: 5-0-8
+ * An explicit integral or floating-point conversion shall not increase the size of the
+ * underlying type of a cvalue expression.
+ */
+void MISRAStmtRule::CheckExplictCastOnIntOrFloatIncreaseSize(const clang::CXXNamedCastExpr *stmt) {
+  auto type = stmt->getType();
+  auto sub_expr = stmt->getSubExpr()->IgnoreParenImpCasts();
+  auto sub_type = sub_expr->getType();
+  auto getSubKind = [this](const clang::BinaryOperator *bin_op) {
+    // check operators of binary expr
+    auto lhs = bin_op->getLHS()->IgnoreParenImpCasts();
+    auto rhs = bin_op->getRHS()->IgnoreParenImpCasts();
+    auto lkind = UnifyBTTypeKind(GetBTKind(lhs->getType()));
+    auto rkind = UnifyBTTypeKind(GetBTKind(rhs->getType()));
+    return std::max(lkind, rkind);
+  };
+  // only check binary expression
+  if (auto bin_op = clang::dyn_cast<clang::BinaryOperator>(sub_expr)) {
+    bool need_report = false;
+    auto type_kind = UnifyBTTypeKind(GetBTKind(type));
+    if ((type->isIntegerType() && sub_type->isIntegerType()) ||
+        type->isFloatingType() && sub_type->isFloatingType()) {
+      auto bin_kind = getSubKind(bin_op);
+
+      if (type_kind > bin_kind) {
+        XcalIssue *issue = nullptr;
+        XcalReport *report = XcalCheckerManager::GetReport();
+        issue = report->ReportIssue(MISRA, M_R_5_0_8, stmt);
+        std::string ref_msg = "An explicit integral or floating-point conversion shall not increase the size of the "
+                              "underlying type of a cvalue expression.";
+        issue->SetRefMsg(ref_msg);
+      }
+    }
   }
 }
 
