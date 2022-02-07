@@ -38,11 +38,17 @@ namespace clang {
 
 // forward declaration of clang classes
 class TranslationUnitDecl;
+
 class FunctionDecl;
+
 class VarDecl;
+
 class TypeDecl;
+
 class LabelDecl;
+
 class CompoundStmt;
+
 class LambdaExpr;
 
 };  // clang
@@ -64,30 +70,31 @@ class LexicalScope;
 class IdentifierManager {
 private:
   // map identifier to FunctionDecl
-  std::unordered_multimap<std::string, const clang::FunctionDecl*> _id_to_func;
+  std::unordered_multimap<std::string, const clang::FunctionDecl *> _id_to_func;
   // map identifier to VarDecl
-  std::unordered_multimap<std::string, const clang::VarDecl*>      _id_to_var;
+  std::unordered_multimap<std::string, const clang::VarDecl *> _id_to_var;
   // map identifier to ValueDecl
-  std::unordered_multimap<std::string, const clang::ValueDecl*>    _id_to_value;
+  std::unordered_multimap<std::string, const clang::ValueDecl *> _id_to_value;
   // map identifier to TypeDecl
-  std::unordered_multimap<std::string, const clang::RecordDecl*>    _id_to_type;
+  std::unordered_multimap<std::string, const clang::RecordDecl *> _id_to_type;
   // map identifier to LabelDecl
-  std::unordered_multimap<std::string, const clang::LabelDecl*>    _id_to_label;
+  std::unordered_multimap<std::string, const clang::LabelDecl *> _id_to_label;
   // map identifier to FieldDecl
-  std::unordered_multimap<std::string, const clang::FieldDecl*>    _id_to_field;
+  std::unordered_multimap<std::string, const clang::FieldDecl *> _id_to_field;
   // map identifier to TypedefDecl
-  std::unordered_multimap<std::string, const clang::TypedefDecl*>  _id_to_typedef;
+  std::unordered_multimap<std::string, const clang::TypedefDecl *> _id_to_typedef;
 
   // current scope
   LexicalScope *_scope;
 
-  IdentifierManager(const IdentifierManager&)
+  IdentifierManager(const IdentifierManager &)
   = delete;
-  IdentifierManager& operator=(const IdentifierManager&)
+
+  IdentifierManager &operator=(const IdentifierManager &)
   = delete;
 
 public:
-  IdentifierManager(LexicalScope *scope) : _scope(scope) { }
+  IdentifierManager(LexicalScope *scope) : _scope(scope) {}
 
 public:
   void AddIdentifier(const clang::FunctionDecl *decl) {
@@ -189,7 +196,7 @@ public:
 
 private:
   template<typename _MAP>
-  static void Dump(int depth, const _MAP &map, const char* name) {
+  static void Dump(int depth, const _MAP &map, const char *name) {
     for (const auto &it : map) {
       printf("%*s%s: %s\n",
              depth, " ", name, it.first.c_str());
@@ -213,15 +220,15 @@ private:
 public:
   enum IdentifierKind {
     FUNCTION = 0x01,
-    VAR      = 0x02,
-    VALUE    = 0x04,
-    TYPE     = 0x08,
-    LABEL    = 0x10,
-    FIELD    = 0x20,
-    TYPEDEF  = 0x40,
+    VAR = 0x02,
+    VALUE = 0x04,
+    TYPE = 0x08,
+    LABEL = 0x10,
+    FIELD = 0x20,
+    TYPEDEF = 0x40,
     // combinations for readability
-    NONE     = 0x00,
-    ALL      = 0xff,
+    NONE = 0x00,
+    ALL = 0xff,
     NON_FUNC = (ALL & (~FUNCTION)),
   };
 
@@ -299,16 +306,17 @@ private:
   // Exceptions specifier map
   using ExceptMap = std::unordered_map<const clang::FunctionDecl *, std::vector<clang::QualType>>;
 
-  ScopeId              _scope;        // current scope
-  LexicalScope        *_parent;       // parent scope
-  LexicalScopeVec      _children;     // children scopes
+  ScopeId _scope;        // current scope
+  LexicalScope *_parent;       // parent scope
+  LexicalScopeVec _children;     // children scopes
   IdentifierManagerPtr _identifiers;  // identifiers in this scope
-  ExceptMap            _except_map;   // exception-specification of functions;
-  ExceptMap            _throw_tp_map; // exception-specification of functions;
+  ExceptMap _except_map;   // exception-specification of functions;
+  ExceptMap _throw_tp_map; // exception-specification of functions;
 
-  LexicalScope(const LexicalScope&)
+  LexicalScope(const LexicalScope &)
   = delete;
-  LexicalScope& operator=(const LexicalScope&)
+
+  LexicalScope &operator=(const LexicalScope &)
   = delete;
 
 public:
@@ -322,17 +330,17 @@ public:
   // Function scope
   LexicalScope(LexicalScope *parent, const clang::FunctionDecl *decl)
       : _scope(decl, SK_FUNCTION), _parent(parent),
-        _identifiers(std::make_unique<IdentifierManager>(this)) { }
+        _identifiers(std::make_unique<IdentifierManager>(this)) {}
 
   // Block scope
   LexicalScope(LexicalScope *parent, const clang::CompoundStmt *stmt)
       : _scope(stmt, SK_BLOCK), _parent(parent),
-        _identifiers(std::make_unique<IdentifierManager>(this)) { }
+        _identifiers(std::make_unique<IdentifierManager>(this)) {}
 
   // Lambda scope
   LexicalScope(LexicalScope *parent, const clang::LambdaExpr *expr)
       : _scope(expr, SK_LAMBDA), _parent(parent),
-        _identifiers(std::make_unique<IdentifierManager>(this)) { }
+        _identifiers(std::make_unique<IdentifierManager>(this)) {}
 
 public:
   // Add identifier IdentifierManager
@@ -353,6 +361,7 @@ public:
 
   /* Get function declaration by function name */
   typedef std::unordered_map<std::string, clang::FunctionDecl> FunctionDeclMap;
+
   auto GetFunctionDecls(const std::string &name) {
     return _identifiers->GetFunctionDecls(name);
   }
@@ -429,7 +438,7 @@ public:
   // Get node that starts this scope
   template<typename _NODE>
   _NODE *GetNode() const {
-    return static_cast<_NODE*>(_scope.getPointer());
+    return static_cast<_NODE *>(_scope.getPointer());
   }
 
   const LexicalScopeVec &Children() const {
@@ -448,7 +457,7 @@ public:
   // Dump scope info
   void Dump(bool recursive, int depth = 1) {
     _identifiers->Dump(depth);
-    if (recursive){
+    if (recursive) {
       depth++;
       for (const auto &it : _children) {
         it->Dump(recursive, depth);
@@ -467,7 +476,7 @@ public:
 
   template<uint32_t _IDKIND, typename _RULE>
   void TraverseAll(const _RULE &rule, bool _with_decl) {
-    if (_with_decl){
+    if (_with_decl) {
       _identifiers->TraverseAllWithStringAndDecl<_IDKIND, _RULE>(rule);
       for (const auto &it : _children) {
         it->TraverseAll<_IDKIND, _RULE>(rule, _with_decl);
@@ -484,17 +493,18 @@ typedef std::unordered_map<std::string, const clang::MacroDirective *> MacroMap;
 class ScopeManager {
 private:
   std::unique_ptr<LexicalScope> _root;       // root scope
-  LexicalScope                 *_current;    // current scope
-  MacroMap                      _macro_map;  // macro map
+  LexicalScope *_current;    // current scope
+  MacroMap _macro_map;  // macro map
 
-  ScopeManager(const ScopeManager&)
+  ScopeManager(const ScopeManager &)
   = delete;
-  ScopeManager& operator=(const ScopeManager&)
+
+  ScopeManager &operator=(const ScopeManager &)
   = delete;
 
 public:
   // Constructor, set both root and current to empty/null
-  ScopeManager() : _current(nullptr) { }
+  ScopeManager() : _current(nullptr) {}
 
 public:
   // Initialize global scope with clang TranslationUnitDecl
@@ -543,8 +553,8 @@ public:
   }
 
   void AddMacro(const std::string &MacroNameTok, const clang::MacroDirective *MD) {
-    DBG_ASSERT(_macro_map.find(MacroNameTok) == _macro_map.end(), "Macro already exists");
-    _macro_map.emplace(MacroNameTok, MD);
+    if (_macro_map.find(MacroNameTok) == _macro_map.end())
+      _macro_map.emplace(MacroNameTok, MD);
   }
 
   const MacroMap &GetMacroMap() const {
@@ -555,7 +565,8 @@ public:
 
 // IdentifierManager::HasVariableName
 // implement because it depends on the definition of ScopeManager
-template<bool _RECURSIVE> inline bool
+template<bool _RECURSIVE>
+inline bool
 IdentifierManager::HasVariableName(const std::string &var_name) const {
   bool res = _id_to_var.count(var_name) > 0;
   if (_RECURSIVE && !res) {
@@ -570,7 +581,8 @@ IdentifierManager::HasVariableName(const std::string &var_name) const {
 
 // IdentifierManager::HasNRecordName
 // implement because it depends on the definition of ScopeManager
-template<bool _RECURSIVE> inline bool
+template<bool _RECURSIVE>
+inline bool
 IdentifierManager::HasNRecordName(const std::string &var_name, uint64_t N) const {
   auto count = _id_to_type.count(var_name);
   bool res = count >= N;
@@ -586,7 +598,8 @@ IdentifierManager::HasNRecordName(const std::string &var_name, uint64_t N) const
 
 // IdentifierManager::HasValueName
 // implement because it depends on the definition of ScopeManager
-template<bool _RECURSIVE> inline bool
+template<bool _RECURSIVE>
+inline bool
 IdentifierManager::HasValueName(const std::string &var_name) const {
   bool res = _id_to_value.count(var_name) > 0;
   if (_RECURSIVE && !res) {
@@ -601,7 +614,8 @@ IdentifierManager::HasValueName(const std::string &var_name) const {
 
 // IdentifierManager::HasValueName
 // implement because it depends on the definition of ScopeManager
-template<bool _RECURSIVE> inline bool
+template<bool _RECURSIVE>
+inline bool
 IdentifierManager::HasTypeDef(const std::string &var_name) const {
   bool res = _id_to_typedef.count(var_name) > 0;
   if (_RECURSIVE && !res) {
@@ -619,7 +633,7 @@ IdentifierManager::HasTypeDef(const std::string &var_name) const {
  */
 template<bool _RECURSIVE>
 void IdentifierManager::GetVariables(const std::string &var_name,
-         std::vector<const clang::VarDecl *> &variables) const {
+                                     std::vector<const clang::VarDecl *> &variables) const {
   if (var_name.empty()) {
     for (const auto &it : this->_id_to_var) {
       variables.push_back(it.second);
@@ -645,17 +659,17 @@ void IdentifierManager::GetVariables(const std::string &var_name,
  */
 template<bool _RECURSIVE>
 void IdentifierManager::GetTypedefs(const std::string &typedef_name,
-        std::vector<const clang::TypedefDecl *> &typedefs) const {
+                                    std::vector<const clang::TypedefDecl *> &typedefs) const {
   if (typedef_name.empty()) {
     for (const auto &it : this->_id_to_typedef) {
       typedefs.push_back(it.second);
     }
   } else {
-   for (const auto &it : this->_id_to_typedef) {
-     if (typedef_name == it.first) {
-       typedefs.push_back(it.second);
-     }
-   }
+    for (const auto &it : this->_id_to_typedef) {
+      if (typedef_name == it.first) {
+        typedefs.push_back(it.second);
+      }
+    }
   }
 
   if (_RECURSIVE) {
@@ -671,13 +685,13 @@ void IdentifierManager::GetTypedefs(const std::string &typedef_name,
 template<typename _NODE>
 class ScopeHelper {
 private:
-  ScopeManager       *_mgr;     // Scope manager
-  const _NODE        *_node;    // node starts the scope
+  ScopeManager *_mgr;     // Scope manager
+  const _NODE *_node;    // node starts the scope
 
 public:
   // Constructor, push the scope
-  ScopeHelper(ScopeManager* mgr, const _NODE *node)
-      :_mgr(mgr), _node(node) {
+  ScopeHelper(ScopeManager *mgr, const _NODE *node)
+      : _mgr(mgr), _node(node) {
     _mgr->PushScope(_node);
   }
 
@@ -697,13 +711,13 @@ public:
 template<>
 class ScopeHelper<clang::TranslationUnitDecl> {
 private:
-  ScopeManager               *_mgr;    // Scope manager
+  ScopeManager *_mgr;    // Scope manager
   clang::TranslationUnitDecl *_node;   // Tanslation unit decl
 
 public:
   // Constructor, initialize the scope
-  ScopeHelper(ScopeManager* mgr, clang::TranslationUnitDecl *node)
-      :_mgr(mgr), _node(node) {
+  ScopeHelper(ScopeManager *mgr, clang::TranslationUnitDecl *node)
+      : _mgr(mgr), _node(node) {
     _mgr->InitializeScope(_node);
   }
 

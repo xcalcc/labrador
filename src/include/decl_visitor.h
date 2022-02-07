@@ -186,6 +186,13 @@ public:
   void VisitRecord(const clang::RecordDecl *decl) {
     _decl_handler.VisitRecord(decl);
     _type_visitor.Visit(decl->getTypeForDecl());
+
+    // visit fields
+    if (!decl->field_empty()) {
+      for (const auto &it : decl->fields()) {
+        _decl_handler.VisitField(it);
+      }
+    }
   }
 
   #define DECL(DERIVED, BASE) \

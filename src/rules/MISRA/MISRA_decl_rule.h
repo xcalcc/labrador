@@ -191,6 +191,19 @@ private:
   void CheckStaticBetweenBracket(const clang::FunctionDecl *decl);
 
   /* MISRA
+   * Rule: 18.5
+   * Declarations should contain no more than two levels of pointer nesting
+   */
+  XcalIssue *ReportNestedTwoLevel(const clang::Decl *decl);
+  template<typename TYPE>
+  void CheckPointerNestedMoreThanTwoLevel(const TYPE * decl) {
+    if (IsPointerNestedMoreThanTwoLevel(decl->getType())) {
+      ReportNestedTwoLevel(decl);
+    }
+  }
+  void CheckPointerNestedMoreThanTwoLevel(const clang::FunctionDecl *decl);
+
+  /* MISRA
    * Rule: 18.7
    * Flexible array members shall not be declared
    */
@@ -362,6 +375,7 @@ public:
     CheckVariableAsArrayLength(decl);
     CheckPointerNestedLevel(decl);
     CheckExternObjInHeaderFile(decl);
+    CheckPointerNestedMoreThanTwoLevel(decl);
   }
 
   void VisitParmVar(const clang::ParmVarDecl *decl) {
@@ -389,12 +403,14 @@ public:
     CheckExceptionSpecification(decl);
     CheckExternObjInHeaderFile(decl);
     CheckParameterNoIdentifier(decl);
+    CheckPointerNestedMoreThanTwoLevel(decl);
   }
 
   void VisitField(const clang::FieldDecl *decl) {
     CheckUnusedTypedef<clang::FieldDecl>(decl);
     CheckVariableAsArrayLength(decl);
     CheckPointerNestedLevel(decl);
+    CheckPointerNestedMoreThanTwoLevel(decl);
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {

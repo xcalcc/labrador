@@ -709,6 +709,33 @@ void MISRADeclRule::CheckStaticBetweenBracket(const clang::FunctionDecl *decl) {
 }
 
 /* MISRA
+ * Rule: 18.5
+ * Declarations should contain no more than two levels of pointer nesting
+ */
+XcalIssue *MISRADeclRule::ReportNestedTwoLevel(const clang::Decl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(MISRA, M_R_18_5, decl);
+  std::string ref_msg = "Declarations should contain no more than two levels of pointer nesting";
+  issue->SetRefMsg(ref_msg);
+  return issue;
+}
+
+void MISRADeclRule::CheckPointerNestedMoreThanTwoLevel(const clang::FunctionDecl *decl) {
+  XcalIssue *issue = nullptr;
+  if (IsPointerNestedMoreThanTwoLevel(decl->getReturnType()))
+    issue = ReportNestedTwoLevel(decl);
+
+  for (const auto &param : decl->parameters()) {
+    if (IsPointerNestedMoreThanTwoLevel(param->getType())) {
+      if (issue == nullptr) issue = ReportNestedTwoLevel(decl);
+      issue->AddDecl(param);
+    }
+  }
+}
+
+
+/* MISRA
  * Rule: 18.7
  * Flexible array members shall not be declared
  */
