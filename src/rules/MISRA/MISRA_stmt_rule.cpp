@@ -131,7 +131,7 @@ clang::QualType MISRAStmtRule::GetUnderlyingType(clang::QualType *type) {
 clang::QualType MISRAStmtRule::GetUnderlyingType(clang::QualType type) {
   if (auto type_def = clang::dyn_cast<clang::TypedefType>(type)) {
     return type_def->desugar();
-  } else if (auto elaborated_type = clang::dyn_cast<clang::ElaboratedType>(type)){
+  } else if (auto elaborated_type = clang::dyn_cast<clang::ElaboratedType>(type)) {
     return elaborated_type->desugar();
   } else if (auto substtmp_type = clang::dyn_cast<clang::SubstTemplateTypeParmType>(type)) {
     return substtmp_type->desugar();
@@ -884,6 +884,8 @@ bool MISRAStmtRule::IsAssignmentStmt(const clang::Stmt *stmt) {
 void MISRAStmtRule::ReportAssignment(const clang::Stmt *stmt) {
   std::string ref_msg = "The result of an assignment operator should not be used";
   ReportTemplate(ref_msg, M_R_13_4, stmt);
+  ref_msg = "Assignment operators shall not be used in sub- expressions.";
+  ReportTemplate(ref_msg, M_R_6_2_1, stmt);
 }
 
 void MISRAStmtRule::CheckUsingAssignmentAsResult(const clang::ArraySubscriptExpr *stmt) {
@@ -895,8 +897,11 @@ void MISRAStmtRule::CheckUsingAssignmentAsResult(const clang::ArraySubscriptExpr
 
 void MISRAStmtRule::CheckUsingAssignmentAsResult(const clang::BinaryOperator *stmt) {
   if (stmt->getOpcode() == clang::BO_Comma) return;
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
   auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
-  if (rhs && IsAssignmentStmt(rhs)) ReportAssignment(stmt);
+  if ((lhs && IsAssignmentStmt(lhs)) ||
+      (rhs && IsAssignmentStmt(rhs)))
+    ReportAssignment(stmt);
 }
 
 /* MISRA
