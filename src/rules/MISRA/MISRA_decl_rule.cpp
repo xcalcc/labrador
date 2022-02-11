@@ -314,7 +314,7 @@ void MISRADeclRule::CheckIdentifierNameConflict() {
 void MISRADeclRule::CheckIdentifiedMacro() {
   auto scope_mgr = XcalCheckerManager::GetScopeManager();
   auto top_scope = scope_mgr->GlobalScope();
-  constexpr uint32_t kind = IdentifierManager::VAR;
+  constexpr uint32_t kind = IdentifierManager::VAR | IdentifierManager::FUNCTION;
 
   for (const auto &it : scope_mgr->GetMacroMap()) {
     top_scope->TraverseAll<kind,
