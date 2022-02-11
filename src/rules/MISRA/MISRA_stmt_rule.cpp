@@ -195,7 +195,7 @@ void MISRAStmtRule::CheckStringLiteralToNonConstChar(const clang::CallExpr *stmt
       auto param_decl = decl->getParamDecl(i);
       if (param_decl == nullptr) {
         i++;
-        continue;;
+        continue;
       }
       auto param_type = param_decl->getType();
       if (param_type->isPointerType() &&
@@ -208,8 +208,8 @@ void MISRAStmtRule::CheckStringLiteralToNonConstChar(const clang::CallExpr *stmt
         }
         issue->AddDecl(param_decl);
       }
-      i++;
     }
+    i++;
   }
 }
 
