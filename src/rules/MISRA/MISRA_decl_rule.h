@@ -91,6 +91,12 @@ private:
   void CheckIdentifierNameConflict();
 
   /* MISRA
+   * Rule: 5.4
+   * Macro identifiers shall be distinct
+   */
+  void CheckMacroIdentifierDistinct();
+
+  /* MISRA
    * Rule: 5.5
    * Identifiers shall be distinct from macro names
    */
@@ -362,6 +368,7 @@ public:
 //    CheckTageUnique();
     CheckThrownUnSpecifiedType();
     CheckObjectOrFunctionConflictWithType();
+    CheckMacroIdentifierDistinct();
     CheckIdentifiedMacro();
   }
 

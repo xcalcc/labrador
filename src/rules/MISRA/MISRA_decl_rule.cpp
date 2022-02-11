@@ -308,6 +308,29 @@ void MISRADeclRule::CheckIdentifierNameConflict() {
 }
 
 /* MISRA
+ * Rule: 5.4
+ * Macro identifiers shall be distinct
+ */
+void MISRADeclRule::CheckMacroIdentifierDistinct() {
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+
+  auto it = scope_mgr->GetMacroMap().begin();
+  auto end = scope_mgr->GetMacroMap().end();
+  for (;it != end; it++) {
+    for (auto next = std::next(it); next != end; next++) {
+      if (strncmp(it->first.c_str(), next->first.c_str(), 31) == 0) {
+        XcalIssue *issue = nullptr;
+        XcalReport *report = XcalCheckerManager::GetReport();
+        issue = report->ReportIssue(MISRA, M_R_5_4, it->second->getLocation());
+        std::string ref_msg = "Identifiers shall be distinct from macro names";
+        issue->SetRefMsg(ref_msg);
+        issue->AddLocation(next->second->getLocation());
+      }
+    }
+  }
+}
+
+/* MISRA
  * Rule: 5.5
  * Identifiers shall be distinct from macro names
  */

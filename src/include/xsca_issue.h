@@ -138,6 +138,10 @@ public:
     _path_info.push_back(XcalPathInfo(stmt));
   }
 
+  void AddLocation(const clang::SourceLocation loc) {
+    _path_info.push_back(XcalPathInfo(loc));
+  }
+
 public:
   const char *StdName() const {
     return _std_name;
