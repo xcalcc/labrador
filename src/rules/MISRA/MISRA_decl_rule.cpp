@@ -290,7 +290,7 @@ void MISRADeclRule::CheckIdentifierNameConflict() {
         XcalIssue *issue = nullptr;
         XcalReport *report = XcalCheckerManager::GetReport();
 
-        if (clang::isa<clang::ParmVarDecl>(decl) || var_name.empty()) return;
+        if (var_name.empty()) return;
         id_mgr->GetOuterVariables(var_name, vars);
 
         if (!vars.empty()) {
