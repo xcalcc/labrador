@@ -122,6 +122,21 @@ bool MISRAStmtRule::IsCaseStmt(const clang::Stmt *stmt) {
 }
 
 /*
+ * check if the expr has specific stmt
+ */
+bool MISRAStmtRule::HasSpecificStmt(const clang::Stmt *stmt, std::function<bool(const clang::Stmt *)> check) {
+  if (check(stmt)) {
+    return true;
+  }
+
+  for (const auto &it : stmt->children()) {
+    if (check(it)) return true;
+  }
+  return false;
+}
+
+
+/*
  * get builtin type of typedef
  */
 clang::QualType MISRAStmtRule::GetUnderlyingType(clang::QualType *type) {
@@ -911,7 +926,16 @@ void MISRAStmtRule::CheckUsingAssignmentAsResult(const clang::BinaryOperator *st
  */
 void MISRAStmtRule::CheckRHSOfLogicalOpHasSideEffect(const clang::BinaryOperator *stmt) {
   if (!stmt->isLogicalOp()) return;
-  if (HasSideEffect(stmt->getRHS()->IgnoreParenImpCasts())) {
+  bool res = false;
+  res = HasSpecificStmt(stmt->getRHS()->IgnoreParenImpCasts(), [](const clang::Stmt *st) -> bool {
+    if (auto call = clang::dyn_cast<clang::CallExpr>(st)) return true;
+    else if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(st)) {
+      auto decl = decl_ref->getDecl();
+      if (decl->getType().isVolatileQualified()) return true;
+    }
+    return false;
+  });
+  if (res) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(MISRA, M_R_13_5, stmt);

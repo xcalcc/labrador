@@ -68,6 +68,9 @@ private:
   // check if it is CaseStmt/DefaultStmt
   bool IsCaseStmt(const clang::Stmt *stmt);
 
+  // check if the expr has specific stmt
+  bool HasSpecificStmt(const clang::Stmt *stmt, std::function<bool(const clang::Stmt *)> check);
+
   // get builtin type of typedef
   clang::QualType GetUnderlyingType(clang::QualType type);
   clang::QualType GetUnderlyingType(clang::QualType *type);
