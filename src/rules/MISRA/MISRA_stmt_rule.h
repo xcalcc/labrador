@@ -476,6 +476,7 @@ private:
    * other than the assignment operator =, the logical operators &&, ||, !, the
    * equality operators == and !=, the unary & operator, and the conditional operator.
    */
+  void CheckBoolUsedAsNonLogicalOperand(const clang::UnaryOperator *stmt);
   void CheckBoolUsedAsNonLogicalOperand(const clang::BinaryOperator *stmt);
 
   /*

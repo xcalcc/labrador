@@ -1627,17 +1627,24 @@ void MISRAStmtRule::CheckFunctionDeclInBlock(const clang::DeclStmt *stmt) {
  * other than the assignment operator =, the logical operators &&, ||, !, the
  * equality operators == and !=, the unary & operator, and the conditional operator.
  */
+void MISRAStmtRule::CheckBoolUsedAsNonLogicalOperand(const clang::UnaryOperator *stmt) {
+  if (stmt->getOpcode() == clang::UnaryOperator::Opcode::UO_LNot) return;
+  auto sub_type = stmt->getSubExpr()->IgnoreParenImpCasts()->getType();
+  if (!sub_type->isBooleanType()) return;
+  std::string ref_msg = "Bool shall be used as logical operands";
+  ReportTemplate(ref_msg, M_R_4_5_1, stmt);
+}
+
 void MISRAStmtRule::CheckBoolUsedAsNonLogicalOperand(const clang::BinaryOperator *stmt) {
-  if (stmt->isLogicalOp() || stmt->isAssignmentOp()) return;
+  if (stmt->isLogicalOp() || stmt->isAssignmentOp() ||
+      (stmt->getOpcode() == clang::BinaryOperator::Opcode::BO_EQ))
+    return;
   auto lhs_type = stmt->getLHS()->IgnoreParenImpCasts()->getType();
   auto rhs_type = stmt->getRHS()->IgnoreParenImpCasts()->getType();
   if (!lhs_type->isBooleanType() && !rhs_type->isBooleanType()) return;
 
-  XcalIssue *issue = nullptr;
-  XcalReport *report = XcalCheckerManager::GetReport();
-  issue = report->ReportIssue(MISRA, M_R_4_5_1, stmt);
   std::string ref_msg = "Bool shall be used as logical operands";
-  issue->SetRefMsg(ref_msg);
+  ReportTemplate(ref_msg, M_R_4_5_1, stmt);
 }
 
 /*

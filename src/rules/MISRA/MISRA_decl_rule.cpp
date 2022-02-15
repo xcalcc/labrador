@@ -946,7 +946,7 @@ void MISRADeclRule::CheckUseFunctionNotCallOrDereference(const clang::VarDecl *d
   if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(init)) {
     auto _decl = decl_ref->getDecl();
     if (_decl && clang::isa<clang::FunctionDecl>(_decl)) need_report = true;
-  } 
+  }
 
   if (need_report) {
     XcalIssue *issue = nullptr;
