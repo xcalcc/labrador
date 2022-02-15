@@ -63,7 +63,7 @@ private:
   bool HasIncOrDecExpr(const clang::Stmt *stmt);
 
   // report template
-  void ReportTemplate(const std::string &str, const char *rule, const clang::Stmt *stmt);
+  XcalIssue *ReportTemplate(const std::string &str, const char *rule, const clang::Stmt *stmt);
 
   // check if it is CaseStmt/DefaultStmt
   bool IsCaseStmt(const clang::Stmt *stmt);
@@ -520,6 +520,20 @@ private:
   void CheckReturnParamRefOrPtr(const clang::ReturnStmt *stmt);
 
   /*
+   * MISRA: 8-4-4
+   * A function identifier shall either be used to call the function or it shall be preceded by &.
+   */
+  bool IsFunction(const clang::Stmt *stmt)  {
+    if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(stmt)) {
+      auto decl = decl_ref->getDecl();
+      if (decl && clang::isa<clang::FunctionDecl>(decl)) return true;
+    }
+    return false;
+  };
+  void CheckUseFunctionNotCallOrDereference(const clang::BinaryOperator *stmt);
+  void CheckUseFunctionNotCallOrDereference(const clang::UnaryOperator *stmt);
+
+  /*
    * MISRA: 15-0-2
    * An exception object should not have pointer type.
    */
@@ -597,6 +611,7 @@ public:
     CheckMultiIncOrDecExpr(stmt);
     CheckIntToShorter(stmt);
     CheckBoolUsedAsNonLogicalOperand(stmt);
+    CheckUseFunctionNotCallOrDereference(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
@@ -741,6 +756,10 @@ public:
 
   void VisitUnaryExprOrTypeTraitExpr(const clang::UnaryExprOrTypeTraitExpr *stmt) {
     CheckSideEffectInSizeof(stmt);
+  }
+
+  void VisitUnaryOperator(const clang::UnaryOperator *stmt) {
+    CheckUseFunctionNotCallOrDereference(stmt);
   }
 
   void VisitReturnStmt(const clang::ReturnStmt *stmt) {

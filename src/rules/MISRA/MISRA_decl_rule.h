@@ -282,6 +282,12 @@ private:
    */
   void CheckOverriddenVirtualFuncHasDiffParam(const clang::CXXRecordDecl *decl);
 
+  /*
+ * MISRA: 8-4-4
+ * A function identifier shall either be used to call the function or it shall be preceded by &.
+ */
+  void CheckUseFunctionNotCallOrDereference(const clang::VarDecl *decl);
+
   /* MISRA
    * Rule: 8-5-3
    * initial value is a must for the enum
@@ -383,6 +389,7 @@ public:
     CheckPointerNestedLevel(decl);
     CheckExternObjInHeaderFile(decl);
     CheckPointerNestedMoreThanTwoLevel(decl);
+    CheckUseFunctionNotCallOrDereference(decl);
   }
 
   void VisitParmVar(const clang::ParmVarDecl *decl) {

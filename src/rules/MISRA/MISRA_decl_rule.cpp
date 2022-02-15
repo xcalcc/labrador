@@ -316,7 +316,7 @@ void MISRADeclRule::CheckMacroIdentifierDistinct() {
 
   auto it = scope_mgr->GetMacroMap().begin();
   auto end = scope_mgr->GetMacroMap().end();
-  for (;it != end; it++) {
+  for (; it != end; it++) {
     for (auto next = std::next(it); next != end; next++) {
       if (strncmp(it->first.c_str(), next->first.c_str(), 31) == 0) {
         XcalIssue *issue = nullptr;
@@ -933,6 +933,30 @@ void MISRADeclRule::CheckOverriddenVirtualFuncHasDiffParam(const clang::CXXRecor
       issue->AddDecl(it);
     }
   }
+}
+
+/*
+* MISRA: 8-4-4
+* A function identifier shall either be used to call the function or it shall be preceded by &.
+*/
+void MISRADeclRule::CheckUseFunctionNotCallOrDereference(const clang::VarDecl *decl) {
+  if (!decl->hasInit()) return;
+  bool need_report = false;
+  auto init = decl->getInit()->IgnoreParenCasts();
+  if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(init)) {
+    auto _decl = decl_ref->getDecl();
+    if (_decl && clang::isa<clang::FunctionDecl>(_decl)) need_report = true;
+  } 
+
+  if (need_report) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_8_4_4, decl);
+    std::string ref_msg = "A function identifier shall either be used to call the function "
+                          "or it shall be preceded by &.";
+    issue->SetRefMsg(ref_msg);
+  }
+
 }
 
 /* MISRA

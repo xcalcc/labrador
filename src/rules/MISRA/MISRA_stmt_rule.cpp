@@ -101,11 +101,12 @@ bool MISRAStmtRule::HasIncOrDecExpr(const clang::Stmt *stmt) {
 }
 
 // report template
-void MISRAStmtRule::ReportTemplate(const std::string &str, const char *rule, const clang::Stmt *stmt) {
+XcalIssue *MISRAStmtRule::ReportTemplate(const std::string &str, const char *rule, const clang::Stmt *stmt) {
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
   issue = report->ReportIssue(MISRA, rule, stmt);
   issue->SetRefMsg(str);
+  return issue;
 }
 
 /*
@@ -1876,6 +1877,34 @@ void MISRAStmtRule::CheckReturnParamRefOrPtr(const clang::ReturnStmt *stmt) {
   std::string ref_msg = "A function shall not return a reference or a pointer to a parameter that is passed "
                         "by reference or const reference.";
   issue->SetRefMsg(ref_msg);
+}
+
+/*
+ * MISRA: 8-4-4
+ * A function identifier shall either be used to call the function or it shall be preceded by &.
+ */
+void MISRAStmtRule::CheckUseFunctionNotCallOrDereference(const clang::BinaryOperator *stmt) {
+  auto lhs = stmt->getLHS()->IgnoreParenCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenCasts();
+
+  bool lhs_res = IsFunction(lhs);
+  bool rhs_res = IsFunction(rhs);
+  if (lhs_res || rhs_res) {
+    std::string ref_msg = "A function identifier shall either be used to call the function or "
+                          "it shall be preceded by &.";
+    XcalIssue *issue = ReportTemplate(ref_msg, M_R_8_4_4, stmt);
+    if (lhs_res) issue->AddStmt(lhs);
+    if (rhs_res) issue->AddStmt(rhs);
+  }
+}
+
+void MISRAStmtRule::CheckUseFunctionNotCallOrDereference(const clang::UnaryOperator *stmt) {
+  if (stmt->getOpcode() == clang::UnaryOperator::Opcode::UO_AddrOf) return;
+  if (IsFunction(stmt->getSubExpr()->IgnoreParenCasts())) {
+    std::string ref_msg = "A function identifier shall either be used to call the function or "
+                          "it shall be preceded by &.";
+    XcalIssue *issue = ReportTemplate(ref_msg, M_R_8_4_4, stmt);
+  }
 }
 
 /*
