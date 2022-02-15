@@ -23,6 +23,7 @@
 //
 
 #define AUTOSAR   "AUTOSAR"
+#define A4_5_1    "A4_5_1"
 #define A5_0_3    "A5_0_3"
 #define A5_1_1    "A5_1_1"
 #define A5_1_2    "A5_1_2"

@@ -35,6 +35,32 @@ bool AUTOSARStmtRule::IsAssign(clang::OverloadedOperatorKind kind) const {
   return false;
 };
 
+/* AUTOSAR
+ * Rule: A4-5-1
+ * Expressions with type enum or enum class shall not be used as operands to built-in and overloaded
+ * operators other than the subscript operator [ ], the assignment operator =, the equality operators == and ! =,
+ * the unary & operator, and the relational operators <, <=, >, >=.
+ */
+void AUTOSARStmtRule::CheckEnumBeyondLimit(const clang::BinaryOperator *stmt) {
+  auto lhs_type = stmt->getLHS()->getType();
+  auto rhs_type = stmt->getRHS()->getType();
+  if (!lhs_type->isEnumeralType() && !rhs_type->isEnumeralType()) {
+    auto cast_stmt = clang::dyn_cast<clang::ImplicitCastExpr>(stmt->getRHS());
+    if (!cast_stmt || !cast_stmt->getSubExpr()->getType()->isEnumeralType()) {
+      return;
+    }
+  }
+
+  if (!stmt->isComparisonOp()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
+    issue = report->ReportIssue(AUTOSAR, A4_5_1, stmt);
+    std::string ref_msg = "Using enumeration types beyond the limit is forbidden";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 void AUTOSARStmtRule::CheckInappropriateCast(const clang::CStyleCastExpr *stmt) {
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();

@@ -283,8 +283,9 @@ private:
   /*
    * GJB5369: 4.6.1.13
    *  using enumeration types beyond the limit if forbidden
+   *  INFO: MOVED TO AUTOSAR A4-5-1
    */
-  void CheckEnumBeyondLimit(const clang::BinaryOperator *stmt);
+
 
   /*
    * GJB5369: 4.6.1.14
@@ -608,7 +609,6 @@ public:
     CheckAssignNegativetoUnsigned(stmt);
     CheckDifferentTypeAssign(stmt);
     CheckBitwiseOperationOnSignedValue(stmt);
-    CheckEnumBeyondLimit(stmt);
     CheckArithmOverflow(stmt);
     CheckLogicalOpFollowedByAssign(stmt);
     CheckBitwiseOpOnBool(stmt);

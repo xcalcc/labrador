@@ -693,30 +693,6 @@ void GJB5369StmtRule::CheckBitwiseOperationOnSignedValue(const clang::BinaryOper
 }
 
 /*
- * GJB5369: 4.6.1.13
- * using enumeration types beyond the limit is forbidden
- */
-void GJB5369StmtRule::CheckEnumBeyondLimit(const clang::BinaryOperator *stmt) {
-  auto lhs_type = stmt->getLHS()->getType();
-  auto rhs_type = stmt->getRHS()->getType();
-  if (!lhs_type->isEnumeralType() && !rhs_type->isEnumeralType()) {
-    auto cast_stmt = clang::dyn_cast<clang::ImplicitCastExpr>(stmt->getRHS());
-    if (!cast_stmt || !cast_stmt->getSubExpr()->getType()->isEnumeralType()) {
-      return;
-    }
-  }
-
-  if (!stmt->isComparisonOp()) {
-    XcalIssue *issue = nullptr;
-    XcalReport *report = XcalCheckerManager::GetReport();
-
-    issue = report->ReportIssue(GJB5369, G4_6_1_13, stmt);
-    std::string ref_msg = "Using enumeration types beyond the limit is forbidden";
-    issue->SetRefMsg(ref_msg);
-  }
-}
-
-/*
  * GJB5369: 4.6.1.14
  * overflow should be avoided
  */

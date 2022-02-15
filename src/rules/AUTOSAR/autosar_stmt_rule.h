@@ -38,6 +38,14 @@ private:
   bool IsAssign(clang::OverloadedOperatorKind kind) const;
 
   /* AUTOSAR
+   * Rule: A4-5-1
+   * Expressions with type enum or enum class shall not be used as operands to built-in and overloaded
+   * operators other than the subscript operator [ ], the assignment operator =, the equality operators == and ! =,
+   * the unary & operator, and the relational operators <, <=, >, >=.
+   */
+  void CheckEnumBeyondLimit(const clang::BinaryOperator *stmt);
+
+  /* AUTOSAR
    * Rule: M5-0-3
    * A cvalue expression shall not be implicitly converted to a different underlying type.
    */
@@ -147,6 +155,7 @@ private:
 
 public:
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
+    CheckEnumBeyondLimit(stmt);
   }
 
   void VisitReturnStmt(const clang::ReturnStmt *stmt) {
