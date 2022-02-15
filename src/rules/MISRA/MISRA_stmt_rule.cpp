@@ -1640,6 +1640,38 @@ void MISRAStmtRule::CheckBoolUsedAsNonLogicalOperand(const clang::BinaryOperator
 }
 
 /*
+ * MISRA: 4-10-1
+ * NULL shall not be used as an integer value.
+ */
+void MISRAStmtRule::CheckNULLUsedAsInteger(const clang::CastExpr *stmt) {
+  if (!stmt->getType()->isIntegerType()) return;
+  bool need_report = false;
+  auto ctx = XcalCheckerManager::GetAstContext();
+  auto &src_mgr = ctx->getSourceManager();
+  if (clang::isa<clang::GNUNullExpr>(stmt->getSubExpr())) need_report = true;
+  if (auto literal = clang::dyn_cast<clang::IntegerLiteral>(stmt->getSubExpr()->IgnoreParenCasts())) {
+    clang::Expr::EvalResult eval_result;
+    int value;
+
+    // try to fold the const expr
+    if (literal->EvaluateAsInt(eval_result, *ctx)) {
+      value = eval_result.Val.getInt().getZExtValue();
+    } else {
+      value = literal->getValue().getZExtValue();
+    }
+    if (value == 0) need_report = true;
+  }
+  if (need_report) {
+    auto loc = src_mgr.getExpansionLoc(stmt->getSubExpr()->getExprLoc());
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_4_10_1, loc);
+    std::string ref_msg = "NULL shall not be used as an integer value.";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+/*
  * MISRA: A4-10-2
  * Literal zero (0) shall not be used as the null-pointer-constant.
  * `-ImplicitCastExpr 0x7ff60a850ab0 <col:5> 'int *' <NullToPointer>

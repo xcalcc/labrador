@@ -479,6 +479,12 @@ private:
   void CheckBoolUsedAsNonLogicalOperand(const clang::BinaryOperator *stmt);
 
   /*
+   * MISRA: 4-10-1
+   * NULL shall not be used as an integer value.
+   */
+  void CheckNULLUsedAsInteger(const clang::CastExpr *stmt);
+
+  /*
    * MISRA: 4-10-2
    * Literal zero (0) shall not be used as the null-pointer-constant.
    */
@@ -622,6 +628,7 @@ public:
     CheckCastBetweenPointerAndNonIntType(stmt);
     CheckIncompleteTypePointerCastToAnotherType(stmt);
     CheckCastPointerToDifferentType(stmt);
+    CheckNULLUsedAsInteger(stmt);
   }
 
   void VisitImplicitCastExpr(const clang::ImplicitCastExpr *stmt) {
@@ -630,6 +637,7 @@ public:
     CheckArithTypeCastToVoidPointerType(stmt);
     CheckCastBetweenPointerAndNonIntType(stmt);
     CheckUsingNullWithPointer(stmt);
+    CheckNULLUsedAsInteger(stmt);
   }
 
   void VisitArraySubscriptExpr(const clang::ArraySubscriptExpr *stmt) {
@@ -694,6 +702,7 @@ public:
   void VisitCXXStaticCastExpr(const clang::CXXStaticCastExpr *stmt) {
     CheckDownCastToDerivedClass(stmt);
     CheckExplictCastOnIntOrFloatIncreaseSize(stmt);
+    CheckNULLUsedAsInteger(stmt);
   };
 
   void VisitCXXMemberCallExpr(const clang::CXXMemberCallExpr *stmt) {
