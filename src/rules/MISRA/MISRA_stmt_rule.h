@@ -54,7 +54,7 @@ private:
   clang::BuiltinType::Kind UnifyBTTypeKind(const clang::BuiltinType::Kind &kind);
 
   // check if the expr is an IntegerLiteral expression
-  bool IsIntegerLiteralExpr(const clang::Expr *expr);
+  bool IsIntegerLiteralExpr(const clang::Expr *expr, uint64_t *res = nullptr);
 
   // check if the expr has side effect
   bool HasSideEffect(const clang::Stmt *stmt);
@@ -199,7 +199,10 @@ private:
    * Rule: 11.9
    * The macro NULL shall be the only permitted form of integer null pointer constant
    */
+  void ReportZeroAsPointer(const clang::Stmt *stmt);
+  bool UsingZeroAsPointer(const clang::Expr *lhs, const clang::Expr *rhs);
   void CheckZeroAsPointerConstant(const clang::BinaryOperator *stmt);
+  void CheckZeroAsPointerConstant(const clang::ConditionalOperator *stmt);
 
   /* MISRA
    * Rule: 12.2
@@ -775,6 +778,10 @@ public:
 
   void VisitDeclStmt(const clang::DeclStmt *stmt) {
     CheckFunctionDeclInBlock(stmt);
+  }
+
+  void VisitConditionalOperator(const clang::ConditionalOperator *stmt) {
+    CheckZeroAsPointerConstant(stmt);
   }
 
 }; // MISRAStmtRule

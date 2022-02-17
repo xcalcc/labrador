@@ -64,10 +64,12 @@ clang::BuiltinType::Kind MISRAStmtRule::UnifyBTTypeKind(const clang::BuiltinType
 }
 
 // check if the expr is an IntegerLiteral expression
-bool MISRAStmtRule::IsIntegerLiteralExpr(const clang::Expr *expr) {
+bool MISRAStmtRule::IsIntegerLiteralExpr(const clang::Expr *expr, uint64_t *res) {
   clang::Expr::EvalResult eval_result;
   auto ctx = XcalCheckerManager::GetAstContext();
-  return expr->EvaluateAsInt(eval_result, *ctx);
+  bool state = expr->EvaluateAsInt(eval_result, *ctx);
+  if (state && res) *res = eval_result.Val.getInt().getZExtValue();
+  return state;
 }
 
 // check if the stmt has side effect
@@ -772,38 +774,48 @@ void MISRAStmtRule::CheckAssignRemoveConstOrVolatile(const clang::BinaryOperator
  * Rule: 11.9
  * The macro NULL shall be the only permitted form of integer null pointer constant
  */
+bool MISRAStmtRule::UsingZeroAsPointer(const clang::Expr *lhs, const clang::Expr *rhs) {
+  auto lhs_type = lhs->getType();
+  auto rhs_type = rhs->getType();
+  if (clang::isa<clang::TypedefType>(lhs_type)) lhs_type = GetRawTypeOfTypedef(lhs_type);
+  if (clang::isa<clang::TypedefType>(rhs_type)) rhs_type = GetRawTypeOfTypedef(rhs_type);
+  if (lhs_type->isPointerType() && rhs_type->isIntegerType()) {
+    uint64_t val;
+    if (IsIntegerLiteralExpr(rhs, &val) && (val == 0)) return true;
+  }
+  if (rhs_type->isPointerType() && lhs_type->isIntegerType()) {
+    uint64_t val;
+    if (IsIntegerLiteralExpr(lhs, &val) && (val == 0)) return true;
+  }
+  return false;
+}
+
+
 void MISRAStmtRule::CheckZeroAsPointerConstant(const clang::BinaryOperator *stmt) {
+  auto opcode = stmt->getOpcode();
+  if (opcode != clang::BO_EQ && opcode != clang::BO_NE) return;
+
   auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
   auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
 
-  auto lhs_type = lhs->getType();
-  auto rhs_type = rhs->getType();
 
-  if (clang::isa<clang::TypedefType>(lhs_type)) lhs_type = GetRawTypeOfTypedef(lhs_type);
-  if (clang::isa<clang::TypedefType>(rhs_type)) rhs_type = GetRawTypeOfTypedef(rhs_type);
-
-  bool need_report = false;
-
-  // int a = 2; if (a == NULL)
-  if (!lhs_type->isPointerType() && clang::isa<clang::GNUNullExpr>(rhs)) need_report = true;
-  if (!rhs_type->isPointerType() && clang::isa<clang::GNUNullExpr>(lhs)) need_report = true;
-
-  // int *p2 = (int *)0; if (p2 == 0)
-  if (lhs_type->isPointerType())
-    if (auto literal = clang::dyn_cast<clang::IntegerLiteral>(rhs->IgnoreParenImpCasts()))
-      if (literal->getValue().getZExtValue() == 0) need_report = true;
-
-  if (rhs_type->isPointerType())
-    if (auto literal = clang::dyn_cast<clang::IntegerLiteral>(lhs->IgnoreParenImpCasts()))
-      if (literal->getValue().getZExtValue() == 0) need_report = true;
-
-  if (need_report) {
-    XcalIssue *issue = nullptr;
-    XcalReport *report = XcalCheckerManager::GetReport();
-    issue = report->ReportIssue(MISRA, M_R_11_9, stmt);
-    std::string ref_msg = "The macro NULL shall be the only permitted form of integer null pointer constant";
-    issue->SetRefMsg(ref_msg);
+  if (UsingZeroAsPointer(stmt, lhs) || UsingZeroAsPointer(stmt, rhs)) {
+    ReportZeroAsPointer(stmt);
   }
+}
+
+void MISRAStmtRule::CheckZeroAsPointerConstant(const clang::ConditionalOperator *stmt) {
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+
+  if (UsingZeroAsPointer(lhs, rhs)) {
+    ReportZeroAsPointer(stmt);
+  }
+}
+
+void MISRAStmtRule::ReportZeroAsPointer(const clang::Stmt *stmt) {
+  std::string ref_msg = "The macro NULL shall be the only permitted form of integer null pointer constant";
+  ReportTemplate(ref_msg, M_R_11_9, stmt);
 }
 
 /* MISRA
