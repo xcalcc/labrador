@@ -569,6 +569,7 @@ void MISRAStmtRule::CheckIncompleteTypePointerCastToAnotherType(const clang::CSt
 void MISRAStmtRule::CheckCastPointerToDifferentType(const clang::CStyleCastExpr *stmt) {
   auto type = stmt->getType();
   auto sub_type = stmt->getSubExpr()->IgnoreParenImpCasts()->getType();
+  if (!type->isPointerType() || !sub_type->isPointerType()) return;
   if (type != sub_type) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
