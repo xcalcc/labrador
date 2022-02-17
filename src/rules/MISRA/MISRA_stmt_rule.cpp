@@ -165,6 +165,53 @@ clang::BuiltinType::Kind MISRAStmtRule::GetBTKind(clang::QualType type) {
   return clang::cast<clang::BuiltinType>(ud_type)->getKind();
 }
 
+// if this binary statement is composite expression
+bool MISRAStmtRule::IsComposite(const clang::Stmt *stmt) {
+  if (auto bin = clang::dyn_cast<clang::BinaryOperator>(stmt)) {
+    using Opcode = clang::BinaryOperator::Opcode;
+    switch (bin->getOpcode()) {
+      case Opcode::BO_Mul:
+      case Opcode::BO_Div:
+      case Opcode::BO_Rem:
+      case Opcode::BO_Add:
+      case Opcode::BO_Sub:
+      case Opcode::BO_Shl:
+      case Opcode::BO_Shr:
+        return true;
+      default:
+        return false;
+    }
+  } else if (clang::isa<clang::ConditionalOperator>(stmt)) {
+    return true;
+  }
+  return false;
+}
+
+// if this expression is arithmetic expression
+bool MISRAStmtRule::IsArithmetic(const clang::Stmt *stmt) {
+  using Opcode = clang::BinaryOperator::Opcode;
+
+  if (auto unary = clang::dyn_cast<clang::UnaryOperator>(stmt)) {
+    return unary->isArithmeticOp();
+  } else if (auto bin = clang::dyn_cast<clang::BinaryOperator>(stmt)) {
+    switch (bin->getOpcode()) {
+      case Opcode::BO_Add:
+      case Opcode::BO_Sub:
+      case Opcode::BO_Mul:
+      case Opcode::BO_Div:
+      case Opcode::BO_Rem:
+      case Opcode::BO_And:
+      case Opcode::BO_Or:
+      case Opcode::BO_Xor:
+      case Opcode::BO_Shl:
+      case Opcode::BO_Shr:
+        return true;
+      default:
+        return false;
+    }
+  }
+  return false;
+}
 
 /* MISRA
  * Rule: 4.1
@@ -387,8 +434,8 @@ void MISRAStmtRule::CheckCompositeExprAssignToWiderTypeVar(const clang::BinaryOp
   if (!stmt->isAssignmentOp()) return;
   auto rhs = stmt->getRHS()->IgnoreCasts();
 
-  // check only when the rhs is binary operator
-  if (rhs->getStmtClass() != clang::Stmt::StmtClass::BinaryOperatorClass) return;
+  // check only when the rhs is composite stmt
+  if (!IsComposite(rhs) || stmt->isShiftOp()) return;
 
   // not handle integer expression
   if (IsIntegerLiteralExpr(rhs)) return;
@@ -444,6 +491,7 @@ void MISRAStmtRule::CheckCompositeExprAssignToWiderTypeVar(const clang::BinaryOp
  * arithmetic conversions are performed then the other operand shall not have wider essential type
  */
 void MISRAStmtRule::CheckCompositeMixTypeExpr(const clang::BinaryOperator *stmt) {
+  if (!IsArithmetic(stmt)) return;
   auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
   auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
   auto lhs_type = lhs->getType();
@@ -466,6 +514,7 @@ void MISRAStmtRule::CheckCompositeMixTypeExpr(const clang::BinaryOperator *stmt)
   using Stmt = clang::Stmt;
   if (lhs_kind < rhs_kind) {
     if (auto lhs_bin_op = clang::dyn_cast<clang::BinaryOperator>(lhs)) {
+      if (!IsComposite(lhs_bin_op)) return;
       if (IsIntegerLiteralExpr(lhs_bin_op->getLHS()->IgnoreParenImpCasts()) &&
           IsIntegerLiteralExpr(lhs_bin_op->getRHS()->IgnoreParenImpCasts()))
         return;
@@ -473,6 +522,7 @@ void MISRAStmtRule::CheckCompositeMixTypeExpr(const clang::BinaryOperator *stmt)
     }
   } else if (rhs_kind < lhs_kind) {
     if (auto rhs_bin_op = clang::dyn_cast<clang::BinaryOperator>(rhs)) {
+      if (IsComposite(rhs_bin_op)) return;
       if (IsIntegerLiteralExpr(rhs_bin_op->getLHS()->IgnoreParenImpCasts()) &&
           IsIntegerLiteralExpr(rhs_bin_op->getRHS()->IgnoreParenImpCasts()))
         return;
@@ -499,6 +549,9 @@ void MISRAStmtRule::CheckCompositeExprCastToWiderType(const clang::CStyleCastExp
   auto sub_type = sub_expr->getType();
   auto type = stmt->IgnoreParenImpCasts()->getType();
 
+  // return if it is not composite expression
+  if (!IsComposite(sub_expr)) return;
+
   if (clang::isa<clang::TypedefType>(type)) type = GetRawTypeOfTypedef(type);
   if (clang::isa<clang::TypedefType>(sub_type)) sub_type = GetRawTypeOfTypedef(sub_type);
 
@@ -507,8 +560,6 @@ void MISRAStmtRule::CheckCompositeExprCastToWiderType(const clang::CStyleCastExp
   if (!bt_type || !bt_sub) return;
   auto type_kind = UnifyBTTypeKind(bt_type->getKind());
   auto subtype_kind = UnifyBTTypeKind(bt_sub->getKind());
-
-  if (sub_expr->getStmtClass() != clang::Stmt::BinaryOperatorClass) return;
 
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();

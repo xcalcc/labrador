@@ -78,6 +78,12 @@ private:
   // get builtin type kind
   clang::BuiltinType::Kind GetBTKind(clang::QualType type);
 
+  // if this statement is composite expression
+  bool IsComposite(const clang::Stmt *stmt);
+
+  // if this expression is arithmetic expression
+  bool IsArithmetic(const clang::Stmt *stmt);
+
   /* MISRA
    * Rule: 4.1
    * Octal and hexadecimal escape sequences shall be terminated
