@@ -1688,11 +1688,18 @@ void MISRAStmtRule::CheckNULLUsedAsInteger(const clang::CastExpr *stmt) {
 void MISRAStmtRule::CheckUsingNullWithPointer(const clang::ImplicitCastExpr *stmt) {
   auto ctx = XcalCheckerManager::GetAstContext();
   auto sub_expr = stmt->getSubExpr()->IgnoreParenImpCasts();
+  if (!stmt->getType()->isPointerType()) return;
 
   auto k1 = stmt->isNullPointerConstant(*ctx, clang::Expr::NullPointerConstantValueDependence::NPC_NeverValueDependent);
   auto k2 = sub_expr->isNullPointerConstant(*ctx,
                                             clang::Expr::NullPointerConstantValueDependence::NPC_NeverValueDependent);
   auto zero_literal = clang::Expr::NullPointerConstantKind::NPCK_ZeroLiteral;
+
+  // ignore (void *) 0
+  // because this expression maybe expended from #define NULL (void *)0
+  if (auto explict_cast = clang::dyn_cast<clang::CStyleCastExpr>(sub_expr)) {
+    if (explict_cast->getType()->isVoidPointerType()) return;
+  }
 
   if (k1 == zero_literal && k2 == zero_literal) {
     XcalIssue *issue = nullptr;
@@ -1700,6 +1707,7 @@ void MISRAStmtRule::CheckUsingNullWithPointer(const clang::ImplicitCastExpr *stm
     issue = report->ReportIssue(MISRA, M_R_4_10_2, stmt);
     std::string ref_msg = "Using NULL to stand a nullptr instead of using 0";
     issue->SetRefMsg(ref_msg);
+    issue->SetIsMaybe();
   }
 }
 

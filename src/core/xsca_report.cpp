@@ -151,9 +151,15 @@ XcalReport::PrintVtxtIssue(const XcalIssue *issue) {
     output_std = "ATS";
   }
 
-  fprintf(_vtxt_file, "[%s],[%s],[%s],[%d:%d],[SML],[D],[RBC],[1,0,0],[%s],[%s],",
-          _magic_opt.getValue().c_str(), key, short_filename.c_str(),
-          fid, ploc.getLine(), output_std.c_str(), issue->RuleName());
+  //                     1    2    3    4  5          6                  7    8
+  fprintf(_vtxt_file, "[%s],[%s],[%s],[%d:%d],[SML],[%s],[RBC],[1,0,0],[%s],[%s],",
+          _magic_opt.getValue().c_str(),  // 1
+          key,                            // 2
+          short_filename.c_str(),         // 3
+          fid, ploc.getLine(),            // 4, 5
+          (issue->IsMaybe() ? "M" : "D"), // 6
+          output_std.c_str(),             // 7
+          issue->RuleName());             // 8
   fprintf(_vtxt_file, "[%s],[%s],[", issue->DeclName(), issue->FuncName());
 
   std::vector<XcalPathInfo>::const_iterator end = issue->PathInfo().end();
