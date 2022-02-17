@@ -1922,31 +1922,37 @@ void MISRAStmtRule::CheckReturnParamRefOrPtr(const clang::ReturnStmt *stmt) {
   auto type = XcalCheckerManager::GetCurrentFunction()->getReturnType();
   if (!type->isPointerType() && !type->isReferenceType()) return;
 
+  bool need_report = false;
   if (type->isPointerType()) {
     if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(val)) {
       if (auto decl = clang::dyn_cast<clang::ParmVarDecl>(decl_ref->getDecl())) {
         // ignore int *f(int *a) { return a; }
-        if (type == decl->getType()) return;
+        if (decl->getType()->isReferenceType()) need_report = true;
       } else return;
     } else if (auto unary_op = clang::dyn_cast<clang::UnaryOperator>(val)) {
       if (unary_op->getOpcode() != clang::UO_AddrOf) return;
       if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(unary_op->getSubExpr())) {
-        if (!clang::isa<clang::ParmVarDecl>(decl_ref->getDecl())) return;
+        if (auto param = clang::dyn_cast<clang::ParmVarDecl>(decl_ref->getDecl())) {
+          if (param->getType()->isReferenceType()) need_report = true;
+        }
       } else return;
     } else return;
   } else {
     if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(val)) {
-      if (!clang::isa<clang::ParmVarDecl>(decl_ref->getDecl()))
-        return;
+      if (auto param = clang::dyn_cast<clang::ParmVarDecl>(decl_ref->getDecl())) {
+        if (param->getType()->isReferenceType()) need_report = true;
+      } else return;
     } else return;
   }
 
-  XcalIssue *issue = nullptr;
-  XcalReport *report = XcalCheckerManager::GetReport();
-  issue = report->ReportIssue(MISRA, M_R_7_5_3, stmt);
-  std::string ref_msg = "A function shall not return a reference or a pointer to a parameter that is passed "
-                        "by reference or const reference.";
-  issue->SetRefMsg(ref_msg);
+  if (need_report) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_7_5_3, stmt);
+    std::string ref_msg = "A function shall not return a reference or a pointer to a parameter that is passed "
+                          "by reference or const reference.";
+    issue->SetRefMsg(ref_msg);
+  }
 }
 
 /*
