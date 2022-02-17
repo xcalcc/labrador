@@ -615,7 +615,7 @@ void MISRADeclRule::CheckArrayPartialInitialized(const clang::VarDecl *decl) {
   if (inits.size() == size) return;
 
   if (inits.size() == 1) {
-    auto head = inits[0];
+    auto head = inits[0]->IgnoreParenImpCasts();
     if (auto literal = clang::dyn_cast<clang::IntegerLiteral>(head)) {
       if (literal->getValue() == 0) {
         return;
