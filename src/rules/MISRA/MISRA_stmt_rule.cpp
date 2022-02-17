@@ -347,7 +347,7 @@ void MISRAStmtRule::CheckIntToShorter(const clang::BinaryOperator *stmt) {
   auto rhs = stmt->getRHS();
 
   auto rhs_cast = clang::dyn_cast<clang::CastExpr>(rhs);
-  if (!rhs_cast) return;
+  if (!rhs_cast || IsIntegerLiteralExpr(rhs_cast->getSubExpr())) return;
 
   if (auto subStmtBT = clang::dyn_cast<clang::BuiltinType>(rhs_cast->getSubExpr()->IgnoreParenImpCasts()->getType())) {
     auto stmtBT = clang::dyn_cast<clang::BuiltinType>(rhs_cast->getType());
