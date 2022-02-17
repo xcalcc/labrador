@@ -559,8 +559,8 @@ void MISRADeclRule::CheckImplicitSizeWithExternalArray(const clang::VarDecl *dec
   if (!decl->getType()->isArrayType()) return;
   if (decl->getStorageClass() != clang::StorageClass::SC_Extern) return;
 
-  auto array_type = clang::dyn_cast<clang::ConstantArrayType>(decl->getType());
-  if (!array_type) {
+  auto array_type = clang::dyn_cast<clang::ArrayType>(decl->getType());
+  if (array_type && !array_type->isConstantArrayType()) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(MISRA, M_R_8_11, decl);

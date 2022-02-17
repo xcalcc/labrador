@@ -390,6 +390,9 @@ void MISRAStmtRule::CheckCompositeExprAssignToWiderTypeVar(const clang::BinaryOp
   // check only when the rhs is binary operator
   if (rhs->getStmtClass() != clang::Stmt::StmtClass::BinaryOperatorClass) return;
 
+  // not handle integer expression
+  if (IsIntegerLiteralExpr(rhs)) return;
+
   auto lhs_type = stmt->getLHS()->IgnoreParenImpCasts()->getType();
   auto rhs_type = rhs->getType();
   bool need_report = false;
@@ -398,7 +401,7 @@ void MISRAStmtRule::CheckCompositeExprAssignToWiderTypeVar(const clang::BinaryOp
   if (clang::isa<clang::TypedefType>(lhs_type)) lhs_type = GetRawTypeOfTypedef(lhs_type);
   if (clang::isa<clang::TypedefType>(rhs_type)) rhs_type = GetRawTypeOfTypedef(rhs_type);
 
-  if (rhs_type < lhs_type) need_report = true;
+//  if (rhs_type < lhs_type) need_report = true;
   if (lhs_type->isIntegerType() && (rhs_type == lhs_type)) {
     auto lhs_bt = clang::dyn_cast<clang::BuiltinType>(lhs_type);
     if (lhs_bt == nullptr) return;
