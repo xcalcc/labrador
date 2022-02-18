@@ -1411,6 +1411,7 @@ void MISRAStmtRule::CheckArrayArgumentSize(const clang::CallExpr *stmt) {
                             " shall have an appropriate number of elements";
       issue->SetRefMsg(ref_msg);
     }
+    issue->AddStmt(stmt->getArg(i));
     issue->AddDecl(decl->getParamDecl(i));
     i++;
   }
@@ -1902,7 +1903,7 @@ void MISRAStmtRule::CheckForStmtLoopCounter(const clang::ForStmt *stmt) {
   } else if (auto decl_stmt = clang::dyn_cast<clang::DeclStmt>(init)) {
     loop_counter = clang::dyn_cast<clang::VarDecl>(decl_stmt->getSingleDecl());
   }
-  if (loop_counter == nullptr) return;
+  if (loop_counter == nullptr || !loop_counter->getType()->isIntegerType()) return;
 
 
   if (auto unary_op = clang::dyn_cast<clang::UnaryOperator>(inc)) {
