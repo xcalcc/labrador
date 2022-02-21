@@ -939,6 +939,10 @@ void MISRAStmtRule::ReportSideEffect(const clang::Stmt *stmt) {
  */
 void MISRAStmtRule::CheckMultiIncOrDecExpr(const clang::BinaryOperator *stmt) {
   bool need_report = false;
+
+  // ignore i++,k++
+  if (stmt->isCommaOp()) return;
+
   auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
   auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
   if (stmt->isAssignmentOp() || stmt->isCompoundAssignmentOp()) {
