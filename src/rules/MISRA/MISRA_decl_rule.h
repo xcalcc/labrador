@@ -409,7 +409,7 @@ public:
 
   void VisitFunction(const clang::FunctionDecl *decl) {
     CheckUnusedTypedef(decl);
-    CheckUnusedParameters(decl);
+//    CheckUnusedParameters(decl);
     CheckStaticSpecifier(decl);
     CheckInlineFunctionWithExternalLinkage(decl);
     CheckStaticBetweenBracket(decl);

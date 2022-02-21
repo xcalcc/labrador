@@ -1193,8 +1193,12 @@ void MISRAStmtRule::CollectTerminate(const clang::Stmt *stmt) {
 
   for (const auto &it : stmt->children()) {
     if (it == nullptr) continue;
-    if ((it->getStmtClass() == clang::Stmt::BreakStmtClass) ||
-        (it->getStmtClass() == clang::Stmt::GotoStmtClass)) {
+    auto st_class = it->getStmtClass();
+    if (st_class == clang::Stmt::WhileStmtClass || st_class == clang::Stmt::ForStmtClass ||
+        st_class == clang::Stmt::DoStmtClass)
+      continue;
+    if ((st_class == clang::Stmt::BreakStmtClass) ||
+        (st_class == clang::Stmt::GotoStmtClass)) {
       _terminates.insert(it);
       if (_terminates.size() >= 2) return;
     }
