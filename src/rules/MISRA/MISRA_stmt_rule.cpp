@@ -644,6 +644,12 @@ void MISRAStmtRule::CheckCastBetweenIntAndPointer(const clang::CastExpr *stmt) {
   auto type = stmt->IgnoreParenImpCasts()->getType();
   auto sub_type = stmt->getSubExpr()->IgnoreParenImpCasts()->getType();
 
+  // ignore (void *)0
+  if (stmt->getSubExpr()->IgnoreCasts()
+      ->isNullPointerConstant(*XcalCheckerManager::GetAstContext(),
+                              clang::Expr::NPC_ValueDependentIsNull))
+    return;
+
   if ((type->isIntegerType() && sub_type->isPointerType()) ||
       (type->isPointerType() && sub_type->isIntegerType())) {
     XcalIssue *issue = nullptr;
