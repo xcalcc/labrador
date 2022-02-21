@@ -1360,11 +1360,20 @@ void MISRAStmtRule::CheckSwitchWithoutDefault(const clang::SwitchStmt *stmt) {
 void MISRAStmtRule::CheckDefaultStmtPosition(const clang::SwitchStmt *stmt) {
   auto cases = stmt->getSwitchCaseList();
   if (cases != nullptr) {
+    bool has_default = false;
     if (cases->getStmtClass() == clang::Stmt::DefaultStmtClass) return;
     while (cases->getNextSwitchCase()) {
       cases = cases->getNextSwitchCase();
+      if (cases->getStmtClass() == clang::Stmt::DefaultStmtClass) {
+        has_default = true;
+        if (cases->getNextSwitchCase() == nullptr) {
+          return;
+        }
+        else break;
+      }
     }
-    if (cases->getStmtClass() == clang::Stmt::DefaultStmtClass) return;
+
+    if (!has_default) return;
   }
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();

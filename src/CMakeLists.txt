@@ -76,7 +76,7 @@ list (APPEND XCSA_LIBS xscaRule)
 
 set (XSCA_CLANG_LIBS
   PRIVATE
-  -Wl,--start-group
+#  -Wl,--start-group
   clangAnalysis
   clangAST
   clangBasic
@@ -103,10 +103,10 @@ set (XSCA_CLANG_LIBS
   LLVMProfileData
   LLVMRemarks
   LLVMSupport
-  -Wl,--end-group
+#  -Wl,--end-group
   m
   dl
-  rt
+#  rt
   pthread
   )
 
