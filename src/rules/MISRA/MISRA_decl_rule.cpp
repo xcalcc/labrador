@@ -291,6 +291,9 @@ void MISRADeclRule::CheckIdentifierNameConflict() {
         XcalReport *report = XcalCheckerManager::GetReport();
 
         if (var_name.empty()) return;
+        if (auto var = clang::dyn_cast<clang::VarDecl>(decl)) {
+          if (const_cast<clang::VarDecl *>(var)->isLocalExternDecl()) return;
+        }
         id_mgr->GetOuterVariables(var_name, vars);
 
         if (!vars.empty()) {
