@@ -1525,6 +1525,7 @@ void MISRAStmtRule::CheckModifyParameters(const clang::BinaryOperator *stmt) {
       issue = report->ReportIssue(MISRA, M_R_17_8, stmt);
       std::string ref_msg = "A function parameter should not be modified";
       issue->SetRefMsg(ref_msg);
+      issue->AddStmt(lhs);
     }
   }
 }
