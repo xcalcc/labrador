@@ -902,7 +902,7 @@ void MISRAStmtRule::CheckSideEffectWithinInitListExpr(const clang::InitListExpr 
 bool MISRAStmtRule::isInc(const clang::Expr *expr) {
   if (expr == nullptr) return false;
   if (auto unary = clang::dyn_cast<clang::UnaryOperator>(expr)) {
-    return unary->isPostfix() || unary->isPrefix();
+    return unary->isIncrementDecrementOp();
   }
   return false;
 }
@@ -912,17 +912,11 @@ void MISRAStmtRule::CheckSideEffectWithOrder(const clang::BinaryOperator *stmt) 
   auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
   auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
 
+  // ingore comma
+  if (stmt->isCommaOp()) return;
+
   if (isInc(lhs) && isInc(rhs)) {
     ReportSideEffect(stmt);
-  }
-}
-
-void MISRAStmtRule::CheckSideEffectWithOrder(const clang::CallExpr *stmt) {
-  for (const auto &args : stmt->arguments()) {
-    if (isInc(args)) {
-      ReportSideEffect(stmt);
-      break;
-    }
   }
 }
 
@@ -958,6 +952,21 @@ void MISRAStmtRule::CheckMultiIncOrDecExpr(const clang::BinaryOperator *stmt) {
     std::string ref_msg = "A full expression containing an increment (++) or decrement (--) operator should have no "
                           "other potential side effects other than that caused by the increment or decrement operator";
     issue->SetRefMsg(ref_msg);
+  }
+}
+
+void MISRAStmtRule::CheckMultiIncOrDecExpr(const clang::CallExpr *stmt) {
+  for (const auto &args : stmt->arguments()) {
+    if (isInc(args)) {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+      issue = report->ReportIssue(MISRA, M_R_13_3, stmt);
+      issue->AddStmt(args);
+      std::string ref_msg = "A full expression containing an increment (++) or decrement (--) operator should have no "
+                            "other potential side effects other than that caused by the increment or decrement operator";
+      issue->SetRefMsg(ref_msg);
+      break;
+    }
   }
 }
 

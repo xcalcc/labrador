@@ -236,7 +236,6 @@ private:
    */
   bool isInc(const clang::Expr *expr);
   void CheckSideEffectWithOrder(const clang::BinaryOperator *stmt);
-  void CheckSideEffectWithOrder(const clang::CallExpr *stmt);
   void ReportSideEffect(const clang::Stmt *stmt);
 
   /* MISRA
@@ -245,6 +244,7 @@ private:
    * effects other than that caused by the increment or decrement operator
    */
   void CheckMultiIncOrDecExpr(const clang::BinaryOperator *stmt);
+  void CheckMultiIncOrDecExpr(const clang::CallExpr *stmt);
 
   /* MISRA
    * Rule: 13.4
@@ -641,7 +641,7 @@ public:
     CheckBsearchAndQsortInStdlib(stmt);
     CheckTimeFunctionInStdlib(stmt);
     CheckExceptionFeaturesInFenv(stmt);
-    CheckSideEffectWithOrder(stmt);
+    CheckMultiIncOrDecExpr(stmt);
     CollectThrowType(stmt);
   }
 
