@@ -112,6 +112,7 @@ private:
    * essential type or of a different essential type category
    */
   void CheckIntToShorter(const clang::BinaryOperator *stmt);
+  void CheckIntToShorter(const clang::SwitchStmt *stmt);
 
   /* MISRA
    * Rule: 10.4
@@ -713,6 +714,7 @@ public:
     CheckCaseStmtNum(stmt);
     CheckCaseEndWithBreak(stmt);
     CheckLoopOrSwitchWithCompoundStmt(stmt);
+    CheckIntToShorter(stmt);
   }
 
   void VisitCXXTypeidExpr(const clang::CXXTypeidExpr *stmt) {

@@ -380,6 +380,41 @@ void MISRAStmtRule::CheckIntToShorter(const clang::BinaryOperator *stmt) {
   }
 }
 
+void MISRAStmtRule::CheckIntToShorter(const clang::SwitchStmt *stmt) {
+  auto cond = stmt->getCond()->IgnoreParenImpCasts();
+  auto cond_ty = cond->getType();
+  if (cond_ty->isEnumeralType()) return;
+
+  if (auto bt = clang::dyn_cast<clang::BuiltinType>(cond->getType())) {
+    auto head = stmt->getSwitchCaseList();
+    if (head->getStmtClass() == clang::Stmt::DefaultStmtClass) head = head->getNextSwitchCase();
+    if (head == nullptr) return;
+    auto cases = clang::dyn_cast<clang::CaseStmt>(head);
+    std::vector<const clang::Stmt *> sinks;
+
+    while (cases) {
+      if (cases->getLHS()->IgnoreParenImpCasts()->getType() != cond_ty) {
+        sinks.push_back(cases);
+      }
+
+      auto next = cases->getNextSwitchCase();
+      if (next == nullptr) break;
+      cases = clang::dyn_cast<clang::CaseStmt>(next);
+    }
+
+    if (!sinks.empty()) {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+
+      issue = report->ReportIssue(MISRA, M_R_10_3, stmt);
+      std::string ref_msg = "Convert int to shorter int carefully";
+      issue->SetRefMsg(ref_msg);
+      for (const auto &it : sinks) issue->AddStmt(it);
+    }
+  }
+}
+
+
 /* MISRA
  * Rule: 10.4
  * Both operands of an operator in which the usual arithmetic conversions are performed
