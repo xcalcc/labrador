@@ -1246,7 +1246,7 @@ void MISRADeclRule::CheckDerivedClassContainConstructorOfBaseClass(const clang::
  */
 void MISRADeclRule::CheckExplicitConstructorWithSingleParam(const clang::FunctionDecl *decl) {
   if (auto constructor = clang::dyn_cast<clang::CXXConstructorDecl>(decl)) {
-    if (constructor->param_size() != 1) return;
+    if (constructor->isDefaulted() || (constructor->param_size() != 1)) return;
 
     if (constructor->isExplicit()) return;
     XcalIssue *issue = nullptr;
