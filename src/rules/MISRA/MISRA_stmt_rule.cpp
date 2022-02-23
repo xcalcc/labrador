@@ -1314,6 +1314,44 @@ void MISRAStmtRule::CheckIfWithoutElseStmt(const clang::IfStmt *stmt) {
 }
 
 /* MISRA
+ * Rule: 16.2
+ * A switch label shall only be used when the most closely-enclosing compound statement
+ * is the body of a switch statement
+ */
+void MISRAStmtRule::CheckCaseStmtInSwitchBody(const clang::SwitchStmt *stmt) {
+  auto cases = stmt->getSwitchCaseList();
+  auto body = stmt->getBody();
+  auto ctx = XcalCheckerManager::GetAstContext();
+
+  std::vector<const clang::Stmt *> sinks;
+
+  while (cases->getNextSwitchCase()) {
+    auto parents = ctx->getParents(*cases);
+    if (parents.empty()) {
+      cases = cases->getNextSwitchCase();
+      continue;
+    }
+    auto parent = parents[0].get<clang::Stmt>();
+    if (parent == body) {
+      cases = cases->getNextSwitchCase();
+      continue;
+    }
+
+    sinks.push_back(cases);
+    cases = cases->getNextSwitchCase();
+  }
+
+  if (!sinks.empty()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_16_2, stmt);
+    std::string ref_msg = "A switch label shall only be used when the most closely-enclosing compound"
+                          " statement is the body of a switch statement";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+/* MISRA
  * Rule: 16.3
  * Every switch statement shall have a default label
  */

@@ -361,6 +361,13 @@ private:
   void CheckIfWithoutElseStmt(const clang::IfStmt *stmt);
 
   /* MISRA
+   * Rule: 16.2
+   * A switch label shall only be used when the most closely-enclosing compound statement
+   * is the body of a switch statement
+   */
+  void CheckCaseStmtInSwitchBody(const clang::SwitchStmt *stmt);
+
+  /* MISRA
    * Rule: 16.3
    * Every switch statement shall have a default label
    */
@@ -715,6 +722,7 @@ public:
     CheckCaseEndWithBreak(stmt);
     CheckLoopOrSwitchWithCompoundStmt(stmt);
     CheckIntToShorter(stmt);
+    CheckCaseStmtInSwitchBody(stmt);
   }
 
   void VisitCXXTypeidExpr(const clang::CXXTypeidExpr *stmt) {

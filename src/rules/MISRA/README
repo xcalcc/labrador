@@ -59,6 +59,7 @@ Rule		Kind		Implementation
 12.2        Stmt        CheckShiftOutOfRange
 12.3        Stmt        CheckCommaStmt
 12.4        Stmt        CheckUnsignedIntWrapAround
+12.5        Diag        HandleDiagnostic
 
 13.1        Stmt        CheckSideEffectWithinInitListExpr
 13.2        Stmt        CheckSideEffectWithOrder
@@ -74,6 +75,7 @@ Rule		Kind		Implementation
 15.5
 15.6
 15.7        Stmt        CheckIfWithoutElseStmt
+16.2        Stmt        CheckCaseStmtInSwitchBody
 16.3
 16.4        Stmt        CheckSwitchWithoutDefault
 16.5        Stmt        CheckDefaultStmtPosition
