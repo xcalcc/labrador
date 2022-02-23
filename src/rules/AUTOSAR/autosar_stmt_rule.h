@@ -38,6 +38,12 @@ private:
   bool IsAssign(clang::OverloadedOperatorKind kind) const;
 
   /* AUTOSAR
+   * Rule: A2-13-5
+   * Hexadecimal constants should be upper case.
+   */
+  void CheckHexadecimalUpperCase(const clang::IntegerLiteral *stmt);
+
+  /* AUTOSAR
    * Rule: A4-5-1
    * Expressions with type enum or enum class shall not be used as operands to built-in and overloaded
    * operators other than the subscript operator [ ], the assignment operator =, the equality operators == and ! =,
@@ -167,6 +173,7 @@ public:
 
   void VisitIntegerLiteral(const clang::IntegerLiteral *stmt) {
     CheckLiteralNotWithinInitExpr(stmt);
+    CheckHexadecimalUpperCase(stmt);
   }
 
   void VisitCharacterLiteral(const clang::CharacterLiteral *stmt) {

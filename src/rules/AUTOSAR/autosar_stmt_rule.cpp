@@ -36,6 +36,34 @@ bool AUTOSARStmtRule::IsAssign(clang::OverloadedOperatorKind kind) const {
 };
 
 /* AUTOSAR
+ * Rule: A2-13-5
+ * Hexadecimal constants should be upper case.
+ */
+void AUTOSARStmtRule::CheckHexadecimalUpperCase(const clang::IntegerLiteral *stmt) {
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  auto start = src_mgr->getCharacterData(stmt->getBeginLoc());
+  auto end = src_mgr->getCharacterData(stmt->getEndLoc());
+
+  while (start) {
+    if (*start == 'x') {
+      start++;
+      continue;
+    }
+    if (!isalnum(*start)) break;
+    if (*start <= 'z' && *start >= 'a') {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+
+      issue = report->ReportIssue(AUTOSAR, A2_13_5, stmt);
+      std::string ref_msg = "Hexadecimal constants should be upper case.";
+      issue->SetRefMsg(ref_msg);
+      return;
+    }
+    start++;
+  }
+}
+
+/* AUTOSAR
  * Rule: A4-5-1
  * Expressions with type enum or enum class shall not be used as operands to built-in and overloaded
  * operators other than the subscript operator [ ], the assignment operator =, the equality operators == and ! =,
