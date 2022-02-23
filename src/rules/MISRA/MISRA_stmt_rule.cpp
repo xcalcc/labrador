@@ -978,6 +978,15 @@ void MISRAStmtRule::CheckMultiIncOrDecExpr(const clang::BinaryOperator *stmt) {
     if (HasIncOrDecExpr(lhs) || HasIncOrDecExpr(rhs)) need_report = true;
   } else {
     if (HasIncOrDecExpr(lhs) && HasIncOrDecExpr(rhs)) need_report = true;
+    if (HasIncOrDecExpr(lhs) || HasIncOrDecExpr(rhs)) {
+      auto is_function = [](const clang::Stmt *stmt) -> bool {
+        if (stmt->getStmtClass() == clang::Stmt::CallExprClass) return true;
+        return false;
+      };
+      if (HasSpecificStmt(lhs, is_function) || HasSpecificStmt(rhs, is_function)) {
+        need_report = true;
+      }
+    }
   }
 
   if (need_report) {
@@ -1441,8 +1450,7 @@ void MISRAStmtRule::CheckDefaultStmtPosition(const clang::SwitchStmt *stmt) {
         has_default = true;
         if (cases->getNextSwitchCase() == nullptr) {
           return;
-        }
-        else break;
+        } else break;
       }
     }
 
