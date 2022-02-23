@@ -201,6 +201,20 @@ void AUTOSARDeclRule::CheckUsingDeclInHeaderFile(const clang::UsingDecl *decl) {
 }
 
 /*
+ * AUTOSAR: A2-11-1
+ * Volatile keyword shall not be used.
+ */
+void AUTOSARDeclRule::CheckVolatile(const clang::VarDecl *decl) {
+  if (decl->getType().isVolatileQualified()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(AUTOSAR, A2_11_1, decl);
+    std::string ref_msg = "Volatile keyword shall not be used.";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+/*
  * AUTOSAR: A7-1-6
  * The typedef specifier shall not be used.
  */

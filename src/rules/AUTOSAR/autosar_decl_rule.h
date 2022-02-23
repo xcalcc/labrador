@@ -39,6 +39,12 @@ private:
   bool IsCmp(clang::NamedDecl *decl) const;
 
   /*
+   * AUTOSAR: A2-11-1
+   * Volatile keyword shall not be used.
+   */
+  void CheckVolatile(const clang::VarDecl *decl);
+
+  /*
    * AUTOSAR: A7-1-6
    * The typedef specifier shall not be used.
    */
@@ -263,6 +269,10 @@ public:
 
   void VisitFriend(const clang::FriendDecl *decl) {
     CheckComparisonOpDecl(decl);
+  }
+
+  void VisitVar(const clang::VarDecl *decl) {
+    CheckVolatile(decl);
   }
 };
 }
