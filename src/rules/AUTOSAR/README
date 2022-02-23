@@ -2,6 +2,7 @@ This is for AUTOSAR with the following rules:
 
 Rule		Kind		Implementation
 --------------+---------------+--------------------------------
+A2-10-1     Decl        CheckLocalVarCollideWithGlobal
 A2-11-1     Decl        CheckVolatile
 A2-13-5     Stmt        CheckHexadecimalUpperCase
 A5-1-1      Stmt        CheckLiteralNotWithinInitExpr

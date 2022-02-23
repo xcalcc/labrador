@@ -65,6 +65,71 @@ bool AUTOSARDeclRule::IsCmp(clang::NamedDecl *decl) const {
 }
 
 /*
+ * AUTOSAR: A2-10-1
+ * An identifier declared in an inner scope shall not hide an
+ * identifier declared in an outer scope.
+ */
+void AUTOSARDeclRule::CheckLocalVarCollideWithGlobal() {
+  XcalIssue *var_issue = nullptr, *param_issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+
+  using IdentifierKind = IdentifierManager::IdentifierKind;
+  constexpr uint32_t kind = IdentifierKind::VAR;
+
+  for (const auto &it : top_scope->Children()) {
+    if (it->GetScopeKind() != SK_FUNCTION) continue;
+    it->TraverseAll<kind,
+        const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+        [&](const std::string &var_name, const clang::Decl *decl, IdentifierManager *id_mgr) {
+          if (top_scope->HasVariableName<false>(var_name)) {
+
+            if (auto param_decl = clang::dyn_cast<clang::ParmVarDecl>(decl)) {
+              if (param_issue == nullptr) {
+                param_issue = report->ReportIssue(AUTOSAR, A2_10_1, decl);
+
+                std::string ref_msg = "An identifier declared in an inner scope shall not hide an "
+                                      "identifier declared in an outer scope.";
+                ref_msg += param_decl->getNameAsString();
+                param_issue->SetRefMsg(ref_msg);
+              } else {
+                param_issue->AddDecl(param_decl);
+              }
+            } else {
+              if (var_issue == nullptr) {
+                var_issue = report->ReportIssue(AUTOSAR, A2_10_1, decl);
+                std::string ref_msg = "An identifier declared in an inner scope shall not hide an "
+                                      "identifier declared in an outer scope.";
+                ref_msg += clang::dyn_cast<clang::VarDecl>(decl)->getNameAsString();
+                var_issue->SetRefMsg(ref_msg);
+              } else {
+                var_issue->AddDecl(decl);
+              }
+            }
+          }
+
+        },
+        true);
+  }
+}
+
+/*
+ * AUTOSAR: A2-11-1
+ * Volatile keyword shall not be used.
+ */
+void AUTOSARDeclRule::CheckVolatile(const clang::VarDecl *decl) {
+  if (decl->getType().isVolatileQualified()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(AUTOSAR, A2_11_1, decl);
+    std::string ref_msg = "Volatile keyword shall not be used.";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+/*
  * AUTOSAR: A7-2-2
  * Enumeration underlying base type shall be explicitly defined.
  */
@@ -196,20 +261,6 @@ void AUTOSARDeclRule::CheckUsingDeclInHeaderFile(const clang::UsingDecl *decl) {
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(AUTOSAR, A7_3_6, decl);
     std::string ref_msg = "Using-directives and using-declarations shall not be used in header files.";
-    issue->SetRefMsg(ref_msg);
-  }
-}
-
-/*
- * AUTOSAR: A2-11-1
- * Volatile keyword shall not be used.
- */
-void AUTOSARDeclRule::CheckVolatile(const clang::VarDecl *decl) {
-  if (decl->getType().isVolatileQualified()) {
-    XcalIssue *issue = nullptr;
-    XcalReport *report = XcalCheckerManager::GetReport();
-    issue = report->ReportIssue(AUTOSAR, A2_11_1, decl);
-    std::string ref_msg = "Volatile keyword shall not be used.";
     issue->SetRefMsg(ref_msg);
   }
 }

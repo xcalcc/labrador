@@ -39,6 +39,13 @@ private:
   bool IsCmp(clang::NamedDecl *decl) const;
 
   /*
+   * AUTOSAR: A2-10-1
+   * An identifier declared in an inner scope shall not hide an
+   * identifier declared in an outer scope.
+   */
+  void CheckLocalVarCollideWithGlobal();
+
+  /*
    * AUTOSAR: A2-11-1
    * Volatile keyword shall not be used.
    */
@@ -211,6 +218,10 @@ private:
   void CheckComparisonOpDecl(const clang::FriendDecl *decl);
 
 public:
+  void Finalize() {
+    CheckLocalVarCollideWithGlobal();
+  }
+
   void VisitFunction(const clang::FunctionDecl *decl) {
     CheckUserDefinedSuffixes(decl);
     CheckExplictUserDefinedConversionOp(decl);
