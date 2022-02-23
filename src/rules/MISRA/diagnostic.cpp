@@ -65,6 +65,9 @@ void MISRADiagnostic::HandleDiagnostic(clang::DiagnosticsEngine::Level diagnosti
     case 5382:  // MISRA 16.7
       AddIssue(M_R_16_7, msg, location);
       break;
+    case clang::diag::warn_sizeof_array_param:
+      AddIssue(M_R_12_5, msg, location);
+      break;
     default:
       break;
   }
