@@ -39,6 +39,9 @@ void MISRADiagnostic::HandleDiagnostic(clang::DiagnosticsEngine::Level diagnosti
     case 1067:  // MISRA 4.2
       AddIssue(M_R_4_2, "Trigraphs should not be used", location);
       break;
+    case clang::diag::ext_missing_type_specifier:
+      AddIssue(M_R_8_1, msg, location);
+      break;
     case 2594:  // MISRA 11.4
       AddIssue(M_R_11_4, msg, location);
       break;
