@@ -130,6 +130,26 @@ void AUTOSARDeclRule::CheckVolatile(const clang::VarDecl *decl) {
 }
 
 /*
+ * AUTOSAR: A2-13-4
+ * String literals shall not be assigned to non-constant pointers.
+ */
+void AUTOSARDeclRule::CheckStringLiteralToNonConstantPtr(const clang::VarDecl *decl) {
+  if (!decl->hasInit()) return;
+  auto decl_ty = decl->getType();
+  auto init = decl->getInit()->IgnoreParenImpCasts();
+  if (!decl_ty->isPointerType() && !decl_ty->isArrayType()) return;
+  if (!decl_ty->getPointeeOrArrayElementType()->isCharType()) return;
+  if (decl_ty->isConstantArrayType()) return;
+  if (decl_ty->isPointerType() && decl_ty->getPointeeType().isConstQualified()) return;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(AUTOSAR, A2_13_4, decl);
+  std::string ref_msg = "String literals shall not be assigned to non-constant pointers.";
+  issue->SetRefMsg(ref_msg);
+}
+
+/*
  * AUTOSAR: A7-2-2
  * Enumeration underlying base type shall be explicitly defined.
  */

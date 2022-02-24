@@ -52,6 +52,12 @@ private:
   void CheckVolatile(const clang::VarDecl *decl);
 
   /*
+   * AUTOSAR: A2-13-4
+   * String literals shall not be assigned to non-constant pointers.
+   */
+  void CheckStringLiteralToNonConstantPtr(const clang::VarDecl *decl);
+
+  /*
    * AUTOSAR: A7-1-6
    * The typedef specifier shall not be used.
    */
@@ -284,6 +290,7 @@ public:
 
   void VisitVar(const clang::VarDecl *decl) {
     CheckVolatile(decl);
+    CheckStringLiteralToNonConstantPtr(decl);
   }
 };
 }
