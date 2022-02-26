@@ -625,7 +625,19 @@ void MISRAStmtRule::CheckCompositeExprCastToWiderType(const clang::CStyleCastExp
  * Conversions shall not be performed between a pointer to a function and any other type
  */
 void MISRAStmtRule::CheckCastFunctionPointerType(const clang::CStyleCastExpr *stmt) {
+  bool need_report = false;
+  auto type = stmt->getType();
+  auto sub_ty = stmt->getSubExpr()->IgnoreParenImpCasts()->getType();
+  if (auto ptr_ty = clang::dyn_cast<clang::PointerType>(type)) {
+    if (ptr_ty->isFunctionPointerType()) {
+      auto ptr_func_ty = clang::dyn_cast<clang::FunctionType>(ptr_ty->getPointeeType());
 
+      if (!sub_ty->isFunctionType() && !sub_ty->isFunctionPointerType()) need_report = true;
+      else if (sub_ty->isFunctionPointerType()) {
+
+      }
+    }
+  }
 }
 
 /* MISRA
@@ -1916,6 +1928,11 @@ void MISRAStmtRule::CheckExplictCastOnIntOrFloatIncreaseSize(const clang::CXXNam
     auto type_kind = UnifyBTTypeKind(GetBTKind(type));
     if ((type->isIntegerType() && sub_type->isIntegerType()) ||
         type->isFloatingType() && sub_type->isFloatingType()) {
+      auto lhs_ty = bin_op->getLHS()->IgnoreParenImpCasts()->getType();
+      auto rhs_ty = bin_op->getRHS()->IgnoreParenImpCasts()->getType();
+      if (!(lhs_ty->isIntegerType() || lhs_ty->isFloatingType()) ||
+          !(rhs_ty->isIntegerType() || rhs_ty->isFloatingType()))
+        return;
       auto bin_kind = getSubKind(bin_op);
 
       if (type_kind > bin_kind) {

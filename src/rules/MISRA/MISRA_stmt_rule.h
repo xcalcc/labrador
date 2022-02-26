@@ -736,7 +736,7 @@ public:
 
   void VisitCXXStaticCastExpr(const clang::CXXStaticCastExpr *stmt) {
     CheckDownCastToDerivedClass(stmt);
-    CheckExplictCastOnIntOrFloatIncreaseSize(stmt);
+//    CheckExplictCastOnIntOrFloatIncreaseSize(stmt);
     CheckNULLUsedAsInteger(stmt);
   };
 
