@@ -1270,7 +1270,7 @@ void MISRAStmtRule::CollectTerminate(const clang::Stmt *stmt) {
     if (it == nullptr) continue;
     auto st_class = it->getStmtClass();
     if (st_class == clang::Stmt::WhileStmtClass || st_class == clang::Stmt::ForStmtClass ||
-        st_class == clang::Stmt::DoStmtClass)
+        st_class == clang::Stmt::DoStmtClass || st_class == clang::Stmt::SwitchStmtClass)
       continue;
     if ((st_class == clang::Stmt::BreakStmtClass) ||
         (st_class == clang::Stmt::GotoStmtClass)) {
