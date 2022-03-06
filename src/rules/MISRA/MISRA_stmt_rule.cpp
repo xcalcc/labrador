@@ -369,6 +369,8 @@ void MISRAStmtRule::CheckIntToShorter(const clang::BinaryOperator *stmt) {
       auto subStmtKind = resolve(subStmtBT);
 
       if (stmtKind < subStmtKind) {
+        lhs->dumpColor();
+        rhs->dumpColor();
         XcalIssue *issue = nullptr;
         XcalReport *report = XcalCheckerManager::GetReport();
 
@@ -394,6 +396,8 @@ void MISRAStmtRule::CheckIntToShorter(const clang::SwitchStmt *stmt) {
 
     while (cases) {
       if (cases->getLHS()->IgnoreParenImpCasts()->getType() != cond_ty) {
+        cond_ty->dump();
+        cases->getLHS()->dumpColor();
         sinks.push_back(cases);
       }
 

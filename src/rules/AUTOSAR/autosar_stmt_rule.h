@@ -71,12 +71,15 @@ private:
       if (parent && clang::isa<clang::VarDecl>(parent)) return;
     }
 
+    bool is_str = clang::isa<clang::StringLiteral>(stmt);
+
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(AUTOSAR, A5_1_1, stmt);
     std::string ref_msg = "Literal values shall not be used apart from type initialization, "
                           "otherwise symbolic names shall be used instead.";
     issue->SetRefMsg(ref_msg);
+    issue->SetIsMaybe(is_str);
   }
 
   /*

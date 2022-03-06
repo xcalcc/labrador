@@ -107,6 +107,15 @@ bool MISRADeclRule::IsPointerNestedMoreThanTwoLevel(clang::QualType decl_type) {
   return false;
 }
 
+// check if the expr is an IntegerLiteral expression
+bool MISRADeclRule::IsIntegerLiteralExpr(const clang::Expr *expr, uint64_t *res) {
+  clang::Expr::EvalResult eval_result;
+  auto ctx = XcalCheckerManager::GetAstContext();
+  bool state = expr->EvaluateAsInt(eval_result, *ctx);
+  if (state && res) *res = eval_result.Val.getInt().getZExtValue();
+  return state;
+}
+
 /* MISRA
  * Rule: 2.3
  * A project should not contain unused type declarations
@@ -619,8 +628,16 @@ void MISRADeclRule::CheckArrayPartialInitialized(const clang::VarDecl *decl) {
 
   if (inits.size() == 1) {
     auto head = inits[0]->IgnoreParenImpCasts();
-    if (auto literal = clang::dyn_cast<clang::IntegerLiteral>(head)) {
-      if (literal->getValue() == 0) {
+    head->dumpColor();
+    uint64_t val = 0;
+
+    auto child0 = *(head->child_begin());
+    clang::Expr *sub_expr = nullptr;
+    if (child0 != nullptr) {
+      sub_expr = clang::dyn_cast<clang::Expr>(child0);
+    }
+    if (IsIntegerLiteralExpr(head, &val) || (sub_expr && IsIntegerLiteralExpr(sub_expr, &val))) {
+      if (val == 0) {
         return;
       }
     }

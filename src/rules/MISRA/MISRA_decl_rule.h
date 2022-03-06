@@ -52,6 +52,9 @@ private:
   // check if pointer nested more than tow levels
   bool IsPointerNestedMoreThanTwoLevel(clang::QualType decl_type);
 
+  // check if the expr is an IntegerLiteral expression
+  bool IsIntegerLiteralExpr(const clang::Expr *expr, uint64_t *res);
+
     /* MISRA
     * Rule: 2.3
     * A project should not contain unused type declarations
