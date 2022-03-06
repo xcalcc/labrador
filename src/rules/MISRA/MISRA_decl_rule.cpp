@@ -628,7 +628,6 @@ void MISRADeclRule::CheckArrayPartialInitialized(const clang::VarDecl *decl) {
 
   if (inits.size() == 1) {
     auto head = inits[0]->IgnoreParenImpCasts();
-    head->dumpColor();
     uint64_t val = 0;
 
     auto child0 = *(head->child_begin());
