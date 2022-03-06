@@ -29,7 +29,7 @@ namespace xsca {
 namespace rule {
 
 clang::QualType MISRAStmtRule::GetRawTypeOfTypedef(const clang::QualType type) {
-  clang::QualType res;
+  clang::QualType res = type;
   if (auto tmp = clang::dyn_cast<clang::TypedefType>(type)) {
     res = tmp->getDecl()->getTypeForDecl()->getCanonicalTypeInternal();
   }
@@ -631,15 +631,28 @@ void MISRAStmtRule::CheckCastFunctionPointerType(const clang::CStyleCastExpr *st
   bool need_report = false;
   auto type = stmt->getType();
   auto sub_ty = stmt->getSubExpr()->IgnoreParenImpCasts()->getType();
-  if (auto ptr_ty = clang::dyn_cast<clang::PointerType>(type)) {
-    if (ptr_ty->isFunctionPointerType()) {
-      auto ptr_func_ty = clang::dyn_cast<clang::FunctionType>(ptr_ty->getPointeeType());
+  auto cmp_func_ptr_ty = [](clang::QualType type, clang::QualType sub_ty) -> bool {
+    if (auto ptr_ty = clang::dyn_cast<clang::PointerType>(type)) {
+      if (ptr_ty->isFunctionPointerType()) {
+        auto ptr_func_ty = clang::dyn_cast<clang::FunctionType>(ptr_ty->getPointeeType());
 
-      if (!sub_ty->isFunctionType() && !sub_ty->isFunctionPointerType()) need_report = true;
-      else if (sub_ty->isFunctionPointerType()) {
-
+        if (!sub_ty->isFunctionType() && !sub_ty->isFunctionPointerType()) return true;
+        else if (sub_ty->isFunctionPointerType()) {
+          if (sub_ty != type) return true;
+        }
       }
     }
+    return false;
+  };
+  type = GetRawTypeOfTypedef(type);
+  sub_ty = GetRawTypeOfTypedef(sub_ty);
+  need_report = cmp_func_ptr_ty(type, sub_ty) || cmp_func_ptr_ty(sub_ty, type);
+  if (need_report) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_11_1, stmt->getSubExpr()->IgnoreParenImpCasts());
+    std::string ref_msg = "Conversions shall not be performed between a pointer to a function and any other type";
+    issue->SetRefMsg(ref_msg);
   }
 }
 
@@ -1886,7 +1899,8 @@ void MISRAStmtRule::CheckUsingNullWithPointer(const clang::ImplicitCastExpr *stm
   auto sub_expr = stmt->getSubExpr()->IgnoreParenImpCasts();
   if (!stmt->getType()->isPointerType()) return;
 
-  auto k1 = stmt->isNullPointerConstant(*ctx, clang::Expr::NullPointerConstantValueDependence::NPC_NeverValueDependent);
+  auto k1 = stmt->isNullPointerConstant(*ctx,
+                                        clang::Expr::NullPointerConstantValueDependence::NPC_NeverValueDependent);
   auto k2 = sub_expr->isNullPointerConstant(*ctx,
                                             clang::Expr::NullPointerConstantValueDependence::NPC_NeverValueDependent);
   auto zero_literal = clang::Expr::NullPointerConstantKind::NPCK_ZeroLiteral;

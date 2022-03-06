@@ -630,7 +630,7 @@ void MISRADeclRule::CheckArrayPartialInitialized(const clang::VarDecl *decl) {
     auto head = inits[0]->IgnoreParenImpCasts();
     uint64_t val = 0;
 
-    auto child0 = *(head->child_begin());
+    auto child0 = (head->children().empty()) ? nullptr : *(head->child_begin());
     clang::Expr *sub_expr = nullptr;
     if (child0 != nullptr) {
       sub_expr = clang::dyn_cast<clang::Expr>(child0);

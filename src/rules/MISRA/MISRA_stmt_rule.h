@@ -662,6 +662,7 @@ public:
     CheckIncompleteTypePointerCastToAnotherType(stmt);
     CheckCastPointerToDifferentType(stmt);
     CheckNULLUsedAsInteger(stmt);
+    CheckCastFunctionPointerType(stmt);
   }
 
   void VisitImplicitCastExpr(const clang::ImplicitCastExpr *stmt) {
