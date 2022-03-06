@@ -350,6 +350,9 @@ void MISRAStmtRule::CheckIntToShorter(const clang::BinaryOperator *stmt) {
 
   auto rhs_cast = clang::dyn_cast<clang::ImplicitCastExpr>(rhs);
   if (!rhs_cast || IsIntegerLiteralExpr(rhs_cast->getSubExpr())) return;
+  if (auto conditional = clang::dyn_cast<clang::ConditionalOperator>(rhs_cast->getSubExpr())) {
+    if (IsIntegerLiteralExpr(conditional->getLHS()) || IsIntegerLiteralExpr(conditional->getRHS())) return;
+  }
 
   if (auto subStmtBT = clang::dyn_cast<clang::BuiltinType>(rhs_cast->getSubExpr()->IgnoreParenImpCasts()->getType())) {
     auto stmtBT = clang::dyn_cast<clang::BuiltinType>(rhs_cast->getType());
