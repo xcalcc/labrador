@@ -1873,6 +1873,7 @@ void MISRAStmtRule::CheckBoolUsedAsNonLogicalOperand(const clang::BinaryOperator
  */
 void MISRAStmtRule::CheckNULLUsedAsInteger(const clang::CastExpr *stmt) {
   if (!stmt->getType()->isIntegerType()) return;
+  if (!stmt->getSubExpr()->getType()->isPointerType()) return;
   bool need_report = false;
   auto ctx = XcalCheckerManager::GetAstContext();
   auto &src_mgr = ctx->getSourceManager();
