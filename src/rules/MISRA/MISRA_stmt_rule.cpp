@@ -1423,6 +1423,17 @@ void MISRAStmtRule::CheckCaseEndWithBreak(const clang::SwitchStmt *stmt) {
         for (const auto &sub : it->children()) has_break |= HasBreakStmt(sub);
         has_break |= ((std::next(it) != case_end) &&
                       (std::next(it)->getStmtClass() == clang::Stmt::BreakStmtClass));
+
+        auto next = std::next(it);
+        while ((next != case_end) &&
+               (next->getStmtClass() != clang::Stmt::CaseStmtClass)) {
+          if (next->getStmtClass() == clang::Stmt::BreakStmtClass) {
+            has_break = true;
+            break;
+          }
+          next = std::next(next);
+        }
+
         if (!has_break && !HasBreakStmt(*it)) {
           if (issue == nullptr) {
             issue = report->ReportIssue(MISRA, M_R_16_3, stmt);
