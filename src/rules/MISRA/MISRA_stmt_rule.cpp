@@ -796,8 +796,17 @@ void MISRAStmtRule::CheckCastBetweenPointerAndNonIntType(const clang::CastExpr *
   if (!sub_bt && !sub_type->isPointerType()) return;
   if (sub_bt == nullptr && type_bt == nullptr) return;
 
-  if ((type->isPointerType() && sub_bt && !sub_bt->isIntegerType()) ||
-      (type_bt && !type_bt->isIntegerType() && sub_type->isPointerType())) {
+  auto isArithIntType = [](const clang::BuiltinType *type) -> bool {
+    if (type->isBooleanType() || type->isEnumeralType() || type->isCharType() || type->isFloatingType()) {
+      return false;
+    } else {
+      return true;
+    }
+  };
+
+  if ((type->isPointerType() && sub_bt && !isArithIntType(sub_bt)) ||
+      (type_bt && !isArithIntType(type_bt) && sub_type->isPointerType())) {
+    stmt->dumpColor();
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(MISRA, M_R_11_7, stmt);
