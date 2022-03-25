@@ -315,7 +315,9 @@ void MISRAStmtRule::CheckAddOrSubOnCharacter(const clang::BinaryOperator *stmt) 
   bool need_report = false;
   auto lhs_type = stmt->getLHS()->IgnoreParenImpCasts()->getType();
   auto rhs_type = stmt->getRHS()->IgnoreParenImpCasts()->getType();
-  if (lhs_type->isCharType() != rhs_type->isCharType()) {
+
+
+  if (!lhs_type->isIntegerType() && !rhs_type->isIntegerType()) {
     need_report = true;
   } else {
     if (lhs_char) {
