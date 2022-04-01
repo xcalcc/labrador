@@ -412,6 +412,9 @@ int main(int argc_, const char **argv_) {
       argv.resize(newEnd - argv.begin());
     }
     return ExecuteCC1Tool(argv);
+  } else if (FirstArg != argv.end() && StringRef(*FirstArg).startswith("-compile-date")) {
+    llvm::outs() << __TIMESTAMP__ << "\n";
+    return 0;
   }
 
   // Handle options that need handling before the real command line parsing in
