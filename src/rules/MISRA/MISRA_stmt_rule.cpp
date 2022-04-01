@@ -215,6 +215,18 @@ bool MISRAStmtRule::IsArithmetic(const clang::Stmt *stmt) {
   return false;
 }
 
+// strip all parenthesis expression and implicit cast expression
+const clang::Expr *MISRAStmtRule::StripAllParenImpCast(const clang::Expr *stmt) {
+  auto res = stmt;
+  auto stmt_class = stmt->getStmtClass();
+  while (stmt_class == clang::Stmt::ParenExprClass ||
+         stmt_class == clang::Stmt::ImplicitCastExprClass) {
+    res = res->IgnoreParenImpCasts();
+    stmt_class = res->getStmtClass();
+  }
+  return res;
+}
+
 /* MISRA
  * Rule: 4.1
  * Octal and hexadecimal escape sequences shall be terminated
@@ -1860,18 +1872,21 @@ void MISRAStmtRule::CheckFunctionDeclInBlock(const clang::DeclStmt *stmt) {
  */
 void MISRAStmtRule::CheckBoolUsedAsNonLogicalOperand(const clang::UnaryOperator *stmt) {
   if (stmt->getOpcode() == clang::UnaryOperator::Opcode::UO_LNot) return;
-  auto sub_type = stmt->getSubExpr()->IgnoreParenImpCasts()->getType();
+  auto sub_type = StripAllParenImpCast(stmt->getSubExpr())->getType();
   if (!sub_type->isBooleanType()) return;
+
   std::string ref_msg = "Bool shall be used as logical operands";
   ReportTemplate(ref_msg, M_R_4_5_1, stmt);
 }
 
 void MISRAStmtRule::CheckBoolUsedAsNonLogicalOperand(const clang::BinaryOperator *stmt) {
-  if (stmt->isLogicalOp() || stmt->isAssignmentOp() ||
-      (stmt->getOpcode() == clang::BinaryOperator::Opcode::BO_EQ))
+  auto opcode = stmt->getOpcode();
+  if (stmt->isLogicalOp() || stmt->isAssignmentOp() || stmt->isCommaOp() ||
+      (opcode == clang::BinaryOperator::Opcode::BO_EQ) ||
+      (opcode == clang::BinaryOperator::Opcode::BO_NE))
     return;
-  auto lhs_type = stmt->getLHS()->IgnoreParenImpCasts()->getType();
-  auto rhs_type = stmt->getRHS()->IgnoreParenImpCasts()->getType();
+  auto lhs_type = StripAllParenImpCast(stmt->getLHS())->getType();
+  auto rhs_type = StripAllParenImpCast(stmt->getRHS())->getType();
   if (!lhs_type->isBooleanType() && !rhs_type->isBooleanType()) return;
 
   std::string ref_msg = "Bool shall be used as logical operands";

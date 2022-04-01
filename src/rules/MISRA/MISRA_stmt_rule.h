@@ -84,6 +84,9 @@ private:
   // if this expression is arithmetic expression
   bool IsArithmetic(const clang::Stmt *stmt);
 
+  // strip all parenthesis expression and implicit cast expression
+  const clang::Expr *StripAllParenImpCast(const clang::Expr *stmt);
+
   /* MISRA
    * Rule: 4.1
    * Octal and hexadecimal escape sequences shall be terminated
@@ -781,6 +784,7 @@ public:
 
   void VisitUnaryOperator(const clang::UnaryOperator *stmt) {
     CheckUseFunctionNotCallOrDereference(stmt);
+    CheckBoolUsedAsNonLogicalOperand(stmt);
   }
 
   void VisitReturnStmt(const clang::ReturnStmt *stmt) {
