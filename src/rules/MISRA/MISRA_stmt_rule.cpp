@@ -1824,39 +1824,13 @@ void MISRAStmtRule::CheckUnsignedIntWrapAround(const clang::BinaryOperator *stmt
   auto rhs_literal = clang::dyn_cast<clang::IntegerLiteral>(rhs);
   if (!lhs_literal || !rhs_literal) return;
 
+  auto ctx = XcalCheckerManager::GetAstContext();
   auto bt_lhs_ty = clang::dyn_cast<clang::BuiltinType>(lhs_literal->getType())->getKind();
   auto bt_rhs_ty = clang::dyn_cast<clang::BuiltinType>(rhs_literal->getType())->getKind();
-  auto max_bt = std::max(bt_lhs_ty, bt_rhs_ty);
+  uint64_t width = std::max(ctx->getTypeSize(lhs_literal->getType()), ctx->getTypeSize(rhs_literal->getType()));
 
-  uint64_t UN_MAX;
-  using BuiltinType = clang::BuiltinType;
-
-  switch (max_bt) {
-    case BuiltinType::UChar: {
-      UN_MAX = 0xff;
-      break;
-    }
-    case BuiltinType::UShort: {
-      UN_MAX = 0xffff;
-      break;
-    }
-    case BuiltinType::UInt: {
-      UN_MAX = 0xffffffff;
-      break;
-    }
-    // TODO: handle long
-    case BuiltinType::ULong: {
-      auto long_width = XcalCheckerManager::GetAstContext()->getTargetInfo().getLongWidth();
-      auto half = 2UL << (long_width - 1);
-      UN_MAX = (half - 1) + half;
-      break;
-    }
-    case BuiltinType::ULongLong: {
-      UN_MAX = 0xffffffffffffffff;
-      break;
-    }
-    default: return;
-  }
+  uint64_t half = 1UL << (width - 1);
+  uint64_t UN_MAX = (half - 1) + half;
 
   using Opcode = clang::BinaryOperator::Opcode;
 
