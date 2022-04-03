@@ -55,7 +55,7 @@ bool AUTOSARDeclRule::IsCmp(clang::NamedDecl *decl) const {
   std::unordered_set<std::string> cmp_names = {
       "operator==", "operator<=", "operator>=", "operator>", "operator<", "operator!="
   };
-  if (!clang::isa<clang::FunctionDecl>(decl)) return false;
+  if (!decl || !clang::isa<clang::FunctionDecl>(decl)) return false;
   auto func = clang::dyn_cast<clang::FunctionDecl>(decl);
   auto name = func->getNameAsString();
   for (const auto &it : cmp_names) {

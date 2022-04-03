@@ -1931,6 +1931,7 @@ void MISRAStmtRule::CheckNULLUsedAsInteger(const clang::CastExpr *stmt) {
     issue = report->ReportIssue(MISRA, M_R_4_10_1, loc);
     std::string ref_msg = "NULL shall not be used as an integer value.";
     issue->SetRefMsg(ref_msg);
+    issue->SetIgnore(false);
   }
 }
 
