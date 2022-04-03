@@ -224,8 +224,9 @@ bool XcalReport::IsStdLibrary(clang::SourceLocation location) {
 bool XcalReport::IsXvsaFIle(clang::SourceLocation location) {
   auto src_mgr = XcalCheckerManager::GetSourceManager();
   if (location.isInvalid()) return false;
-  auto filename = src_mgr->getFilename(location);
-  return filename.contains("__xvsa");
+  clang::PresumedLoc ploc = src_mgr->getPresumedLoc(location);
+  llvm::StringRef ploc_filename = ploc.getFilename();
+  return ploc_filename.contains("__xvsa");
 }
 
 XcalIssue *XcalReport::ReportIssue(const char *std, const char *rule, const clang::Stmt *stmt) {
