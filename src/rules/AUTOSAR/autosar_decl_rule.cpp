@@ -141,6 +141,7 @@ void AUTOSARDeclRule::CheckStringLiteralToNonConstantPtr(const clang::VarDecl *d
   if (!decl_ty->getPointeeOrArrayElementType()->isCharType()) return;
   if (decl_ty->isConstantArrayType()) return;
   if (decl_ty->isPointerType() && decl_ty->getPointeeType().isConstQualified()) return;
+  if (init->getStmtClass() != clang::Stmt::StringLiteralClass) return;
 
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
