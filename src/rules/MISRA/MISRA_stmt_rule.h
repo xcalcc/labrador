@@ -76,7 +76,7 @@ private:
   clang::QualType GetUnderlyingType(clang::QualType *type);
 
   // get builtin type kind
-  clang::BuiltinType::Kind GetBTKind(clang::QualType type);
+  clang::BuiltinType::Kind GetBTKind(clang::QualType type, bool &status);
 
   // if this statement is composite expression
   bool IsComposite(const clang::Stmt *stmt);
@@ -736,11 +736,12 @@ public:
   void VisitCXXDynamicCastExpr(const clang::CXXDynamicCastExpr *stmt) {
     CheckDynamicTypeInCtorAndDtor(stmt);
     CheckDownCastToDerivedClass(stmt);
+    CheckExplictCastOnIntOrFloatIncreaseSize(stmt);
   }
 
   void VisitCXXStaticCastExpr(const clang::CXXStaticCastExpr *stmt) {
     CheckDownCastToDerivedClass(stmt);
-//    CheckExplictCastOnIntOrFloatIncreaseSize(stmt);
+    CheckExplictCastOnIntOrFloatIncreaseSize(stmt);
     CheckNULLUsedAsInteger(stmt);
   };
 
@@ -798,6 +799,10 @@ public:
   void VisitConditionalOperator(const clang::ConditionalOperator *stmt) {
     CheckZeroAsPointerConstant(stmt);
   }
+
+//  void VisitCXXStaticCastExpr(const clang::CXXStaticCastExpr *stmt) {
+//    CheckExplictCastOnIntOrFloatIncreaseSize(stmt);
+//  }
 
 }; // MISRAStmtRule
 

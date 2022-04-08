@@ -159,12 +159,20 @@ clang::QualType MISRAStmtRule::GetUnderlyingType(clang::QualType type) {
 }
 
 // get builtin type kind
-clang::BuiltinType::Kind MISRAStmtRule::GetBTKind(clang::QualType type) {
+clang::BuiltinType::Kind MISRAStmtRule::GetBTKind(clang::QualType type, bool &status) {
   auto ud_type = GetUnderlyingType(type);
+  auto prev_type = ud_type;
   while (!clang::isa<clang::BuiltinType>(ud_type)) {
     ud_type = GetUnderlyingType(ud_type);
+    if (ud_type == prev_type) break;
+    else prev_type = ud_type;
+  }
+  if (!ud_type->isBuiltinType()) {
+    status = false;
+    return clang::BuiltinType::Kind::Bool;
   }
   DBG_ASSERT(ud_type->isBuiltinType(), "This is not BuiltinType");
+  status = true;
   return clang::cast<clang::BuiltinType>(ud_type)->getKind();
 }
 
@@ -1977,18 +1985,32 @@ void MISRAStmtRule::CheckExplictCastOnIntOrFloatIncreaseSize(const clang::CXXNam
   auto type = stmt->getType();
   auto sub_expr = stmt->getSubExpr()->IgnoreParenImpCasts();
   auto sub_type = sub_expr->getType();
-  auto getSubKind = [this](const clang::BinaryOperator *bin_op) {
+
+  auto getSubKind = [this](const clang::BinaryOperator *bin_op, bool &status) {
     // check operators of binary expr
     auto lhs = bin_op->getLHS()->IgnoreParenImpCasts();
     auto rhs = bin_op->getRHS()->IgnoreParenImpCasts();
-    auto lkind = UnifyBTTypeKind(GetBTKind(lhs->getType()));
-    auto rkind = UnifyBTTypeKind(GetBTKind(rhs->getType()));
+    bool l_status = false, r_status = false;
+    auto lkind = GetBTKind(lhs->getType(), l_status);
+    auto rkind = GetBTKind(rhs->getType(), r_status);
+
+    if (!l_status || !r_status)
+      status = false;
+    else
+      status = true;
+
+    lkind = UnifyBTTypeKind(lkind);
+    rkind = UnifyBTTypeKind(rkind);
     return std::max(lkind, rkind);
   };
+
   // only check binary expression
   if (auto bin_op = clang::dyn_cast<clang::BinaryOperator>(sub_expr)) {
-    bool need_report = false;
-    auto type_kind = UnifyBTTypeKind(GetBTKind(type));
+    bool need_report = false, status = false;
+    clang::BuiltinType::Kind bt_kind = GetBTKind(type, status);
+    if (!status) return;
+
+    auto type_kind = UnifyBTTypeKind(bt_kind);
     if ((type->isIntegerType() && sub_type->isIntegerType()) ||
         type->isFloatingType() && sub_type->isFloatingType()) {
       auto lhs_ty = bin_op->getLHS()->IgnoreParenImpCasts()->getType();
@@ -1996,7 +2018,9 @@ void MISRAStmtRule::CheckExplictCastOnIntOrFloatIncreaseSize(const clang::CXXNam
       if (!(lhs_ty->isIntegerType() || lhs_ty->isFloatingType()) ||
           !(rhs_ty->isIntegerType() || rhs_ty->isFloatingType()))
         return;
-      auto bin_kind = getSubKind(bin_op);
+
+      auto bin_kind = getSubKind(bin_op, status);
+      if (!status) return;
 
       if (type_kind > bin_kind) {
         XcalIssue *issue = nullptr;
