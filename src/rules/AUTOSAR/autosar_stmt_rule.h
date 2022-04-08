@@ -30,7 +30,8 @@ public:
   ~AUTOSARStmtRule() = default;
 
   AUTOSARStmtRule() {
-    _enable = XcalCheckerManager::GetEnableOption().getValue().find("AUTOSAR") != std::string::npos;
+    _enable = true;
+//    _enable = XcalCheckerManager::GetEnableOption().getValue().find("AUTOSAR") != std::string::npos;
   }
 
 private:

@@ -31,7 +31,8 @@ public:
   ~AUTOSARPPRule() {}
 
   AUTOSARPPRule() {
-    _enable = XcalCheckerManager::GetEnableOption().getValue().find("AUTOSAR") != std::string::npos;
+    _enable = true;
+//    _enable = XcalCheckerManager::GetEnableOption().getValue().find("AUTOSAR") != std::string::npos;
   }
 
 private:
