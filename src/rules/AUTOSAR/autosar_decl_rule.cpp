@@ -178,41 +178,59 @@ void AUTOSARDeclRule::CheckEnumScoped(const clang::EnumDecl *decl) {
 
 /* AUTOSAR
  * Rule: 7-2-4
- * Within an enumerator list, the value of an implicitly-specified enumeration constant shall be unique
+ * In an enumeration, either (1) none, (2) the first or (3) all enumerators shall be initialized.
  */
-void AUTOSARDeclRule::CheckUniqueImplicitEnumerator(const clang::EnumDecl *decl) {
-  bool need_report = false;
-  const clang::EnumConstantDecl *sink = nullptr;
-  XcalIssue *issue = nullptr;
-  XcalReport *report = XcalCheckerManager::GetReport();
+void AUTOSARDeclRule::CheckEnumDeclInit(const clang::EnumDecl *decl) {
+  auto enum_begin = decl->enumerator_begin();
+  auto enum_end = decl->enumerator_end();
+  if (decl->enumerators().empty()) return;
+  auto init_expr = enum_begin->getInitExpr();
 
-  std::unordered_map<long long unsigned, const clang::EnumConstantDecl *> inits;
-  for (const auto &it : decl->enumerators()) {
-    auto val = it->getInitVal().getZExtValue();
-    if (it->getInitExpr() == nullptr) {
-      auto res = inits.find(val);
-      if (res != inits.end()) {
+  bool need_report = false;
+  if (init_expr == nullptr) {
+    for (; enum_begin != enum_end; enum_begin++) {
+      init_expr = enum_begin->getInitExpr();
+      if (init_expr != nullptr) {
         need_report = true;
-        sink = it;
         break;
       }
-    } else {
-      auto res = inits.find(val);
-      if (res != inits.end()) {
-        if (res->second->getInitExpr() == nullptr) {
-          need_report = true;
-          sink = res->second;
+    }
+  } else {
+    enum_begin++;
+
+    if (enum_begin != enum_end) {
+      // check the second
+      bool init_all = false;
+      init_expr = enum_begin->getInitExpr();
+      if (init_expr == nullptr) {
+        init_all = false;
+      } else {
+        init_all = true;
+      }
+      enum_begin++;
+      if (enum_begin != enum_end) {
+        for (; enum_begin != enum_end; enum_begin++) {
+          init_expr = enum_begin->getInitExpr();
+          if (init_all) {
+            if (init_expr == nullptr) need_report = true;
+          } else {
+            if (init_expr != nullptr) need_report = true;
+          }
         }
       }
+
     }
-    inits.insert({val, it});
+
   }
 
   if (need_report) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+
     issue = report->ReportIssue(AUTOSAR, A7_2_4, decl);
-    std::string ref_msg = "the value of an implicitly-specified enumeration constant shall be unique";
+    std::string ref_msg = "Initial value is a must for the enum: ";
+    ref_msg += decl->getNameAsString();
     issue->SetRefMsg(ref_msg);
-    issue->AddDecl(sink);
   }
 }
 

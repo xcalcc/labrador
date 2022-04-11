@@ -294,8 +294,8 @@ private:
   /* MISRA
    * Rule: 8-5-3
    * initial value is a must for the enum
+   * INFO: MOVED TO AUTOSAR 7-2-4
    */
-  void CheckEnumDeclInit(const clang::EnumDecl *decl);
 
   /* MISRA
    * Rule: 10-1-3
@@ -401,7 +401,6 @@ public:
   }
 
   void VisitEnum(const clang::EnumDecl *decl) {
-    CheckEnumDeclInit(decl);
     CheckNonUniqueValueOfEnum(decl);
   }
 

@@ -78,9 +78,9 @@ private:
 
   /* AUTOSAR
    * Rule: 7-2-4
-   * Within an enumerator list, the value of an implicitly-specified enumeration constant shall be unique
+   * In an enumeration, either (1) none, (2) the first or (3) all enumerators shall be initialized.
    */
-  void CheckUniqueImplicitEnumerator(const clang::EnumDecl *decl);
+  void CheckEnumDeclInit(const clang::EnumDecl *decl);
 
   /*
    * AUTOSAR: A7-3-3
@@ -237,7 +237,7 @@ public:
   void VisitEnum(const clang::EnumDecl *decl) {
     CheckEnumUnderlyingType(decl);
     CheckEnumScoped(decl);
-    CheckUniqueImplicitEnumerator(decl);
+    CheckEnumDeclInit(decl);
   }
 
   void VisitUsingDirective(const clang::UsingDirectiveDecl *decl) {

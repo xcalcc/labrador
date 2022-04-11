@@ -979,64 +979,6 @@ void MISRADeclRule::CheckUseFunctionNotCallOrDereference(const clang::VarDecl *d
 }
 
 /* MISRA
- * Rule: 8-5-3
- * initial value is a must for the enum
- */
-void MISRADeclRule::CheckEnumDeclInit(const clang::EnumDecl *decl) {
-  auto enum_begin = decl->enumerator_begin();
-  auto enum_end = decl->enumerator_end();
-  if (decl->enumerators().empty()) return;
-  auto init_expr = enum_begin->getInitExpr();
-
-  bool need_report = false;
-  if (init_expr == nullptr) {
-    for (; enum_begin != enum_end; enum_begin++) {
-      init_expr = enum_begin->getInitExpr();
-      if (init_expr != nullptr) {
-        need_report = true;
-        break;
-      }
-    }
-  } else {
-    enum_begin++;
-
-    if (enum_begin != enum_end) {
-      // check the second
-      bool init_all = false;
-      init_expr = enum_begin->getInitExpr();
-      if (init_expr == nullptr) {
-        init_all = false;
-      } else {
-        init_all = true;
-      }
-      enum_begin++;
-      if (enum_begin != enum_end) {
-        for (; enum_begin != enum_end; enum_begin++) {
-          init_expr = enum_begin->getInitExpr();
-          if (init_all) {
-            if (init_expr == nullptr) need_report = true;
-          } else {
-            if (init_expr != nullptr) need_report = true;
-          }
-        }
-      }
-
-    }
-
-  }
-
-  if (need_report) {
-    XcalIssue *issue = nullptr;
-    XcalReport *report = XcalCheckerManager::GetReport();
-
-    issue = report->ReportIssue(MISRA, M_R_8_5_3, decl);
-    std::string ref_msg = "Initial value is a must for the enum: ";
-    ref_msg += decl->getNameAsString();
-    issue->SetRefMsg(ref_msg);
-  }
-}
-
-/* MISRA
  * Rule: 10-1-3
  * base class should not be both virtual and non-virtual in the same hierarchy
  */
