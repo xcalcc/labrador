@@ -194,6 +194,14 @@ private:
   void CheckDesignatedInitWithImplicitSizeArray(const clang::VarDecl *decl);
 
   /* MISRA
+   * Rule: 17.1
+   * The features of <stdarg.h> shall not be used
+   * Rule: 21.5
+   * The standard header file <signal.h> shall not be used
+   */
+  void CheckForbiddenHeaderFile();
+
+  /* MISRA
    * Rule: 17.6
    * The declaration of an array parameter shall not contain the static keyword between the [ ]
    */
@@ -379,6 +387,7 @@ public:
     CheckObjectOrFunctionConflictWithType();
     CheckMacroIdentifierDistinct();
     CheckIdentifiedMacro();
+    CheckForbiddenHeaderFile();
   }
 
   void VisitVar(const clang::VarDecl *decl) {

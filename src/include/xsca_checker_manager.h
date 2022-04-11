@@ -148,6 +148,8 @@ public:
   static llvm::cl::opt<std::string>& GetEnableOption() {
     return _instance._enable_opt;
   }
+
+  static int RunCommand(const std::string &command, std::string &std_out);
 };
 
 template<typename _CheckerFactory>

@@ -97,4 +97,12 @@ XcalCheckerManager::FiniCheckers() {
   _checkers.clear();
 }
 
+int XcalCheckerManager::RunCommand(const std::string &command, std::string &std_out) {
+  char ch;
+  FILE* in = popen(command.c_str(), "r");
+  while ((ch = fgetc(in)) != EOF) std_out += ch;
+  int ret = pclose(in);
+  return ret;
+}
+
 }  // namespace xsca

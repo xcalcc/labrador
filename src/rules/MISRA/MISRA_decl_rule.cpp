@@ -26,6 +26,8 @@
 #include <clang/AST/Decl.h>
 #include <clang/AST/ExprCXX.h>
 #include <clang/AST/ASTContext.h>
+#include <clang/Basic/FileManager.h>
+
 #include "xsca_report.h"
 #include "MISRA_decl_rule.h"
 
@@ -723,6 +725,125 @@ void MISRADeclRule::CheckDesignatedInitWithImplicitSizeArray(const clang::VarDec
                           "shall be specified explicitly";
     issue->SetRefMsg(ref_msg);
   }
+}
+
+/* MISRA
+ * Rule: 17.1
+ * The features of <stdarg.h> shall not be used
+ * Rule: 21.5
+ * The standard header file <signal.h> shall not be used
+ */
+void MISRADeclRule::CheckForbiddenHeaderFile() {
+  std::string res;
+  std::string command = "./doti_parser.py -f ";
+  auto conf_mgr = XcalCheckerManager::GetConfigureManager();
+  auto fid_file_list = conf_mgr->ForbidHeaderFileList();
+
+  auto file = XcalCheckerManager::GetSourceManager()->fileinfo_begin()->first->tryGetRealPathName();
+  if (!file.endswith(".i") && !file.endswith(".ii")) return;
+  command += file.str() + " -l \"";
+  for (const auto &it : fid_file_list) {
+    command += it + ", ";
+  }
+  command += '"';
+
+  int ret = XcalCheckerManager::RunCommand(command, res);
+  if (ret != 0) return;
+
+  std::vector<std::array<std::string, 3>> includeInfo;
+
+  // [('/usr/include/signal.h', 'a.c', '1'), ('/usr/include/stdio.h', 'a.c', '2')]
+  auto parseItem = [](std::string::iterator &it, std::string &incFile, std::string &sinkFile, std::string &lineNum) {
+    if (*it == '(') {
+      it += 2;  // eat ('
+      while (*it != '\'') {
+        incFile += *it;
+        it++;
+      }
+      it += 4;  // eat ', '
+      while (*it != '\'') {
+        sinkFile += *it;
+        it++;
+      }
+      it += 4;  // eat ', '
+      while (*it != '\'') {
+        lineNum += *it;
+        it++;
+      }
+    }
+  };
+
+  for (auto it = res.begin(); it != res.end();) {
+    std::string incFile, sinkFile, lineNum;
+    if (*it != '(') {
+      it++;
+      continue;
+    }
+    parseItem(it, incFile, sinkFile, lineNum);
+    if (!incFile.empty() && !sinkFile.empty() && !lineNum.empty())
+      includeInfo.push_back({incFile, sinkFile, lineNum});
+  }
+
+
+  auto getShortIncFile = [](const std::string &name) -> std::string {
+    std::string res;
+    for (auto it = name.rbegin(); it != name.rend(); it++) {
+      if (*it == '/') break;
+      res = *it + res;
+    }
+    return res;
+  };
+
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  clang::FileManager &file_mgr = src_mgr->getFileManager();
+
+  for (const auto &it : includeInfo) {
+    std::string filename = it[0];
+    if (conf_mgr->IsForbidHeaderFile(getShortIncFile(filename))) {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+
+      std::string i2c;
+      for (auto i = 0; i < it[1].size(); i++) {
+        if (it[1][i] != '.') {
+          i2c += it[1][i];
+          continue;
+        }
+
+        // convert .c to .i, .cpp to .ii
+        if (it[1][i + 1] == 'c' && (i + 2 == it[1].size())) {
+          i2c += ".i";
+          break;
+        } else if (it[1][i + 1] == 'c' && it[1][i + 2] == 'p') {
+          i2c += ".ii";
+          break;
+        } else {
+          i2c += it[1][i];
+        }
+      }
+
+      auto file_ref = file_mgr.getOptionalFileRef(i2c);
+      if (!file_ref.hasValue()) continue;
+      const clang::FileEntry *file_entry_ptr = &file_ref.getValue().getFileEntry();
+      int line = std::stoi(it[2]);
+      auto loc = src_mgr->translateFileLineCol(file_entry_ptr, line, 0);
+
+      if (filename.find("stdarg.h") != std::string::npos)
+        issue = report->ReportIssue(MISRA, M_R_17_1, loc);
+      else if (filename.find("signal.h") != std::string::npos)
+        issue = report->ReportIssue(MISRA, M_R_21_5, loc);
+      else if (filename.find("tgmath.h") != std::string::npos)
+        issue = report->ReportIssue(MISRA, M_R_21_11, loc);
+      else if (filename.find("setjmp.h") != std::string::npos)
+        issue = report->ReportIssue(MISRA, M_R_21_4, loc);
+      else if (filename.find("time.h") != std::string::npos)
+        issue = report->ReportIssue(MISRA, M_R_21_10, loc);
+
+      std::string ref_msg = "The features of " + it[0] + " shall not be used";
+      issue->SetRefMsg(ref_msg);
+    }
+  }
+
 }
 
 /* MISRA

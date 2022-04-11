@@ -259,7 +259,7 @@ void AUTOSARDeclRule::CheckUnnamedNamespaceInHeaderFile(const clang::NamespaceDe
 void AUTOSARDeclRule::CheckUsingDirective(const clang::UsingDirectiveDecl *decl) {
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
-  issue = report->ReportIssue(AUTOSAR, A7_3_4, decl);
+  issue = report->ReportIssue(AUTOSAR, M7_3_4, decl);
   std::string ref_msg = "Using-directives shall not be used.";
   issue->SetRefMsg(ref_msg);
 }

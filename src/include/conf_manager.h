@@ -189,6 +189,10 @@ public:
       return false;
     }
   }
+
+  const std::vector<std::string> &ForbidHeaderFileList() const {
+    return _fid_header_files;
+  }
 };
 
 } // namespace xsca
