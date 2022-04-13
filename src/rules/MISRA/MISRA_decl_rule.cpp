@@ -827,6 +827,7 @@ void MISRADeclRule::CheckForbiddenHeaderFile() {
       const clang::FileEntry *file_entry_ptr = &file_ref.getValue().getFileEntry();
       int line = std::stoi(it[2]);
       auto loc = src_mgr->translateFileLineCol(file_entry_ptr, line, 0);
+      if (loc.isInvalid()) continue;
 
       if (filename.find("stdarg.h") != std::string::npos)
         issue = report->ReportIssue(MISRA, M_R_17_1, loc);

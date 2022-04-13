@@ -17,8 +17,9 @@
 
 #include "autosar_enum.inc"
 #include "autosar_decl_rule.h"
-#include <clang/AST/Attr.h>
 #include <unordered_set>
+#include <clang/AST/Attr.h>
+#include <clang/AST/ExprCXX.h>
 
 namespace xsca {
 namespace rule {
@@ -62,6 +63,18 @@ bool AUTOSARDeclRule::IsCmp(clang::NamedDecl *decl) const {
     if (it == name) return true;
   }
   return false;
+}
+
+// strip all parenthesis expression and implicit cast expression
+const clang::Expr *AUTOSARDeclRule::StripAllParenImpCast(const clang::Expr *stmt) {
+  auto res = stmt;
+  auto stmt_class = stmt->getStmtClass();
+  while (stmt_class == clang::Stmt::ParenExprClass ||
+         stmt_class == clang::Stmt::ImplicitCastExprClass) {
+    res = res->IgnoreParenImpCasts();
+    stmt_class = res->getStmtClass();
+  }
+  return res;
 }
 
 /*
@@ -555,7 +568,7 @@ void AUTOSARDeclRule::CheckUnnecessaryCTor(const clang::CXXRecordDecl *decl) {
   // check if ctor only has parents constructors
   for (const auto &ctor : decl->ctors()) {
     if (ctor->isDefaultConstructor()) continue;
-    if (!ctor->doesThisDeclarationHaveABody()) return;
+    if (!ctor->doesThisDeclarationHaveABody()) continue;
     if (ctor->getBody()->children().empty()) {
       // check initializer
       bool only_has_bctor = true;
@@ -563,6 +576,17 @@ void AUTOSARDeclRule::CheckUnnecessaryCTor(const clang::CXXRecordDecl *decl) {
         if (!init->isBaseInitializer()) {
           only_has_bctor = false;
           break;
+        }
+
+        // check parameter
+        auto cxx_ctor = clang::dyn_cast<clang::CXXConstructExpr>(init->getInit());
+        if (!cxx_ctor) return;
+        for (std::size_t i = 0; i < cxx_ctor->getNumArgs(); i++) {
+          auto arg = StripAllParenImpCast(cxx_ctor->getArg(i));
+          auto param = ctor->getParamDecl(i);
+          auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(arg);
+          if (!decl_ref) return;
+          if (decl_ref->getDecl() != param) return;
         }
       }
       if (!only_has_bctor) return;

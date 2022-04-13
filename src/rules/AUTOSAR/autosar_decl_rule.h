@@ -39,6 +39,9 @@ private:
   bool IsCmp(clang::OverloadedOperatorKind kind) const;
   bool IsCmp(clang::NamedDecl *decl) const;
 
+  // strip all parenthesis expression and implicit cast expression
+  const clang::Expr *StripAllParenImpCast(const clang::Expr *stmt);
+
   /*
    * AUTOSAR: A2-10-1
    * An identifier declared in an inner scope shall not hide an
