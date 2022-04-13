@@ -996,21 +996,47 @@ void MISRADeclRule::CheckObjectOrFunctionConflictWithType() {
   top_scope->TraverseAll<kind,
       const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
       [](const std::string &name, const clang::Decl *decl, IdentifierManager *id_mgr) {
-        bool res = false;
+        bool res = false, has_func = false, has_var = false, has_typedef = false;
         XcalIssue *issue = nullptr;
         XcalReport *report = XcalCheckerManager::GetReport();
 
+        std::vector<const clang::Decl *> sinks;
         if (auto record = clang::dyn_cast<clang::RecordDecl>(decl)) {
           auto record_name = record->getNameAsString();
-          res = id_mgr->HasFunctionName(record_name);
-          res |= id_mgr->HasVariableName<false>(record_name);
-          res |= id_mgr->HasTypeDef<false>(record_name);
+          has_func = id_mgr->HasFunctionName(record_name);
+          has_var = id_mgr->HasVariableName<false>(record_name);
+          has_typedef = id_mgr->HasTypeDef<false>(record_name);
+
+          res = has_func | has_var | has_typedef;
+
+          if (has_func) {
+            auto func_range = id_mgr->GetFunctionDecls(record_name);
+            for (auto it = func_range.first; it != func_range.second; it++) {
+              sinks.push_back(it->second);
+            }
+          }
+
+          if (has_var) {
+            std::vector<const clang::VarDecl *> vars;
+            id_mgr->GetVariables<false>(record_name, vars);
+            sinks.insert(sinks.end(), vars.begin(), vars.end());
+          }
+
+          if (has_typedef) {
+            std::vector<const clang::TypedefDecl *> typedecls;
+            id_mgr->GetTypedefs<false>(record_name, typedecls);
+            sinks.insert(sinks.begin(), typedecls.begin(), typedecls.end());
+          }
         }
+
         if (res) {
           issue = report->ReportIssue(MISRA, M_R_2_10_6, decl);
           std::string ref_msg = "If an identifier refers to a type, it shall not also refer to an "
                                 "object or a function in the same scope.";
           issue->SetRefMsg(ref_msg);
+          if (!sinks.empty()) {
+            for (const auto &it : sinks) issue->AddDecl(it);
+          }
         }
       }, true);
 }
