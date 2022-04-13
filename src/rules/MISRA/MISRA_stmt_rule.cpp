@@ -1887,7 +1887,10 @@ void MISRAStmtRule::CheckFunctionDeclInBlock(const clang::DeclStmt *stmt) {
  * equality operators == and !=, the unary & operator, and the conditional operator.
  */
 void MISRAStmtRule::CheckBoolUsedAsNonLogicalOperand(const clang::UnaryOperator *stmt) {
-  if (stmt->getOpcode() == clang::UnaryOperator::Opcode::UO_LNot) return;
+  auto op = stmt->getOpcode();
+  if (op == clang::UnaryOperator::Opcode::UO_LNot ||
+      op == clang::UnaryOperator::Opcode::UO_AddrOf)
+    return;
   auto sub_type = StripAllParenImpCast(stmt->getSubExpr())->getType();
   if (!sub_type->isBooleanType()) return;
 

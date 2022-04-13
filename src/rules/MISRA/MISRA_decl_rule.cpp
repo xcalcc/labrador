@@ -735,7 +735,7 @@ void MISRADeclRule::CheckDesignatedInitWithImplicitSizeArray(const clang::VarDec
  */
 void MISRADeclRule::CheckForbiddenHeaderFile() {
   std::string res;
-  std::string command = "$XSCA_HOME/doti_parser.py -f ";
+  std::string command = "python3 $XSCA_HOME/doti_parser.py -f ";
   auto conf_mgr = XcalCheckerManager::GetConfigureManager();
   auto fid_file_list = conf_mgr->ForbidHeaderFileList();
 

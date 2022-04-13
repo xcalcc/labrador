@@ -89,6 +89,10 @@ void AUTOSARStmtRule::CheckEnumBeyondLimit(const clang::BinaryOperator *stmt) {
   }
 }
 
+/* AUTOSAR
+ * Rule: M5-0-3
+ * A cvalue expression shall not be implicitly converted to a different underlying type.
+ */
 void AUTOSARStmtRule::CheckInappropriateCast(const clang::CStyleCastExpr *stmt) {
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
