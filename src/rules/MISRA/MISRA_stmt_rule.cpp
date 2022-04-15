@@ -830,7 +830,6 @@ void MISRAStmtRule::CheckCastBetweenPointerAndNonIntType(const clang::CastExpr *
 
   if ((type->isPointerType() && sub_bt && !isArithIntType(sub_bt)) ||
       (type_bt && !isArithIntType(type_bt) && sub_type->isPointerType())) {
-    stmt->dumpColor();
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(MISRA, M_R_11_7, stmt);
@@ -1795,7 +1794,6 @@ void MISRAStmtRule::CheckDynamicTypeInCtorAndDtor(const clang::CXXMemberCallExpr
     }
     begin++;
   }
-
   ReportDynamicInCTorAndDtor(stmt);
 }
 

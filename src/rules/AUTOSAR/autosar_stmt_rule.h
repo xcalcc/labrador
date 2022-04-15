@@ -70,6 +70,7 @@ private:
     if (!parents.empty()) {
       auto parent = parents[0].template get<clang::Decl>();
       if (parent && clang::isa<clang::VarDecl>(parent)) return;
+      if (parent == nullptr) return;
     }
 
     bool is_str = clang::isa<clang::StringLiteral>(stmt);

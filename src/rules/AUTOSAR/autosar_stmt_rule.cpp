@@ -79,7 +79,7 @@ void AUTOSARStmtRule::CheckEnumBeyondLimit(const clang::BinaryOperator *stmt) {
     }
   }
 
-  if (!stmt->isComparisonOp()) {
+  if (!stmt->isComparisonOp() && !stmt->isAssignmentOp()) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
 
