@@ -2302,7 +2302,8 @@ void MISRAStmtRule::CheckEmptyThrowInNonCatchBlock(const clang::CXXThrowExpr *st
 
   auto ctx = XcalCheckerManager::GetAstContext();
   auto parents = ctx->getParents(*stmt);
-  while (!parents.empty()) {
+  while (true) {
+    if (parents.empty()) return;
     auto parent = parents[0];
     if (parent.get<clang::Decl>()) break;
     else {
