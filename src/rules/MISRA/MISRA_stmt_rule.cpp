@@ -22,6 +22,7 @@
 // implement all stmt related rules in MISRA
 //
 
+#include <clang/AST/DeclCXX.h>
 #include <clang/Basic/TargetInfo.h>
 #include <clang/AST/ParentMapContext.h>
 #include "MISRA_stmt_rule.h"
@@ -1783,6 +1784,18 @@ void MISRAStmtRule::CheckDynamicTypeInCtorAndDtor(const clang::CXXMemberCallExpr
   if (callee == nullptr) return;
   auto method_decl = clang::dyn_cast<clang::CXXMethodDecl>(callee);
   if (method_decl == nullptr || !method_decl->isVirtual()) return;
+
+  // ignore CLASS::method();
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  auto begin = src_mgr->getCharacterData(stmt->getBeginLoc());
+  auto end = src_mgr->getCharacterData(stmt->getEndLoc());
+  while (begin != end) {
+    if (*begin == ':') {
+      if ((begin + 1 != end) && (*(begin + 1) == ':')) return;
+    }
+    begin++;
+  }
+
   ReportDynamicInCTorAndDtor(stmt);
 }
 
