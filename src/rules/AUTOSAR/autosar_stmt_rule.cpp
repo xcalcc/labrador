@@ -44,13 +44,15 @@ void AUTOSARStmtRule::CheckHexadecimalUpperCase(const clang::IntegerLiteral *stm
   auto start = src_mgr->getCharacterData(stmt->getBeginLoc());
   auto end = src_mgr->getCharacterData(stmt->getEndLoc());
 
+  bool is_hex = false;
   while (start) {
     if (*start == 'x') {
       start++;
+      is_hex = true;
       continue;
     }
     if (!isalnum(*start)) break;
-    if (*start <= 'z' && *start >= 'a') {
+    if (*start <= 'z' && *start >= 'a' && is_hex) {
       XcalIssue *issue = nullptr;
       XcalReport *report = XcalCheckerManager::GetReport();
 
