@@ -610,6 +610,13 @@ private:
   void CollectThrowType(const clang::CXXThrowExpr *stmt);
   void CollectThrowType(const clang::CallExpr *stmt);
 
+  /*
+   * MISRA: 18.1
+   * A pointer resulting from arithmetic on a pointer operand shall address
+   * an element of the same arrays as that pointer operand.
+   */
+  void CheckArrayBoundsExceeded(const clang::ArraySubscriptExpr *stmt);
+
 public:
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -679,6 +686,7 @@ public:
 
   void VisitArraySubscriptExpr(const clang::ArraySubscriptExpr *stmt) {
     CheckUsingAssignmentAsResult(stmt);
+    CheckArrayBoundsExceeded(stmt);
   }
 
   void VisitIfStmt(const clang::IfStmt *stmt) {

@@ -95,6 +95,7 @@
 #define M_R_17_6    "MSR_17_6"
 #define M_R_17_7    "MSR_17_7"
 #define M_R_17_8    "MSR_17_8"
+#define M_R_18_1    "MSR_18_1"
 #define M_R_18_4    "MSR_18_4"
 #define M_R_18_5    "MSR_18_5"
 #define M_R_18_7    "MSR_18_7"

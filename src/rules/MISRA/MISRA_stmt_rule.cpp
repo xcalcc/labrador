@@ -2466,6 +2466,37 @@ void MISRAStmtRule::CollectThrowType(const clang::CallExpr *stmt) {
   for (const auto &it : callee_thrown_types) scope_mgr->GlobalScope()->AddThrowType(_current_function_decl, it);
 }
 
+/*
+ * MISRA: 18.1
+ * A pointer resulting from arithmetic on a pointer operand shall address
+ * an element of the same arrays as that pointer operand.
+ */
+void MISRAStmtRule::CheckArrayBoundsExceeded(const clang::ArraySubscriptExpr *stmt) {
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+  if (rhs == nullptr) return;
+  auto base = stmt->getBase()->IgnoreParenImpCasts();
+  auto base_type = base->getType();
+  unsigned int num_elem = 0;
+  if (auto array_type = clang::dyn_cast<clang::ConstantArrayType>(base_type)) {
+    num_elem = array_type->getSize().getZExtValue();
+  }
+
+  bool need_report = false;
+  if (auto integer_literal = clang::dyn_cast<clang::IntegerLiteral>(rhs)) {
+    unsigned int size = integer_literal->getValue().getZExtValue();
+    if (num_elem && size > num_elem - 1) need_report = true;
+  } else if (auto unary_op = clang::dyn_cast<clang::UnaryOperator>(rhs)) {
+    if (unary_op->getOpcode() == clang::UO_Minus && IsIntegerLiteralExpr(unary_op->getSubExpr())) {
+      need_report = true;
+    }
+  }
+
+  if (need_report) {
+    std::string ref_msg = "A pointer resulting from arithmetic on a pointer operand shall address"
+                          " an element of the same arrays as that pointer operand.";
+    ReportTemplate(ref_msg, M_R_18_1, stmt);
+  }
+}
 
 }
 }
