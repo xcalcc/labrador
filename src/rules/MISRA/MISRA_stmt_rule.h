@@ -103,6 +103,15 @@ private:
   void CheckStringLiteralToNonConstChar(const clang::CallExpr *stmt);
 
   /* MISRA
+   * Rule: 10.1
+   * Operands shall not be of an inappropriate essential type
+   */
+  void CheckInappropriateEssentialTypeOfOperands(const clang::BinaryOperator *stmt);
+  void CheckInappropriateEssentialTypeOfOperands(const clang::UnaryOperator *stmt);
+  void CheckInappropriateEssentialTypeOfOperands(const clang::ConditionalOperator *stmt);
+  void CheckInappropriateEssentialTypeOfOperands(const clang::CompoundAssignOperator *stmt);
+
+  /* MISRA
    * Rule: 10.2
    * Expressions of essentially character type shall not be used inappropriately
    * in addition and subtraction operations
@@ -640,12 +649,14 @@ public:
     CheckIntToShorter(stmt);
     CheckBoolUsedAsNonLogicalOperand(stmt);
     CheckUseFunctionNotCallOrDereference(stmt);
+    CheckInappropriateEssentialTypeOfOperands(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
     CheckArithmeticWithDifferentType(stmt);
     CheckAddOrSubOnPointer(stmt);
     CheckModifyParameters(stmt);
+    CheckInappropriateEssentialTypeOfOperands(stmt);
   }
 
   void VisitCallExpr(const clang::CallExpr *stmt) {
@@ -794,6 +805,7 @@ public:
   void VisitUnaryOperator(const clang::UnaryOperator *stmt) {
     CheckUseFunctionNotCallOrDereference(stmt);
     CheckBoolUsedAsNonLogicalOperand(stmt);
+    CheckInappropriateEssentialTypeOfOperands(stmt);
   }
 
   void VisitReturnStmt(const clang::ReturnStmt *stmt) {
@@ -806,6 +818,7 @@ public:
 
   void VisitConditionalOperator(const clang::ConditionalOperator *stmt) {
     CheckZeroAsPointerConstant(stmt);
+    CheckInappropriateEssentialTypeOfOperands(stmt);
   }
 
 //  void VisitCXXStaticCastExpr(const clang::CXXStaticCastExpr *stmt) {

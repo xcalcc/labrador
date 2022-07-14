@@ -321,6 +321,121 @@ MISRAStmtRule::RecordThrowObjectTypes(const clang::Stmt *stmt) {
 }
 
 /* MISRA
+ * Rule: 10.1
+ * Operands shall not be of an inappropriate essential type
+ */
+void MISRAStmtRule::CheckInappropriateEssentialTypeOfOperands(const clang::BinaryOperator *stmt) {
+  if (stmt->isAssignmentOp()) return;
+
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+  auto lhs_type = lhs->getType();
+  auto rhs_type = rhs->getType();
+  auto opcode = stmt->getOpcode();
+  bool need_report = false;
+
+  if (stmt->isLogicalOp()) {
+    if (!lhs_type->isBooleanType() || !rhs_type->isBooleanType()) need_report = true;
+  } else if (stmt->isMultiplicativeOp()) {
+    if (lhs_type->isBooleanType() || lhs_type->isEnumeralType() ||
+        rhs_type->isBooleanType() || rhs_type->isEnumeralType()) {
+      need_report = true;
+    } else if (lhs_type->isCharType() || rhs_type->isCharType()) {
+      if (lhs_type->isSignedIntegerType() || lhs_type->isUnsignedIntegerType() ||
+          rhs_type->isSignedIntegerType() || rhs_type->isUnsignedIntegerType()) return;
+      need_report = true;
+    }
+  } else if (stmt->isBitwiseOp() || stmt->isShiftOp()) {
+    if ((lhs_type->isCharType() && !lhs_type->isUnsignedIntegerType()) ||
+        (rhs_type->isCharType() && !rhs_type->isUnsignedIntegerType())) {
+      need_report = true;
+    } else if (lhs_type->isBooleanType() || lhs_type->isEnumeralType() ||
+               lhs_type->isSignedIntegerType() || lhs_type->isFloatingType() ||
+               rhs_type->isBooleanType() || rhs_type->isEnumeralType() ||
+               rhs_type->isFloatingType()) {
+      need_report = true;
+    } else if (rhs_type->isSignedIntegerType()) {
+      // A non-negative integer constant expression of essentially signed type
+      // may be used as the right hand operand to a shift operator.
+      auto ctx = XcalCheckerManager::GetAstContext();
+      if (stmt->isShiftOp() && rhs->isIntegerConstantExpr(*ctx)) {
+        clang::Expr::EvalResult res;
+        if (rhs->EvaluateAsInt(res, *ctx)) {
+          auto value = res.Val.getInt().getSExtValue();
+          if (value > 0) return;
+        }
+      }
+      need_report = true;
+    }
+  } else if (stmt->isAdditiveOp()) {
+    if (lhs_type->isBooleanType() || lhs_type->isEnumeralType() ||
+        rhs_type->isBooleanType() || rhs_type->isEnumeralType()) {
+      need_report = true;
+    }
+  } else if (opcode >= clang::BO_LT && opcode <= clang::BO_GE) {
+    if (lhs_type->isBooleanType() || rhs_type->isBooleanType()) need_report = true;
+  }
+
+  if (need_report) {
+    std::string ref_msg = "Operands shall not be of an inappropriate essential type";
+    ReportTemplate(ref_msg, M_R_10_1, stmt);
+  }
+}
+
+void MISRAStmtRule::CheckInappropriateEssentialTypeOfOperands(const clang::UnaryOperator *stmt) {
+  auto sub = stmt->getSubExpr()->IgnoreParenImpCasts();
+  auto sub_type = sub->getType();
+  auto opcode = stmt->getOpcode();
+  bool need_report = false;
+  if (stmt->isIncrementDecrementOp()) {
+    if (sub_type->isBooleanType() || sub_type->isEnumeralType()) need_report = true;
+  } else if (opcode == clang::UO_Plus || opcode == clang::UO_Minus) {
+    if (sub_type->isBooleanType() || sub_type->isEnumeralType()) {
+      need_report = true;
+    } else if (sub_type->isCharType() && !sub_type->isSignedIntegerType() && !sub_type->isUnsignedIntegerType()) {
+      need_report = true;
+    } else if (opcode == clang::UO_Minus && sub_type->isUnsignedIntegerType()) {
+      need_report = true;
+    }
+  } else if (opcode == clang::UO_LNot) {
+    if (!sub_type->isBooleanType()) need_report = true;
+  } else if (opcode == clang::UO_Not) {
+    if (sub_type->isBooleanType() || sub_type->isEnumeralType() ||
+        sub_type->isSignedIntegerType() || sub_type->isFloatingType() ||
+        (sub_type->isCharType() && !sub_type->isUnsignedIntegerType())) {
+      need_report = true;
+    }
+  }
+  if (need_report) {
+    std::string ref_msg = "Operands shall not be of an inappropriate essential type";
+    ReportTemplate(ref_msg, M_R_10_1, stmt);
+  }
+}
+
+void MISRAStmtRule::CheckInappropriateEssentialTypeOfOperands(const clang::ConditionalOperator *stmt) {
+  auto cond = stmt->getCond()->IgnoreParenImpCasts();
+  if (!cond->getType()->isBooleanType()) {
+    std::string ref_msg = "Operands shall not be of an inappropriate essential type";
+    ReportTemplate(ref_msg, M_R_10_1, stmt);
+  }
+}
+
+void MISRAStmtRule::CheckInappropriateEssentialTypeOfOperands(const clang::CompoundAssignOperator *stmt) {
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+  auto lhs_type = lhs->getType();
+  auto rhs_type = rhs->getType();
+  auto opcode = stmt->getOpcode();
+  if (opcode == clang::BO_AddAssign || opcode == clang::BO_SubAssign) {
+    if (lhs_type->isBooleanType() || lhs_type->isEnumeralType() ||
+        rhs_type->isBooleanType() ||rhs_type->isEnumeralType()) {
+      std::string ref_msg = "Operands shall not be of an inappropriate essential type";
+      ReportTemplate(ref_msg, M_R_10_1, stmt);
+    }
+  }
+}
+
+/* MISRA
  * Rule: 10.2
  * Expressions of essentially character type shall not be used inappropriately in addition and subtraction operations
  */
