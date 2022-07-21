@@ -430,6 +430,14 @@ private:
   void CheckAddOrSubOnPointer(const clang::BinaryOperator *stmt);
 
   /* MISRA
+   * Rule: 18.6
+   * The address of an object with automatic storage shall not be copied to another object
+   * that persists after the first object has ceased to exist
+   */
+  void CheckAssignAddrOfLocalVar(const clang::BinaryOperator *stmt);
+  void CheckReturnAddrOfLocalVar(const clang::ReturnStmt *stmt);
+
+  /* MISRA
    * Rule: 21.3
    * The memory allocation and deallocation functions of <stdlib.h> shall not be used
    */
@@ -650,6 +658,7 @@ public:
     CheckBoolUsedAsNonLogicalOperand(stmt);
     CheckUseFunctionNotCallOrDereference(stmt);
     CheckInappropriateEssentialTypeOfOperands(stmt);
+    CheckAssignAddrOfLocalVar(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
@@ -810,6 +819,7 @@ public:
 
   void VisitReturnStmt(const clang::ReturnStmt *stmt) {
     CheckReturnParamRefOrPtr(stmt);
+    CheckReturnAddrOfLocalVar(stmt);
   }
 
   void VisitDeclStmt(const clang::DeclStmt *stmt) {

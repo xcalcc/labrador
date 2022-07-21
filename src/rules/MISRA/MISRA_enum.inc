@@ -99,6 +99,7 @@
 #define M_R_18_1    "MSR_18_1"
 #define M_R_18_4    "MSR_18_4"
 #define M_R_18_5    "MSR_18_5"
+#define M_R_18_6    "MSR_18_6"
 #define M_R_18_7    "MSR_18_7"
 #define M_R_18_8    "MSR_18_8"
 #define M_R_19_2    "MSR_19_2"

@@ -1779,6 +1779,72 @@ void MISRAStmtRule::CheckAddOrSubOnPointer(const clang::BinaryOperator *stmt) {
 }
 
 /* MISRA
+  * Rule: 18.6
+  * The address of an object with automatic storage shall not be copied to another object
+  * that persists after the first object has ceased to exist
+  */
+void MISRAStmtRule::CheckAssignAddrOfLocalVar(const clang::BinaryOperator *stmt) {
+  if (!stmt->isAssignmentOp()) return;
+
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+  if (auto member = clang::dyn_cast<clang::MemberExpr>(lhs)) {
+    lhs = member->getBase()->IgnoreParenImpCasts();
+  }
+  if (auto expr = clang::dyn_cast<clang::DeclRefExpr>(lhs)) {
+    if (auto left_decl = clang::dyn_cast<clang::VarDecl>(expr->getDecl()->getCanonicalDecl())) {
+      if (auto param = clang::dyn_cast<clang::ParmVarDecl>(left_decl)) {
+        auto type = param->getType();
+        if (!type->isPointerType() && !type->isReferenceType()) return;
+      }
+      if (left_decl->isLocalVarDecl() && !left_decl->isStaticLocal()) {
+        return;
+      }
+      if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(rhs)) {
+        if (auto decl = clang::dyn_cast<clang::VarDecl>(decl_ref->getDecl())) {
+          if (!decl->hasInit()) return;
+          rhs = decl->getInit()->IgnoreParenImpCasts();
+        } else return;
+      }
+      if (auto unary = clang::dyn_cast<clang::UnaryOperator>(rhs)) {
+        if (unary->getOpcode() != clang::UO_AddrOf) return;
+        if (auto expr = clang::dyn_cast<clang::DeclRefExpr>(unary->getSubExpr()->IgnoreParenImpCasts())) {
+          if (auto decl = clang::dyn_cast<clang::VarDecl>(expr->getDecl()->getCanonicalDecl())) {
+            if (decl->isLocalVarDecl() && !decl->isStaticLocal()) {
+              std::string ref_msg = "The address of an object with automatic storage shall not be copied to "
+                                    "another object that persists after the first object has ceased to exist";
+              ReportTemplate(ref_msg, M_R_18_6, stmt);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+void MISRAStmtRule::CheckReturnAddrOfLocalVar(const clang::ReturnStmt *stmt) {
+  auto val = stmt->getRetValue()->IgnoreParenImpCasts();
+  if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(val)) {
+    if (auto decl = clang::dyn_cast<clang::VarDecl>(decl_ref->getDecl())) {
+      if (!decl->hasInit()) return;
+      val = decl->getInit()->IgnoreParenImpCasts();
+    } else return;
+  }
+  if (auto unary_op = clang::dyn_cast<clang::UnaryOperator>(val)) {
+    if (unary_op->getOpcode() != clang::UO_AddrOf) return;
+    if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(unary_op->getSubExpr())) {
+      if (auto decl = clang::dyn_cast<clang::VarDecl>(decl_ref->getDecl())) {
+        if (decl->isLocalVarDecl() && !decl->isStaticLocal()) {
+          std::string ref_msg = "The address of an object with automatic storage shall not be copied to "
+                                "another object that persists after the first object has ceased to exist";
+          ReportTemplate(ref_msg, M_R_18_6, stmt);
+        }
+      }
+    }
+  }
+}
+
+/* MISRA
  * Rule: 21.3
  * The memory allocation and deallocation functions of <stdlib.h> shall not be used
  */
