@@ -1460,6 +1460,33 @@ void MISRAStmtRule::CheckMultiTerminate(const clang::Stmt *stmt) {
 }
 
 /* MISRA
+ * Rule: 15.5
+ * A function should have a single point of exit at the end
+ */
+void MISRAStmtRule::CheckExitPoint(const clang::ReturnStmt *stmt) {
+  bool need_report = false;
+  auto ctx = XcalCheckerManager::GetAstContext();
+  auto parents = ctx->getParents(*stmt);
+  if (parents.empty()) return;
+  auto parent = parents[0].get<clang::Stmt>();
+  if (parent == nullptr) {
+    need_report = true;
+  } else {
+    if (clang::isa<clang::CompoundStmt>(parent)) {
+      parents = ctx->getParents(*parent);
+      auto parent_decl = parents[0].get<clang::Decl>();
+      if (parent_decl == nullptr || !clang::isa<clang::FunctionDecl>(parent_decl)) {
+        need_report = true;
+      }
+    }
+  }
+  if (need_report) {
+    std::string ref_msg = "A function should have a single point of exit at the end";
+    ReportTemplate(ref_msg, M_R_15_5, stmt);
+  }
+}
+
+/* MISRA
  * Rule: 15.6
  * The body of an iteration-statement or a selection-statement shall be a compound-statement
  */

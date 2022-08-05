@@ -351,6 +351,12 @@ private:
   }
 
   /* MISRA
+   * Rule: 15.5
+   * A function should have a single point of exit at the end
+   */
+  void CheckExitPoint(const clang::ReturnStmt *stmt);
+
+  /* MISRA
    * Rule: 15.6
    * The body of an iteration-statement or a selection-statement shall be a compound-statement
    */
@@ -820,6 +826,7 @@ public:
   void VisitReturnStmt(const clang::ReturnStmt *stmt) {
     CheckReturnParamRefOrPtr(stmt);
     CheckReturnAddrOfLocalVar(stmt);
+    CheckExitPoint(stmt);
   }
 
   void VisitDeclStmt(const clang::DeclStmt *stmt) {
