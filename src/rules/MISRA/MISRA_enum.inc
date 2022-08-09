@@ -33,6 +33,7 @@
 #define M_R_5_5     "MSR_5_5"
 #define M_R_5_6     "MSR_5_6"
 #define M_R_5_7     "MSR_5_7"
+#define M_R_5_9     "MSR_5_9"
 #define M_R_6_1     "MSR_6_1"
 #define M_R_6_2     "MSR_6_2"
 #define M_R_7_4     "MSR_7_4"

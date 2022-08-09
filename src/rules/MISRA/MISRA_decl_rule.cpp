@@ -425,6 +425,44 @@ void MISRADeclRule::CheckTageUnique() {
 }
 
 /* MISRA
+ * Rule: 5.9
+ * Identifiers that define objects or functions with internal linkage shall be unique
+ */
+void MISRADeclRule::CheckInternalIdentifierUnique() {
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+  constexpr uint32_t kind = IdentifierManager::VAR;
+
+  top_scope->TraverseAll<kind,
+      const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+      [](const std::string &var_name, const clang::Decl *decl, IdentifierManager *id_mgr) -> void {
+        std::vector<const clang::VarDecl *> vars;
+        XcalIssue *issue = nullptr;
+        XcalReport *report = XcalCheckerManager::GetReport();
+
+        if (var_name.empty()) return;
+        id_mgr->GetOuterVariables(var_name, vars);
+        bool need_report = false;
+
+        if (!vars.empty()) {
+          for (const auto &it : vars) {
+            if ((&*it)->getStorageClass() == clang::StorageClass::SC_Static)
+              need_report = true;
+          }
+          if (need_report) {
+            auto var_decl = clang::dyn_cast<clang::NamedDecl>(decl);
+            if (var_decl == nullptr) return;
+            issue = report->ReportIssue(MISRA, M_R_5_9, decl);
+            std::string ref_msg = "Identifiers that define objects or functions "
+                                  "with internal linkage shall be unique: ";
+            ref_msg += var_decl->getNameAsString();
+            issue->SetRefMsg(ref_msg);
+          }
+        }
+      }, true);
+}
+
+/* MISRA
  * Rule 6.1
  * Bit-fields shall only be declared with an appropriate type
  * Note: This assumes that the "int" type is 32 bit

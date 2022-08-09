@@ -118,6 +118,12 @@ private:
   void CheckTageUnique();
 
   /* MISRA
+   * Rule: 5.9
+   * Identifiers that define objects or functions with internal linkage shall be unique
+   */
+  void CheckInternalIdentifierUnique();
+
+  /* MISRA
    * Rule 6.1
    * Bit-fields shall only be declared with an appropriate type
    * Note: This assumes that the "int" type is 32 bit
@@ -388,6 +394,7 @@ public:
     CheckMacroIdentifierDistinct();
     CheckIdentifiedMacro();
     CheckForbiddenHeaderFile();
+    CheckInternalIdentifierUnique();
   }
 
   void VisitVar(const clang::VarDecl *decl) {
