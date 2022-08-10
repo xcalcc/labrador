@@ -120,7 +120,7 @@ public:
       while(exe.back() != '/') {
         exe.pop_back();
       }
-      _conf_path = exe + "../conf/";
+      _conf_path = exe + "./conf/";
 #endif
     }
   }
