@@ -1714,6 +1714,24 @@ void MISRAStmtRule::CheckCaseStmtNum(const clang::SwitchStmt *stmt) {
 }
 
 /* MISRA
+ * Rule: 17.3
+ * A function shall not be declared implicitly
+ */
+void MISRAStmtRule::CheckImplicitlyDeclaredFunction(const clang::CallExpr *stmt) {
+  auto callee_decl = GetCalleeDecl(stmt);
+  if (callee_decl == nullptr) return;
+  if (auto decl = clang::dyn_cast<clang::Decl>(callee_decl)) {
+    if (decl->isImplicit()) {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+      issue = report->ReportIssue(MISRA, M_R_17_3, stmt);
+      std::string ref_msg = "A function shall not be declared implicitly";
+      issue->SetRefMsg(ref_msg);
+    }
+  }
+}
+
+/* MISRA
  * Rule: 17.5
  * The function argument corresponding to a parameter declared to have an
  * array type shall have an appropriate number of elements
