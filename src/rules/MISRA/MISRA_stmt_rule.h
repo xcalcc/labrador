@@ -94,6 +94,12 @@ private:
   void CheckOctalAndHexadecimalEscapeWithoutTerminated(const clang::StringLiteral *stmt);
 
   /* MISRA
+   * Rule: 4.12
+   * Dynamic memory allocation shall not be used
+   */
+  void CheckDynamicMemoryAllocation(const clang::CallExpr *stmt);
+
+  /* MISRA
    * Rule: 7.4
    * A string literal shall not be assigned to an object unless the object’s
    * type is “pointer to const-qualified char”
@@ -687,6 +693,7 @@ public:
     CheckExceptionFeaturesInFenv(stmt);
     CheckMultiIncOrDecExpr(stmt);
     CollectThrowType(stmt);
+    CheckDynamicMemoryAllocation(stmt);
   }
 
   void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {

@@ -245,6 +245,28 @@ void MISRAStmtRule::CheckOctalAndHexadecimalEscapeWithoutTerminated(const clang:
 }
 
 /* MISRA
+ * Rule: 4.12
+ * Dynamic memory allocation shall not be used
+ */
+void MISRAStmtRule::CheckDynamicMemoryAllocation(const clang::CallExpr *stmt) {
+  auto callee = GetCalleeDecl(stmt);
+  if (callee == nullptr) return;
+
+  // call function pointer would return nullptr
+  if (callee == nullptr) return;
+  auto name = callee->getNameAsString();
+  auto conf_mgr = XcalCheckerManager::GetConfigureManager();
+
+  if (conf_mgr->IsMemAllocFunction(name)) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_4_12, stmt);
+    std::string ref_msg = "Dynamic memory allocation shall not be used";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+/* MISRA
  * Rule: 7.4
  * A string literal shall not be assigned to an object unless the object’s type is “pointer to const-qualified char”
  */
@@ -1883,7 +1905,7 @@ void MISRAStmtRule::CheckStdMemoryAllocationFunction(const clang::CallExpr *stmt
   if (callee == nullptr) return;
   auto name = callee->getNameAsString();
   auto conf_mgr = XcalCheckerManager::GetConfigureManager();
-  if (conf_mgr->IsMemAllocFunction(name)) {
+  if (conf_mgr->IsStdMemAllocFunction(name)) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(MISRA, M_R_21_3, stmt);
