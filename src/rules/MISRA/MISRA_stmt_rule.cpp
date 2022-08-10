@@ -245,7 +245,7 @@ void MISRAStmtRule::CheckOctalAndHexadecimalEscapeWithoutTerminated(const clang:
 }
 
 /* MISRA
- * Rule: 4.12
+ * Directive: 4.12
  * Dynamic memory allocation shall not be used
  */
 void MISRAStmtRule::CheckDynamicMemoryAllocation(const clang::CallExpr *stmt) {
@@ -260,7 +260,7 @@ void MISRAStmtRule::CheckDynamicMemoryAllocation(const clang::CallExpr *stmt) {
   if (conf_mgr->IsMemAllocFunction(name)) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
-    issue = report->ReportIssue(MISRA, M_R_4_12, stmt);
+    issue = report->ReportIssue(MISRA, M_D_4_12, stmt);
     std::string ref_msg = "Dynamic memory allocation shall not be used";
     issue->SetRefMsg(ref_msg);
   }
