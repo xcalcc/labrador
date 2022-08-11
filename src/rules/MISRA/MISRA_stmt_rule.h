@@ -498,6 +498,13 @@ private:
   void CheckExceptionFeaturesInFenv(const clang::CallExpr *stmt);
 
   /* MISRA
+   * Rule: 21.13
+   * Any value passed to a function in <ctype.h> shall be representable as
+   * an unsigned char or be the value EOF
+   */
+  void CheckValueTypeForCtype(const clang::BinaryOperator *stmt);
+
+  /* MISRA
    * Rule: 5-2-3
    * cast from base class to derived class cannot have polymorphic type
    */
@@ -677,6 +684,7 @@ public:
     CheckUseFunctionNotCallOrDereference(stmt);
     CheckInappropriateEssentialTypeOfOperands(stmt);
     CheckAssignAddrOfLocalVar(stmt);
+    CheckValueTypeForCtype(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
