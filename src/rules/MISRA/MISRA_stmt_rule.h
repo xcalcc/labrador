@@ -94,7 +94,7 @@ private:
   void CheckOctalAndHexadecimalEscapeWithoutTerminated(const clang::StringLiteral *stmt);
 
   /* MISRA
-   * Rule: 4.12
+   * Directive: 4.12
    * Dynamic memory allocation shall not be used
    */
   void CheckDynamicMemoryAllocation(const clang::CallExpr *stmt);
