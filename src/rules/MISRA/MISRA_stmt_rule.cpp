@@ -551,6 +551,7 @@ void MISRAStmtRule::CheckIntToShorter(const clang::SwitchStmt *stmt) {
 
   if (auto bt = clang::dyn_cast<clang::BuiltinType>(cond->getType())) {
     auto head = stmt->getSwitchCaseList();
+    if (head == nullptr) return;
     if (head->getStmtClass() == clang::Stmt::DefaultStmtClass) head = head->getNextSwitchCase();
     if (head == nullptr) return;
     auto cases = clang::dyn_cast<clang::CaseStmt>(head);
@@ -1552,6 +1553,7 @@ void MISRAStmtRule::CheckIfWithoutElseStmt(const clang::IfStmt *stmt) {
  */
 void MISRAStmtRule::CheckCaseStmtInSwitchBody(const clang::SwitchStmt *stmt) {
   auto cases = stmt->getSwitchCaseList();
+  if (cases == nullptr) return;
   auto body = stmt->getBody();
   auto ctx = XcalCheckerManager::GetAstContext();
 
@@ -2382,7 +2384,9 @@ void MISRAStmtRule::CheckForStmtLoopCounter(const clang::ForStmt *stmt) {
     if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(lhs))
       loop_counter = clang::dyn_cast<clang::VarDecl>(decl_ref->getDecl());
   } else if (auto decl_stmt = clang::dyn_cast<clang::DeclStmt>(init)) {
-    loop_counter = clang::dyn_cast<clang::VarDecl>(decl_stmt->getSingleDecl());
+    if (decl_stmt->isSingleDecl()) {
+      loop_counter = clang::dyn_cast<clang::VarDecl>(decl_stmt->getSingleDecl());
+    }
   }
   if (loop_counter == nullptr || !loop_counter->getType()->isIntegerType()) return;
 
