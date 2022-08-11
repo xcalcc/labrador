@@ -417,6 +417,12 @@ private:
   void CheckCaseStmtNum(const clang::SwitchStmt *stmt);
 
   /* MISRA
+   * Rule: 17.3
+   * A function shall not be declared implicitly
+   */
+  void CheckImplicitlyDeclaredFunction(const clang::CallExpr *stmt);
+
+  /* MISRA
    * Rule: 17.5
    * The function argument corresponding to a parameter declared to have an
    * array type shall have an appropriate number of elements
@@ -694,6 +700,7 @@ public:
     CheckMultiIncOrDecExpr(stmt);
     CollectThrowType(stmt);
     CheckDynamicMemoryAllocation(stmt);
+    CheckImplicitlyDeclaredFunction(stmt);
   }
 
   void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {
