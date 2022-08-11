@@ -2026,6 +2026,58 @@ void MISRAStmtRule::CheckExceptionFeaturesInFenv(const clang::CallExpr *stmt) {
 }
 
 /* MISRA
+ * Rule: 21.13
+ * Any value passed to a function in <ctype.h> shall be representable as
+ * an unsigned char or be the value EOF
+ */
+void MISRAStmtRule::CheckValueTypeForCtype(const clang::BinaryOperator *stmt) {
+  std::vector<std::string> name_list = {"_ISalnum", "_ISalpha", "_IScntrl", "_ISdigit", "_ISgraph",
+                                        "_ISlower", "_ISprint", "_ISpunct", "_ISxdigit", "_ISspace",
+                                        "_ISupper", "_ISblank"};
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+  if (auto rhs_expr = clang::dyn_cast<clang::CStyleCastExpr>(rhs)) {
+    auto sub_expr = rhs_expr->getSubExpr();
+    if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(sub_expr)) {
+      auto decl = decl_ref->getDecl();
+      if (auto enum_const_decl = clang::dyn_cast<clang::EnumConstantDecl>(decl)) {
+        auto enum_name = enum_const_decl->getNameAsString();
+        auto res = std::find(name_list.begin(), name_list.end(), enum_name);
+        if (res == name_list.end()) return;
+
+        if (auto array = clang::dyn_cast<clang::ArraySubscriptExpr>(lhs)) {
+          auto array_rhs = array->getRHS()->IgnoreParenImpCasts();
+          if (array_rhs == nullptr) return;
+          if (auto array_rhs_expr = clang::dyn_cast<clang::CStyleCastExpr>(array_rhs)) {
+            auto sub = array_rhs_expr->getSubExpr()->IgnoreParenImpCasts();
+            while (clang::isa<clang::CStyleCastExpr>(sub)) {
+              sub = clang::dyn_cast<clang::CStyleCastExpr>(sub)->getSubExpr()->IgnoreParenImpCasts();
+            }
+            if (auto sub_char = clang::dyn_cast<clang::CharacterLiteral>(sub)) return;
+            if (auto unary_op = clang::dyn_cast<clang::UnaryOperator>(sub)) {
+              if (unary_op->getOpcode() == clang::UO_Minus) {
+                uint64_t val;
+                if (IsIntegerLiteralExpr(unary_op->getSubExpr(), &val) && (val == 1)) return;
+              }
+            }
+            if (auto sub_decl_ref = clang::dyn_cast<clang::DeclRefExpr>(sub)) {
+              auto decl = sub_decl_ref->getDecl();
+              if (!decl || decl->getType()->isCharType()) return;
+            }
+            XcalIssue *issue = nullptr;
+            XcalReport *report = XcalCheckerManager::GetReport();
+            issue = report->ReportIssue(MISRA, M_R_21_13, stmt);
+            std::string ref_msg = "Any value passed to a function in <ctype.h> shall be representable as "
+                                 "an unsigned char or be the value EOF";
+            issue->SetRefMsg(ref_msg);
+          }
+        }
+      }
+    }
+  }
+}
+
+/* MISRA
  * Rule: 12-1-1
  * ctor and dtor cannot use dynamic type
  */
