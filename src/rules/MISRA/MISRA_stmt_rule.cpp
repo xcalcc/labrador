@@ -1891,6 +1891,7 @@ void MISRAStmtRule::CheckAssignAddrOfLocalVar(const clang::BinaryOperator *stmt)
 
 void MISRAStmtRule::CheckReturnAddrOfLocalVar(const clang::ReturnStmt *stmt) {
   auto val = stmt->getRetValue()->IgnoreParenImpCasts();
+  if (val == nullptr) return;
   if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(val)) {
     if (auto decl = clang::dyn_cast<clang::VarDecl>(decl_ref->getDecl())) {
       if (!decl->hasInit()) return;
