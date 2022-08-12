@@ -41,6 +41,8 @@ public:
 private:
   std::unordered_set<const clang::Stmt *> _terminates;
 
+  std::string GetTypeString(clang::QualType type);
+
   clang::QualType GetRawTypeOfTypedef(clang::QualType type);
 
   void HasThisFunctionThenReport(const std::vector<std::string> &fid_func, const std::string &str,
@@ -505,6 +507,14 @@ private:
   void CheckValueTypeForCtype(const clang::BinaryOperator *stmt);
 
   /* MISRA
+   * Rule: 22.5
+   * A pointer to a FILE object shall not be dereferenced
+   */
+  void CheckFILEPointerDereference(const clang::UnaryOperator *stmt);
+  void CheckDirectManipulationOfFILEPointer(const clang::MemberExpr *stmt);
+  void ReportFILEPointer(const clang::QualType type, const clang::Stmt *stmt);
+
+  /* MISRA
    * Rule: 5-2-3
    * cast from base class to derived class cannot have polymorphic type
    */
@@ -843,6 +853,7 @@ public:
     CheckUseFunctionNotCallOrDereference(stmt);
     CheckBoolUsedAsNonLogicalOperand(stmt);
     CheckInappropriateEssentialTypeOfOperands(stmt);
+    CheckFILEPointerDereference(stmt);
   }
 
   void VisitReturnStmt(const clang::ReturnStmt *stmt) {
@@ -860,6 +871,9 @@ public:
     CheckInappropriateEssentialTypeOfOperands(stmt);
   }
 
+  void VisitMemberExpr(const clang::MemberExpr *stmt) {
+    CheckDirectManipulationOfFILEPointer(stmt);
+  }
 //  void VisitCXXStaticCastExpr(const clang::CXXStaticCastExpr *stmt) {
 //    CheckExplictCastOnIntOrFloatIncreaseSize(stmt);
 //  }

@@ -30,6 +30,18 @@
 namespace xsca {
 namespace rule {
 
+std::string MISRAStmtRule::GetTypeString(clang::QualType type) {
+  std::string type_name;
+  if (type->getTypeClass() == clang::Type::Typedef) {
+    auto underlying_tp =
+        clang::dyn_cast<clang::TypedefType>(type)->getDecl()->getUnderlyingType();
+    type_name = underlying_tp.getAsString();
+  } else {
+    type_name = type.getAsString();
+  }
+  return type_name;
+}
+
 clang::QualType MISRAStmtRule::GetRawTypeOfTypedef(const clang::QualType type) {
   clang::QualType res = type;
   if (auto tmp = clang::dyn_cast<clang::TypedefType>(type)) {
@@ -2075,6 +2087,32 @@ void MISRAStmtRule::CheckValueTypeForCtype(const clang::BinaryOperator *stmt) {
       }
     }
   }
+}
+
+/* MISRA
+  * Rule: 22.5
+  * A pointer to a FILE object shall not be dereferenced
+  */
+void MISRAStmtRule::CheckFILEPointerDereference(const clang::UnaryOperator *stmt) {
+  if (stmt->getOpcode() == clang::UO_Deref) {
+    auto sub = stmt->getSubExpr()->IgnoreParenImpCasts();
+    ReportFILEPointer(sub->getType(), stmt);
+  }
+}
+
+void MISRAStmtRule::CheckDirectManipulationOfFILEPointer(const clang::MemberExpr *stmt) {
+  auto base = stmt->getBase()->IgnoreParenImpCasts();
+  if (base == nullptr) return;
+  ReportFILEPointer(base->getType(), stmt);
+}
+
+void MISRAStmtRule::ReportFILEPointer(const clang::QualType type, const clang::Stmt *stmt) {
+    if (!type->isPointerType()) return;
+    std::string type_name = GetTypeString(type->getPointeeType());
+    if (type_name.find("FILE") != std::string::npos) {
+      std::string ref_msg = "A pointer to a FILE object shall not be dereferenced";
+      ReportTemplate(ref_msg, M_R_22_5, stmt);
+    }
 }
 
 /* MISRA
