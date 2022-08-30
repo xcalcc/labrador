@@ -286,6 +286,52 @@ void MISRADeclRule::CheckUndistinctExternalIdent() {
 }
 
 /* MISRA
+ * Rule: 5.2
+ * Identifiers declared in the same scope and name space shall be distinct
+ */
+void MISRADeclRule::CheckIdentifierSameScopeUndistinct() {
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+  constexpr uint32_t kind = IdentifierManager::VAR | IdentifierManager::TYPE;
+
+  std::unordered_map<std::string, const clang::VarDecl *> vars;
+
+  top_scope->TraverseCurrentScope<kind,
+      const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+      [&vars](const std::string &x, const clang::Decl *decl, IdentifierManager *id_mgr) -> void {
+        XcalIssue *issue = nullptr;
+        XcalReport *report = XcalCheckerManager::GetReport();
+
+        const auto *var_decl = clang::dyn_cast<clang::VarDecl>(decl);
+        if (var_decl) {
+          auto name = var_decl->getNameAsString();
+
+          if (name.length() > 31) {
+            bool found = false;
+            for (const auto &it : vars) {
+              if (!var_decl->isLocalVarDecl() &&
+                  !(it.second)->isLocalVarDecl() &&
+                  var_decl->getStorageClass() == (it.second)->getStorageClass())
+                continue;
+              if (name.substr(0, 31) == it.first.substr(0, 31)) {
+                found = true;
+                issue = report->ReportIssue(MISRA, M_R_5_2, it.second);
+                std::string ref_msg = "Identifiers declared in the same scope and name space shall be distinct: ";
+                ref_msg += var_decl->getNameAsString();
+                issue->SetRefMsg(ref_msg);
+                issue->AddDecl(var_decl);
+              }
+            }
+
+            if (!found) {
+              vars.emplace(std::make_pair(name, var_decl));
+            }
+          }
+        }
+      }, true, vars);
+}
+
+/* MISRA
  * Rule: 5.3
  * An identifier declared in an inner scope shall not hide an identifier declared in an outer scope
  */
@@ -311,7 +357,8 @@ void MISRADeclRule::CheckIdentifierNameConflict() {
           auto var_decl = clang::dyn_cast<clang::NamedDecl>(decl);
           if (var_decl == nullptr) return;
           issue = report->ReportIssue(MISRA, M_R_5_3, decl);
-          std::string ref_msg = "External identifiers shall be distinct: ";
+          std::string ref_msg = "An identifier declared in an inner scope shall not hide an identifier "
+                                "declared in an outer scope: ";
           ref_msg += var_decl->getNameAsString();
           issue->SetRefMsg(ref_msg);
           for (const auto &it : vars) {

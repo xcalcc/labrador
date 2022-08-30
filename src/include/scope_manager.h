@@ -484,6 +484,18 @@ public:
     }
   }
 
+  template<uint32_t _IDKIND, typename _RULE>
+  void TraverseCurrentScope(const _RULE &rule, bool _with_decl,
+                            std::unordered_map<std::string, const clang::VarDecl *> &vars) {
+    if (_with_decl) {
+      _identifiers->TraverseAllWithStringAndDecl<_IDKIND, _RULE>(rule);
+      for (const auto &it : _children) {
+        vars.clear();
+        it->TraverseCurrentScope<_IDKIND, _RULE>(rule, _with_decl, vars);
+      }
+    }
+  }
+
 };  // LexicalScope
 
 typedef std::unordered_map<std::string, const clang::MacroDirective *> MacroMap;

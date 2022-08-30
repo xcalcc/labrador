@@ -88,6 +88,12 @@ private:
   void CheckUndistinctExternalIdent();
 
   /* MISRA
+   * Rule: 5.2
+   * Identifiers declared in the same scope and name space shall be distinct
+   */
+  void CheckIdentifierSameScopeUndistinct();
+
+  /* MISRA
    * Rule: 5.3
    * An identifier declared in an inner scope shall not hide an identifier declared in an outer scope
    */
@@ -395,6 +401,7 @@ public:
     CheckIdentifiedMacro();
     CheckForbiddenHeaderFile();
     CheckInternalIdentifierUnique();
+    CheckIdentifierSameScopeUndistinct();
   }
 
   void VisitVar(const clang::VarDecl *decl) {
