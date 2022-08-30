@@ -278,6 +278,25 @@ void MISRAStmtRule::CheckDynamicMemoryAllocation(const clang::CallExpr *stmt) {
   }
 }
 
+
+/* MISRA
+  * Rule: 7.1
+  * Octal constants shall not be used
+  */
+void MISRAStmtRule::CheckOctalConstants(const clang::IntegerLiteral *stmt) {
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  clang::SourceLocation sl = stmt->getLocation();
+  clang::LangOptions langOps;
+  clang::SmallString<256> buffer;
+  llvm::StringRef val = clang::Lexer::getSpelling(sl, buffer, *src_mgr, langOps);
+  if (val.size() > 1 && val[0] == '0') {
+    if ('0' <= val[1] && val[1] <= '7') {
+      std::string ref_msg = "Octal constants shall not be used";
+      ReportTemplate(ref_msg, M_R_7_1, stmt);
+    }
+  }
+}
+
 /* MISRA
  * Rule: 7.4
  * A string literal shall not be assigned to an object unless the object’s type is “pointer to const-qualified char”

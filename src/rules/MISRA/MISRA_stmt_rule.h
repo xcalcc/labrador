@@ -102,6 +102,12 @@ private:
   void CheckDynamicMemoryAllocation(const clang::CallExpr *stmt);
 
   /* MISRA
+   * Rule: 7.1
+   * Octal constants shall not be used
+   */
+  void CheckOctalConstants(const clang::IntegerLiteral *stmt);
+
+  /* MISRA
    * Rule: 7.4
    * A string literal shall not be assigned to an object unless the object’s
    * type is “pointer to const-qualified char”
@@ -873,6 +879,10 @@ public:
 
   void VisitMemberExpr(const clang::MemberExpr *stmt) {
     CheckDirectManipulationOfFILEPointer(stmt);
+  }
+
+  void VisitIntegerLiteral(const clang::IntegerLiteral *stmt) {
+    CheckOctalConstants(stmt);
   }
 //  void VisitCXXStaticCastExpr(const clang::CXXStaticCastExpr *stmt) {
 //    CheckExplictCastOnIntOrFloatIncreaseSize(stmt);

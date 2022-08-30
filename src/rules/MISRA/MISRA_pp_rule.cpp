@@ -53,6 +53,27 @@ void MISRAPPRule::CheckRecordMacroName(const clang::Token &MacroNameTok, const c
 }
 
 /* MISRA
+  * Rule: 7.1
+  * Octal constants shall not be used
+  */
+void MISRAPPRule::CheckIfValue(clang::SourceLocation Loc, clang::SourceRange ConditionalRange,
+                               clang::PPCallbacks::ConditionValueKind ConditionalValue) {
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  clang::LangOptions langOps;
+  clang::SmallString<256> buffer;
+  llvm::StringRef val = clang::Lexer::getSpelling(ConditionalRange.getEnd(), buffer, *src_mgr, langOps);
+  if (val.size() > 1 && val[0] == '0') {
+    if ('0' <= val[1] && val[1] <= '7') {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+      issue = report->ReportIssue(MISRA, M_R_7_1, Loc);
+      std::string ref_msg = "Octal constants shall not be used";
+      issue->SetRefMsg(ref_msg);
+    }
+  }
+}
+
+/* MISRA
  * Rule: 17.1
  * The features of <stdarg.h> shall not be used
  * Rule: 21.5

@@ -44,6 +44,12 @@ private:
    */
   void CheckRecordMacroName(const clang::Token &MacroNameTok,
                             const clang::MacroDirective *MD);
+  /* MISRA
+   * Rule: 7.1
+   * Octal constants shall not be used
+   */
+  void CheckIfValue(clang::SourceLocation Loc, clang::SourceRange ConditionalRange,
+                    clang::PPCallbacks::ConditionValueKind ConditionalValue);
 
   /* MISRA
    * Rule: 17.1
@@ -80,6 +86,11 @@ public:
                           llvm::StringRef RelativePath, const clang::Module *Imported,
                           clang::SrcMgr::CharacteristicKind FileType) {
     CheckFidHeaderFile(DirectiveLoc, IncludedFilename);
+  }
+
+  void If(clang::SourceLocation Loc, clang::SourceRange ConditionalRange,
+          clang::PPCallbacks::ConditionValueKind ConditionalValue) {
+    CheckIfValue(Loc, ConditionalRange, ConditionalValue);
   }
 
 }; // MISRAPPRule
