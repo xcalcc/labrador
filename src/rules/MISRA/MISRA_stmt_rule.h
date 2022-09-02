@@ -117,6 +117,12 @@ private:
   void CheckIntegralCastFromIntegerLiteral(const clang::ImplicitCastExpr *stmt);
 
   /* MISRA
+   * Rule: 7.3
+   * The lowercase character 'l' shall not be used in a literal suffix
+   */
+  void CheckLiteralSuffix(const clang::Expr *stmt);
+
+  /* MISRA
    * Rule: 7.4
    * A string literal shall not be assigned to an object unless the object’s
    * type is “pointer to const-qualified char”
@@ -894,6 +900,11 @@ public:
   void VisitIntegerLiteral(const clang::IntegerLiteral *stmt) {
     CheckOctalConstants(stmt);
     CheckUnsignedIntegerSuffix(stmt);
+    CheckLiteralSuffix(stmt);
+  }
+
+  void VisitFloatingLiteral(const clang::FloatingLiteral *stmt) {
+    CheckLiteralSuffix(stmt);
   }
 //  void VisitCXXStaticCastExpr(const clang::CXXStaticCastExpr *stmt) {
 //    CheckExplictCastOnIntOrFloatIncreaseSize(stmt);

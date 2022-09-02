@@ -336,6 +336,43 @@ void MISRAStmtRule::CheckIntegralCastFromIntegerLiteral(const clang::ImplicitCas
 }
 
 /* MISRA
+ * Rule: 7.3
+ * The lowercase character 'l' shall not be used in a literal suffix
+ */
+void MISRAStmtRule::CheckLiteralSuffix(const clang::Expr *stmt) {
+  bool is_string_literal = clang::isa<clang::IntegerLiteral>(stmt);
+  bool is_float_literal = clang::isa<clang::FloatingLiteral>(stmt);
+  if (!is_string_literal && !is_float_literal) return;
+
+  bool status = false;
+  clang::BuiltinType::Kind kind = GetBTKind(stmt->getType(), status);
+  if (!status) return;
+  if (kind != clang::BuiltinType::ULong &&
+      kind != clang::BuiltinType::ULongLong &&
+      kind != clang::BuiltinType::Long &&
+      kind != clang::BuiltinType::LongLong &&
+      kind != clang::BuiltinType::Int128 &&
+      kind != clang::BuiltinType::Float128 &&
+      kind != clang::BuiltinType::LongDouble) {
+    return;
+  }
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  clang::SourceLocation sl = is_string_literal ?
+                               clang::dyn_cast<clang::IntegerLiteral>(stmt)->getLocation() :
+                               clang::dyn_cast<clang::FloatingLiteral>(stmt)->getLocation();
+  if (sl.isMacroID()) {
+    sl = src_mgr->getSpellingLoc(sl);
+  }
+  clang::LangOptions lang_ops;
+  clang::SmallString<256> buffer;
+  llvm::StringRef val = clang::Lexer::getSpelling(sl, buffer, *src_mgr, lang_ops);
+  if (val.find("l") != std::string::npos) {
+    std::string ref_msg = "The lowercase character \'l\' shall not be used in a literal suffix";
+    ReportTemplate(ref_msg, M_R_7_3, stmt);
+  }
+}
+
+/* MISRA
  * Rule: 7.4
  * A string literal shall not be assigned to an object unless the object’s type is “pointer to const-qualified char”
  */
