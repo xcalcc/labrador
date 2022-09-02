@@ -280,12 +280,15 @@ void MISRAStmtRule::CheckDynamicMemoryAllocation(const clang::CallExpr *stmt) {
 
 
 /* MISRA
-  * Rule: 7.1
-  * Octal constants shall not be used
-  */
+ * Rule: 7.1
+ * Octal constants shall not be used
+ */
 void MISRAStmtRule::CheckOctalConstants(const clang::IntegerLiteral *stmt) {
   auto src_mgr = XcalCheckerManager::GetSourceManager();
   clang::SourceLocation sl = stmt->getLocation();
+  if (sl.isMacroID()) {
+    sl = src_mgr->getSpellingLoc(sl);
+  }
   clang::LangOptions langOps;
   clang::SmallString<256> buffer;
   llvm::StringRef val = clang::Lexer::getSpelling(sl, buffer, *src_mgr, langOps);
@@ -294,6 +297,41 @@ void MISRAStmtRule::CheckOctalConstants(const clang::IntegerLiteral *stmt) {
       std::string ref_msg = "Octal constants shall not be used";
       ReportTemplate(ref_msg, M_R_7_1, stmt);
     }
+  }
+}
+
+/* MISRA
+ * Rule: 7.2
+ * A "u" or "U" suffix shall be applied to all integer constants that are
+ * represented in an unsigned type
+ */
+void MISRAStmtRule::CheckUnsignedIntegerSuffix(const clang::IntegerLiteral *stmt) {
+  auto type = stmt->getType();
+  if (type->isUnsignedIntegerType()) {
+    auto src_mgr = XcalCheckerManager::GetSourceManager();
+    clang::SourceLocation sl = stmt->getLocation();
+    if (sl.isMacroID()) {
+      sl = src_mgr->getSpellingLoc(sl);
+    }
+    clang::LangOptions lang_ops;
+    clang::SmallString<256> buffer;
+    llvm::StringRef val = clang::Lexer::getSpelling(sl, buffer, *src_mgr, lang_ops);
+    unsigned int size = val.size();
+    if (size > 2 && val[size - 1] != 'u' && val[size - 1] != 'U') {
+      std::string ref_msg = "A \"u\" or \"U\" suffix shall be applied to all integer constants that are "
+                            "represented in an unsigned type";
+      ReportTemplate(ref_msg, M_R_7_2, stmt);
+    }
+  }
+}
+
+void MISRAStmtRule::CheckIntegralCastFromIntegerLiteral(const clang::ImplicitCastExpr *stmt) {
+  if (!stmt->getType()->isUnsignedIntegerType()) return;
+  auto sub_expr = stmt->getSubExpr();
+  if (sub_expr->getType()->isSignedIntegerType() && clang::isa<clang::IntegerLiteral>(sub_expr)) {
+    std::string ref_msg = "A \"u\" or \"U\" suffix shall be applied to all integer constants that are "
+                          "represented in an unsigned type";
+    ReportTemplate(ref_msg, M_R_7_2, stmt);
   }
 }
 
