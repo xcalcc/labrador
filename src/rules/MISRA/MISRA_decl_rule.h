@@ -40,6 +40,8 @@ public:
 private:
   std::set<const clang::TypedefNameDecl *> _used_typedef;
 
+  std::set<const clang::VarDecl *> _tentative_definitions;
+
   std::string GetTypeString(clang::QualType type);
 
   bool IsExplicitSign(const std::string &type_name);
@@ -153,6 +155,19 @@ private:
    * Function types shall be in prototype form with named parameters
    */
   void CheckParameterNoIdentifier(const clang::FunctionDecl *decl);
+
+  /* MISRA
+   * Rule: 8.4
+   * A compatible declaration shall be visible when an object or function with
+   * external linkage is defined
+   */
+  void ReportNonVisibleDeclaration(const clang::Decl *decl);
+
+  void CheckDeclarationWithExternalLinkage(const clang::VarDecl *decl);
+
+  void CheckDeclarationWithExternalLinkage(const clang::FunctionDecl *decl);
+
+  void CheckTentativeDefinition();
 
   /* MISRA
    * Rule: 8.8
@@ -402,6 +417,7 @@ public:
     CheckForbiddenHeaderFile();
     CheckInternalIdentifierUnique();
     CheckIdentifierSameScopeUndistinct();
+    CheckTentativeDefinition();
   }
 
   void VisitVar(const clang::VarDecl *decl) {
@@ -416,6 +432,7 @@ public:
     CheckExternObjInHeaderFile(decl);
     CheckPointerNestedMoreThanTwoLevel(decl);
     CheckUseFunctionNotCallOrDereference(decl);
+    CheckDeclarationWithExternalLinkage(decl);
   }
 
   void VisitParmVar(const clang::ParmVarDecl *decl) {
@@ -443,6 +460,7 @@ public:
     CheckExternObjInHeaderFile(decl);
     CheckParameterNoIdentifier(decl);
     CheckPointerNestedMoreThanTwoLevel(decl);
+    CheckDeclarationWithExternalLinkage(decl);
   }
 
   void VisitField(const clang::FieldDecl *decl) {

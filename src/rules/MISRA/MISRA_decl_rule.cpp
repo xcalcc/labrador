@@ -620,6 +620,55 @@ void MISRADeclRule::CheckParameterNoIdentifier(const clang::FunctionDecl *decl) 
 }
 
 /* MISRA
+ * Rule: 8.4
+ * A compatible declaration shall be visible when an object or function with
+ * external linkage is defined
+ */
+void MISRADeclRule::ReportNonVisibleDeclaration(const clang::Decl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(MISRA, M_R_8_4, decl);
+  std::string ref_msg = "A compatible declaration shall be visible when an object or function with "
+                        "external linkage is defined";
+  issue->SetRefMsg(ref_msg);
+}
+
+void MISRADeclRule::CheckDeclarationWithExternalLinkage(const clang::VarDecl *decl) {
+  if (decl->isThisDeclarationADefinition()) {
+    if (decl->isLocalVarDecl() || decl->getStorageClass() == clang::StorageClass::SC_Static) return;
+    auto canonical_decl = decl->getCanonicalDecl();
+    if (canonical_decl != decl) {
+      if (_tentative_definitions.count(canonical_decl)) {
+        _tentative_definitions.erase(canonical_decl);
+      }
+    } else {
+      if (!decl->getActingDefinition()) {
+        ReportNonVisibleDeclaration(decl);
+      } else {
+        _tentative_definitions.insert(decl);
+      }
+    }
+  }
+}
+
+void MISRADeclRule::CheckDeclarationWithExternalLinkage(const clang::FunctionDecl *decl) {
+  if (decl->isThisDeclarationADefinition()) {
+    if (decl->getStorageClass() == clang::StorageClass::SC_Static) return;
+    auto canonical_decl = decl->getCanonicalDecl();
+    if (canonical_decl != decl) return;
+    if (decl->getName().str() == "main") return;
+    ReportNonVisibleDeclaration(decl);
+  }
+}
+
+void MISRADeclRule::CheckTentativeDefinition() {
+  for (std::set<const clang::VarDecl *>::iterator it = _tentative_definitions.begin();
+       it != _tentative_definitions.end(); ++it) {
+    ReportNonVisibleDeclaration(*it);
+  }
+}
+
+/* MISRA
  * Rule: 8.8
  * The static storage class specifier shall be used in all declarations of objects and functions that have internal linkage
  */
