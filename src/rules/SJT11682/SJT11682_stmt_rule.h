@@ -33,6 +33,7 @@ public:
 private:
 
 public:
+  void Finalize() {}
 
   void VisitAtFunctionExit(const clang::Stmt *stmt) {
     _current_function_decl = nullptr;

@@ -165,6 +165,8 @@ private:
 
 
 public:
+  void Finalize() {}
+
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
     CheckEnumBeyondLimit(stmt);
   }

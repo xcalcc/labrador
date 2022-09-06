@@ -656,7 +656,7 @@ void MISRADeclRule::CheckDeclarationWithExternalLinkage(const clang::FunctionDec
     if (decl->getStorageClass() == clang::StorageClass::SC_Static) return;
     auto canonical_decl = decl->getCanonicalDecl();
     if (canonical_decl != decl) return;
-    if (decl->getName().str() == "main") return;
+    if (decl->getIdentifier() && decl->getName().str() == "main") return;
     ReportNonVisibleDeclaration(decl);
   }
 }

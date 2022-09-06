@@ -38,6 +38,12 @@ private:
   StmtListHandler<_Rest...> _rest;
 
 public:
+  // finalize handler
+  void Finalize() {
+    if (_first.Enable()) _first.Finalize();
+    _rest.Finalize();
+  }
+
   // generate Visit* function from StmtNodes.inc
   #define STMT(CLASS, PARENT)                              \
       void Visit##CLASS(const clang::CLASS *stmt) {        \
@@ -84,6 +90,11 @@ private:
   _First _first;
 
 public:
+  // finalize handler
+  void Finalize() {
+    if (_first.Enable()) _first.Finalize();
+  }
+
   // generate Visit* function from StmtNodes.inc
   #define STMT(CLASS, PARENT) \
       void Visit##CLASS(const clang::CLASS *stmt) { \

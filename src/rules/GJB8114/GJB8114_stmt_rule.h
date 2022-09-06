@@ -350,6 +350,8 @@ private:
    */
 
 public:
+  void Finalize() {}
+
   void VisitIfStmt(const clang::IfStmt *stmt) {
     CheckBranchNestedTooMuch(stmt);
     CheckBitwiseOpInLogicStmt(stmt);

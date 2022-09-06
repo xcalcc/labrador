@@ -41,6 +41,8 @@ public:
 private:
   std::unordered_set<const clang::Stmt *> _terminates;
 
+  std::unordered_map<const clang::VarDecl *, const clang::FunctionDecl *> _var_to_func;
+
   std::string GetTypeString(clang::QualType type);
 
   clang::QualType GetRawTypeOfTypedef(clang::QualType type);
@@ -130,6 +132,15 @@ private:
   void CheckStringLiteralToNonConstChar(const clang::BinaryOperator *stmt);
 
   void CheckStringLiteralToNonConstChar(const clang::CallExpr *stmt);
+
+  /* MISRA
+   * Rule: 8.9
+   * An object should be defined at block scope if its identifier only appears in
+   * a single function
+   */
+  void CheckDefinitionOfVarDeclInSingleFunction(const clang::DeclRefExpr *stmt);
+
+  void ReportDefinitionOfVarDeclInSingleFunction();
 
   /* MISRA
    * Rule: 10.1
@@ -692,6 +703,10 @@ private:
 
 public:
 
+  void Finalize() {
+    ReportDefinitionOfVarDeclInSingleFunction();
+  }
+
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
     CheckStringLiteralToNonConstChar(stmt);
     CheckAddOrSubOnCharacter(stmt);
@@ -905,6 +920,10 @@ public:
 
   void VisitFloatingLiteral(const clang::FloatingLiteral *stmt) {
     CheckLiteralSuffix(stmt);
+  }
+
+  void VisitDeclRefExpr(const clang::DeclRefExpr *stmt) {
+      CheckDefinitionOfVarDeclInSingleFunction(stmt);
   }
 //  void VisitCXXStaticCastExpr(const clang::CXXStaticCastExpr *stmt) {
 //    CheckExplictCastOnIntOrFloatIncreaseSize(stmt);

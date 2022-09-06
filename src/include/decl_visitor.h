@@ -68,6 +68,7 @@ public:
   void Finalize() {
     DBG_ASSERT(_func_stack.empty() || (_func_stack.top() == nullptr), "function stack corruption");
     _decl_handler.Finalize();
+    _stmt_visitor.Finalize();
   }
 
   void VisitClassScopeFunctionSpecialization(

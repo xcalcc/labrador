@@ -39,6 +39,10 @@ public:
       : _stmt_handler(stmt_handler),
         _decl_visitor(decl_visitor) {}
 
+  void Finalize() {
+    _stmt_handler.Finalize();
+  }
+
   // special handling of DeclStmt
   void VisitDeclStmt(const clang::DeclStmt *stmt) {
     _stmt_handler.VisitDeclStmt(stmt);

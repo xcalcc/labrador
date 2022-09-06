@@ -569,6 +569,8 @@ private:
 
 
 public:
+  void Finalize() {}
+
   void VisitLabelStmt(const clang::LabelStmt *stmt) {
     CheckConsecutiveLabels(stmt);
   }

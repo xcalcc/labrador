@@ -564,6 +564,46 @@ void MISRAStmtRule::CheckInappropriateEssentialTypeOfOperands(const clang::Compo
 }
 
 /* MISRA
+ * Rule: 8.9
+ * An object should be defined at block scope if its identifier only appears in
+ * a single function
+ */
+void MISRAStmtRule::CheckDefinitionOfVarDeclInSingleFunction(const clang::DeclRefExpr *stmt) {
+  auto decl = stmt->getDecl();
+  if (!decl || !clang::isa<clang::VarDecl>(decl)) return;
+  if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
+    if (var_decl->hasGlobalStorage() && !var_decl->isStaticLocal()) {
+      auto scope_mgr = XcalCheckerManager::GetScopeManager();
+      auto current = scope_mgr->CurrentScope();
+      auto func_decl = current->GetNode<const clang::FunctionDecl>();
+      if (func_decl) {
+        auto res = _var_to_func.find(var_decl);
+        if (res != _var_to_func.end()) {
+          if (func_decl != res->second) {
+            _var_to_func[var_decl] = nullptr;
+          }
+        } else {
+          _var_to_func.insert({var_decl, func_decl});
+        }
+      }
+    }
+  }
+}
+
+void MISRAStmtRule::ReportDefinitionOfVarDeclInSingleFunction() {
+  for (const auto &iter : _var_to_func) {
+    if (iter.second != nullptr) {
+      XcalIssue *issue = nullptr;
+      XcalReport *report = XcalCheckerManager::GetReport();
+      issue = report->ReportIssue(MISRA, M_R_8_9, iter.first);
+      std::string ref_msg = "An object should be defined at block scope if its identifier only appears in "
+                            "a single function";
+      issue->SetRefMsg(ref_msg);
+    }
+  }
+}
+
+/* MISRA
  * Rule: 10.2
  * Expressions of essentially character type shall not be used inappropriately in addition and subtraction operations
  */
