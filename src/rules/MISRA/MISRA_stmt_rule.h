@@ -419,6 +419,14 @@ private:
   void CheckIfWithoutElseStmt(const clang::IfStmt *stmt);
 
   /* MISRA
+   * Rule: 16.1
+   * All switch statements shall be well-formed
+   */
+  void ReportSyntaxRuleOfSWitchStmt(const clang::Stmt *stmt);
+  void CheckSyntaxRuleOfSWitchStmt(const clang::SwitchStmt *stmt);
+  void CheckSyntaxRuleOfCaseStmt(const clang::CaseStmt *stmt);
+
+  /* MISRA
    * Rule: 16.2
    * A switch label shall only be used when the most closely-enclosing compound statement
    * is the body of a switch statement
@@ -839,6 +847,11 @@ public:
     CheckLoopOrSwitchWithCompoundStmt(stmt);
     CheckIntToShorter(stmt);
     CheckCaseStmtInSwitchBody(stmt);
+    CheckSyntaxRuleOfSWitchStmt(stmt);
+  }
+
+  void VisitCaseStmt(const clang::CaseStmt *stmt) {
+    CheckSyntaxRuleOfCaseStmt(stmt);
   }
 
   void VisitCXXTypeidExpr(const clang::CXXTypeidExpr *stmt) {

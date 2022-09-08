@@ -1691,6 +1691,44 @@ void MISRAStmtRule::CheckIfWithoutElseStmt(const clang::IfStmt *stmt) {
 }
 
 /* MISRA
+ * Rule: 16.1
+ * All switch statements shall be well-formed
+ */
+void MISRAStmtRule::ReportSyntaxRuleOfSWitchStmt(const clang::Stmt *stmt) {
+  std::string ref_msg = "All switch statements shall be well-formed";
+  ReportTemplate(ref_msg, M_R_16_1, stmt);
+}
+
+void MISRAStmtRule::CheckSyntaxRuleOfSWitchStmt(const clang::SwitchStmt *stmt) {
+  auto cases = stmt->getSwitchCaseList();
+  if (cases == nullptr) ReportSyntaxRuleOfSWitchStmt(stmt);
+
+  auto cond = stmt->getCond()->IgnoreParenImpCasts();
+  if (cond == nullptr) ReportSyntaxRuleOfSWitchStmt(stmt);
+  if (clang::isa<clang::BinaryOperator>(cond)) ReportSyntaxRuleOfSWitchStmt(cond);
+
+  auto body = stmt->getBody();
+  if (!clang::isa<clang::CompoundStmt>(body)) {
+    ReportSyntaxRuleOfSWitchStmt(body);
+  }
+  for (const auto &it : body->children()) {
+    if (!IsCaseStmt(it) && it->getStmtClass() != clang::Stmt::BreakStmtClass) {
+      ReportSyntaxRuleOfSWitchStmt(it);
+    }
+  }
+}
+
+void MISRAStmtRule::CheckSyntaxRuleOfCaseStmt(const clang::CaseStmt *stmt) {
+  auto sub = stmt->getSubStmt();
+  if (IsCaseStmt(sub)) ReportSyntaxRuleOfSWitchStmt(sub);
+  if (clang::isa<clang::CompoundStmt>(sub)) {
+    for (const auto &it : sub->children()) {
+      if (IsCaseStmt(it)) ReportSyntaxRuleOfSWitchStmt(it);
+    }
+  }
+}
+
+/* MISRA
  * Rule: 16.2
  * A switch label shall only be used when the most closely-enclosing compound statement
  * is the body of a switch statement
