@@ -539,6 +539,14 @@ private:
   void CheckValueTypeForCtype(const clang::BinaryOperator *stmt);
 
   /* MISRA
+   * Rule: 21.16
+   * The pointer arguments to the Standard Library function memcmp shall point to
+   * either a pointer type, an essentially signed type, an essentially unsigned type,
+   * an essentially Boolean type or an essentially enum type
+   */
+  void CheckArgumentsOfMemcmp(const clang::CallExpr *stmt);
+
+  /* MISRA
    * Rule: 22.5
    * A pointer to a FILE object shall not be dereferenced
    */
@@ -755,6 +763,7 @@ public:
     CollectThrowType(stmt);
     CheckDynamicMemoryAllocation(stmt);
     CheckImplicitlyDeclaredFunction(stmt);
+    CheckArgumentsOfMemcmp(stmt);
   }
 
   void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {

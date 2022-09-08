@@ -573,9 +573,7 @@ void MISRAStmtRule::CheckDefinitionOfVarDeclInSingleFunction(const clang::DeclRe
   if (!decl || !clang::isa<clang::VarDecl>(decl)) return;
   if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
     if (var_decl->hasGlobalStorage() && !var_decl->isStaticLocal()) {
-      auto scope_mgr = XcalCheckerManager::GetScopeManager();
-      auto current = scope_mgr->CurrentScope();
-      auto func_decl = current->GetNode<const clang::FunctionDecl>();
+      auto func_decl = XcalCheckerManager::GetCurrentFunction();
       if (func_decl) {
         auto res = _var_to_func.find(var_decl);
         if (res != _var_to_func.end()) {
@@ -2220,6 +2218,42 @@ void MISRAStmtRule::CheckValueTypeForCtype(const clang::BinaryOperator *stmt) {
         }
       }
     }
+  }
+}
+
+/* MISRA
+ * Rule: 21.16
+ * The pointer arguments to the Standard Library function memcmp shall point to
+ * either a pointer type, an essentially signed type, an essentially unsigned type,
+ * an essentially Boolean type or an essentially enum type
+ */
+void MISRAStmtRule::CheckArgumentsOfMemcmp(const clang::CallExpr *stmt) {
+  auto callee = GetCalleeDecl(stmt);
+  if (callee == nullptr) return;
+  if (callee->getNameAsString() != "memcmp") return;
+
+  bool need_report = false;
+  auto arg1_type = stmt->getArg(0)->IgnoreParenImpCasts()->getType();
+  auto arg2_type = stmt->getArg(1)->IgnoreParenImpCasts()->getType();
+  if (arg1_type->isConstantArrayType() || arg2_type->isConstantArrayType()) {
+    need_report = true;
+  } else {
+    if (!arg1_type->isPointerType() || !arg2_type->isPointerType()) return;
+    auto type1 = arg1_type->getPointeeType();
+    auto type2 = arg2_type->getPointeeType();
+    if (!type1->isPointerType() && !type2->isPointerType() &&
+        !type1->isSignedIntegerType() && !type2->isSignedIntegerType() &&
+        !type1->isUnsignedIntegerType() && !type2->isUnsignedIntegerType() &&
+        !type1->isBooleanType() && !type2->isBooleanType() &&
+        !type1->isEnumeralType() && !type2->isEnumeralType()) {
+      need_report = true;
+    }
+  }
+  if (need_report) {
+    std::string ref_msg = "The pointer arguments to the Standard Library function memcmp shall point to "
+                          "either a pointer type, an essentially signed type, an essentially unsigned type, "
+                          "an essentially Boolean type or an essentially enum type";
+    ReportTemplate(ref_msg, M_R_21_16, stmt);
   }
 }
 
