@@ -253,7 +253,66 @@ const clang::Expr *MISRAStmtRule::StripAllParenImpCast(const clang::Expr *stmt) 
  * Rule: 4.1
  * Octal and hexadecimal escape sequences shall be terminated
  */
-void MISRAStmtRule::CheckOctalAndHexadecimalEscapeWithoutTerminated(const clang::StringLiteral *stmt) {
+void MISRAStmtRule::CheckOctalAndHexadecimalEscapeWithoutTerminated(const clang::Expr *stmt) {
+  char quote;
+  if (auto string_literal = clang::dyn_cast<clang::StringLiteral>(stmt)) {
+    if (!string_literal->getLength()) return;
+    quote = '"';
+  } else if (auto char_literal = clang::dyn_cast<clang::CharacterLiteral>(stmt)) {
+    if (!char_literal->getValue()) return;
+    quote = '\'';
+  }
+
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  const char *start = src_mgr->getCharacterData(stmt->getBeginLoc());
+  clang::LangOptions lang_ops;
+  auto end_loc = stmt->getEndLoc();
+  auto loc = clang::Lexer::getLocForEndOfToken(end_loc.isMacroID() ? src_mgr->getSpellingLoc(end_loc) : end_loc,
+                                               0, *src_mgr, lang_ops);
+  const char *end = src_mgr->getCharacterData(loc);
+
+  bool need_report = false, pre_is_terminal = false;
+  if (!(*start == quote && *(start + 1) == '\\')) return;
+  if (*(start + 2) == 'x') {
+    // hexadecimal escape sequences
+    do {
+      if (*end == ';' || *end == quote ||
+          (*end >= '0' && *end <= '9') ||
+          (*end >= 'A' && *end <= 'F')) {
+        end--;
+        continue;
+      } else {
+        pre_is_terminal = true;
+        if (*end == '\\' ||
+            *(end - 1) == '\\' ||
+            *(end - 1) == quote) {
+          break;
+        }
+        need_report = true;
+      }
+    } while (!pre_is_terminal);
+  } else {
+    // octal escape sequences
+    do {
+      if (*end == ';' || *end == quote ||
+          (*end >= '0' && *end <= '7')) {
+        end--;
+        continue;
+      } else {
+        pre_is_terminal = true;
+        if (*end == '\\' ||
+            *(end - 1) == '\\' ||
+            *(end - 1) == quote) {
+          break;
+        }
+        need_report = true;
+      }
+    } while (!pre_is_terminal);
+  }
+  if (need_report) {
+    std::string ref_msg = "Octal and hexadecimal escape sequences shall be terminated";
+    ReportTemplate(ref_msg, M_R_4_1, stmt);
+  }
 }
 
 /* MISRA

@@ -95,7 +95,7 @@ private:
    * Rule: 4.1
    * Octal and hexadecimal escape sequences shall be terminated
    */
-  void CheckOctalAndHexadecimalEscapeWithoutTerminated(const clang::StringLiteral *stmt);
+  void CheckOctalAndHexadecimalEscapeWithoutTerminated(const clang::Expr *stmt);
 
   /* MISRA
    * Directive: 4.12
@@ -942,6 +942,10 @@ public:
 
   void VisitFloatingLiteral(const clang::FloatingLiteral *stmt) {
     CheckLiteralSuffix(stmt);
+  }
+
+  void VisitCharacterLiteral(const clang::CharacterLiteral *stmt) {
+    CheckOctalAndHexadecimalEscapeWithoutTerminated(stmt);
   }
 
   void VisitDeclRefExpr(const clang::DeclRefExpr *stmt) {
