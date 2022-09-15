@@ -61,7 +61,9 @@ void MISRAPPRule::CheckIfValue(clang::SourceLocation Loc, clang::SourceRange Con
   auto src_mgr = XcalCheckerManager::GetSourceManager();
   clang::LangOptions langOps;
   clang::SmallString<256> buffer;
-  llvm::StringRef val = clang::Lexer::getSpelling(ConditionalRange.getEnd(), buffer, *src_mgr, langOps);
+  auto sl = ConditionalRange.getEnd();
+  llvm::StringRef val = clang::Lexer::getSpelling(sl.isMacroID() ? src_mgr->getSpellingLoc(sl) : sl,
+                                                  buffer, *src_mgr, langOps);
   if (val.size() > 1 && val[0] == '0') {
     if ('0' <= val[1] && val[1] <= '7') {
       XcalIssue *issue = nullptr;
@@ -69,6 +71,86 @@ void MISRAPPRule::CheckIfValue(clang::SourceLocation Loc, clang::SourceRange Con
       issue = report->ReportIssue(MISRA, M_R_7_1, Loc);
       std::string ref_msg = "Octal constants shall not be used";
       issue->SetRefMsg(ref_msg);
+    }
+  }
+}
+
+/* MISRA
+ * Rule: 12.1
+ * The precedence of operators within expressions should be made explicit
+ */
+void MISRAPPRule::ReportPrecedenceOfOperator(clang::SourceLocation loc) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(MISRA, M_R_12_1, loc);
+  std::string ref_msg = "The precedence of operators within expressions should be made explicit";
+  issue->SetRefMsg(ref_msg);
+}
+
+void MISRAPPRule::CheckPrecedenceOfToken(llvm::Optional<clang::Token> first,
+                                         llvm::Optional<clang::Token> second,
+                                         llvm::Optional<clang::Token> third) {
+  if (first.getPointer()->is(clang::tok::raw_identifier) ||
+      third.getPointer()->is(clang::tok::raw_identifier)) {
+    return;
+  }
+  if (first.getPointer()->isOneOf(clang::tok::ampamp, clang::tok::pipepipe)) {
+    if (second.getPointer()->is(clang::tok::raw_identifier) &&
+        third.getPointer()->isOneOf(clang::tok::greater, clang::tok::greaterequal,
+                                    clang::tok::less, clang::tok::lessequal,
+                                    clang::tok::plus, clang::tok::minus)) {
+      ReportPrecedenceOfOperator(third->getLocation());
+      return;
+    }
+  }
+  if (third.getPointer()->isOneOf(clang::tok::ampamp, clang::tok::pipepipe)) {
+    if (second.getPointer()->is(clang::tok::raw_identifier) &&
+        first.getPointer()->isOneOf(clang::tok::greater, clang::tok::greaterequal,
+                                    clang::tok::less, clang::tok::lessequal,
+                                    clang::tok::plus, clang::tok::minus)) {
+      ReportPrecedenceOfOperator(first->getLocation());
+      return;
+    }
+  }
+  if (first.getPointer()->isOneOf(clang::tok::greater, clang::tok::greaterequal,
+                                  clang::tok::less, clang::tok::lessequal)) {
+    if (second.getPointer()->is(clang::tok::raw_identifier) &&
+        third.getPointer()->isOneOf(clang::tok::plus, clang::tok::minus)) {
+      ReportPrecedenceOfOperator(third->getLocation());
+      return;
+    }
+  }
+  if (third.getPointer()->isOneOf(clang::tok::greater, clang::tok::greaterequal,
+                                  clang::tok::less, clang::tok::lessequal)) {
+    if (second.getPointer()->is(clang::tok::raw_identifier) &&
+        first.getPointer()->isOneOf(clang::tok::plus, clang::tok::minus)) {
+      ReportPrecedenceOfOperator(first->getLocation());
+      return;
+    }
+  }
+}
+
+void MISRAPPRule::CheckPrecedenceOfOperator(clang::SourceLocation Loc, clang::SourceRange ConditionalRange,
+                                            clang::PPCallbacks::ConditionValueKind ConditionalValue) {
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  clang::LangOptions lang_ops;
+  auto begin = clang::Lexer::getLocForEndOfToken(ConditionalRange.getBegin(), 0, *src_mgr, lang_ops);
+  auto end = clang::Lexer::getLocForEndOfToken(ConditionalRange.getEnd(), 0, *src_mgr, lang_ops);
+  auto next_loc = begin;
+  std::vector<llvm::Optional<clang::Token>> tokens;
+  do {
+    clang::Token tok;
+    clang::Lexer::getRawToken(next_loc, tok, *src_mgr, lang_ops);
+    tokens.push_back(tok);
+
+    auto next = clang::Lexer::findNextToken(next_loc, *src_mgr, lang_ops);
+    if (!next.hasValue()) break;
+    next_loc = next->getLocation();
+  } while (next_loc.isValid() && next_loc <= end);
+
+  for (int i = 0; i < tokens.size(); i++) {
+    if (i > 1 && i < tokens.size() - 1) {
+      CheckPrecedenceOfToken(tokens[i - 1], tokens[i], tokens[i + 1]);
     }
   }
 }

@@ -258,6 +258,17 @@ private:
   void CheckZeroAsPointerConstant(const clang::ConditionalOperator *stmt);
 
   /* MISRA
+   * Rule: 12.1
+   * The precedence of operators within expressions should be made explicit
+   */
+  void ReportPrecedenceOfOperators(const clang::Stmt *stmt);
+  void CheckPrecedenceOfSizeof(const clang::UnaryExprOrTypeTraitExpr *stmt);
+  void CheckPrecedenceOfOperator(const clang::ConditionalOperator *stmt);
+  bool IsSamePrecedenceOfBinaryOperator(const clang::BinaryOperator *expr1,
+                                        const clang::BinaryOperator *expr2);
+  void CheckPrecedenceOfOperator(const clang::BinaryOperator *stmt);
+
+  /* MISRA
    * Rule: 12.2
    * The right hand operand of a shift operator shall lie in the range zero to one less than the
    * width in bits of the essential type of the left hand operand
@@ -747,6 +758,7 @@ public:
     CheckInappropriateEssentialTypeOfOperands(stmt);
     CheckAssignAddrOfLocalVar(stmt);
     CheckValueTypeForCtype(stmt);
+    CheckPrecedenceOfOperator(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
@@ -906,6 +918,7 @@ public:
 
   void VisitUnaryExprOrTypeTraitExpr(const clang::UnaryExprOrTypeTraitExpr *stmt) {
     CheckSideEffectInSizeof(stmt);
+    CheckPrecedenceOfSizeof(stmt);
   }
 
   void VisitUnaryOperator(const clang::UnaryOperator *stmt) {
@@ -928,6 +941,7 @@ public:
   void VisitConditionalOperator(const clang::ConditionalOperator *stmt) {
     CheckZeroAsPointerConstant(stmt);
     CheckInappropriateEssentialTypeOfOperands(stmt);
+    CheckPrecedenceOfOperator(stmt);
   }
 
   void VisitMemberExpr(const clang::MemberExpr *stmt) {

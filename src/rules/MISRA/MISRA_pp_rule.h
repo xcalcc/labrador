@@ -52,6 +52,17 @@ private:
                     clang::PPCallbacks::ConditionValueKind ConditionalValue);
 
   /* MISRA
+   * Rule: 12.1
+   * The precedence of operators within expressions should be made explicit
+   */
+  void ReportPrecedenceOfOperator(clang::SourceLocation loc);
+  void CheckPrecedenceOfToken(llvm::Optional<clang::Token> first,
+                              llvm::Optional<clang::Token> second,
+                              llvm::Optional<clang::Token> third);
+  void CheckPrecedenceOfOperator(clang::SourceLocation Loc, clang::SourceRange ConditionalRange,
+                                 clang::PPCallbacks::ConditionValueKind ConditionalValue);
+
+  /* MISRA
    * Rule: 17.1
    * The features of <stdarg.h> shall not be used
    * Rule: 21.5
@@ -91,6 +102,7 @@ public:
   void If(clang::SourceLocation Loc, clang::SourceRange ConditionalRange,
           clang::PPCallbacks::ConditionValueKind ConditionalValue) {
     CheckIfValue(Loc, ConditionalRange, ConditionalValue);
+    CheckPrecedenceOfOperator(Loc, ConditionalRange, ConditionalValue);
   }
 
 }; // MISRAPPRule

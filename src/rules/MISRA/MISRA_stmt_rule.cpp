@@ -1260,6 +1260,77 @@ void MISRAStmtRule::ReportZeroAsPointer(const clang::Stmt *stmt) {
 }
 
 /* MISRA
+ * Rule: 12.1
+ * The precedence of operators within expressions should be made explicit
+ */
+void MISRAStmtRule::ReportPrecedenceOfOperators(const clang::Stmt *stmt) {
+  std::string ref_msg = "The precedence of operators within expressions should be made explicit";
+  ReportTemplate(ref_msg, M_R_12_1, stmt);
+}
+
+void MISRAStmtRule::CheckPrecedenceOfSizeof(const clang::UnaryExprOrTypeTraitExpr *stmt) {
+  if (stmt->getKind() == clang::UnaryExprOrTypeTrait::UETT_SizeOf) {
+    if (!stmt->isArgumentType()) {
+      auto expr = stmt->getArgumentExpr();
+      if (!clang::isa<clang::ParenExpr>(expr)) {
+        ReportPrecedenceOfOperators(expr);
+      }
+    }
+  }
+}
+
+void MISRAStmtRule::CheckPrecedenceOfOperator(const clang::ConditionalOperator *stmt) {
+  auto cond = stmt->getCond();
+  auto lhs = stmt->getLHS();
+  auto rhs = stmt->getRHS();
+  if (auto opr = clang::dyn_cast<clang::BinaryOperator>(cond)) {
+    ReportPrecedenceOfOperators(cond);
+  }
+  if (auto opr = clang::dyn_cast<clang::BinaryOperator>(lhs)) {
+    ReportPrecedenceOfOperators(lhs);
+  }
+  if (auto opr = clang::dyn_cast<clang::BinaryOperator>(rhs)) {
+    ReportPrecedenceOfOperators(rhs);
+  }
+}
+
+bool MISRAStmtRule::IsSamePrecedenceOfBinaryOperator(const clang::BinaryOperator *expr1,
+                                                     const clang::BinaryOperator *expr2) {
+  if (expr1->getOpcode() == expr2->getOpcode()) return true;
+  if ((expr1->isPtrMemOp() && expr2->isPtrMemOp()) ||
+      (expr1->isMultiplicativeOp() && expr2->isMultiplicativeOp()) ||
+      (expr1->isAdditiveOp() && expr2->isAdditiveOp()) ||
+      (expr1->isShiftOp() && expr2->isShiftOp()) ||
+      (expr1->isRelationalOp() && expr2->isRelationalOp()) ||
+      (expr1->isEqualityOp() && expr2->isEqualityOp()) ||
+      (expr1->isAssignmentOp() && expr2->isAssignmentOp()))
+    return true;
+  return false;
+}
+
+void MISRAStmtRule::CheckPrecedenceOfOperator(const clang::BinaryOperator *stmt) {
+  auto opcode = stmt->getOpcode();
+  if (opcode < clang::BO_Add || opcode > clang::BO_LOr) return;
+
+  auto lhs_expr = clang::dyn_cast<clang::BinaryOperator>(stmt->getLHS());
+  auto rhs_expr = clang::dyn_cast<clang::BinaryOperator>(stmt->getRHS());
+  if (lhs_expr) {
+    auto lhs_op = lhs_expr->getOpcode();
+    if (lhs_op < clang::BO_Mul || lhs_op > clang::BO_LOr) return;
+    if (lhs_op > opcode) return;
+    if (IsSamePrecedenceOfBinaryOperator(lhs_expr, stmt)) return;
+    ReportPrecedenceOfOperators(lhs_expr);
+  }
+  if (rhs_expr) {
+    auto rhs_op = rhs_expr->getOpcode();
+    if (rhs_op < clang::BO_Mul || rhs_op > clang::BO_LOr) return;
+    if (rhs_op > opcode) return;
+    if (IsSamePrecedenceOfBinaryOperator(rhs_expr, stmt)) return;
+    ReportPrecedenceOfOperators(rhs_expr);
+  }
+}
+
+/* MISRA
  * Rule: 12.2
  * The right hand operand of a shift operator shall lie in the range zero to one less than the
  * width in bits of the essential type of the left hand operand
