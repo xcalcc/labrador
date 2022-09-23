@@ -1609,6 +1609,50 @@ void MISRAStmtRule::CheckLoopVariable(const clang::ForStmt *stmt) {
 }
 
 /* MISRA
+ * Rule: 14.3
+ * Controlling expressions shall not be invariant
+ */
+void MISRAStmtRule::CheckControlStmtVariant(const clang::Expr *stmt) {
+  if (stmt == nullptr) return;
+  bool need_report = false;
+
+  uint64_t val;
+  if (IsIntegerLiteralExpr(stmt, &val) && (val == 0 || val == 1)) {
+    need_report = true;
+  } else if (auto decl_expr = clang::dyn_cast<clang::DeclRefExpr>(stmt)) {
+    auto decl = decl_expr->getDecl();
+    if (clang::isa<clang::ParmVarDecl>(decl)) {
+      need_report = true;
+    } else if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
+      if (var_decl->hasInit()) need_report = true;
+    }
+  } else if (auto bin_op = clang::dyn_cast<clang::BinaryOperator>(stmt)) {
+    auto opcode = bin_op->getOpcode();
+    auto lhs = bin_op->getLHS()->IgnoreParenImpCasts();
+    auto lhs_type = lhs->getType();
+    auto rhs = bin_op->getRHS()->IgnoreParenImpCasts();
+    auto rhs_type = rhs->getType();
+    if (lhs_type->isUnsignedIntegerType() &&
+        (opcode == clang::BO_LT || opcode == clang::BO_GE)) {
+      if (IsIntegerLiteralExpr(rhs, &val) && (val == 0)) need_report = true;
+    } else if (lhs_type->isUnsignedIntegerType() && opcode == clang::BO_LE) {
+      if (IsIntegerLiteralExpr(rhs, &val) && (val == 65535)) need_report = true;
+    } else if (lhs_type->isSignedIntegerType() && lhs_type->isCharType()) {
+      if (opcode == clang::BO_LT) {
+        if (IsIntegerLiteralExpr(rhs, &val) && (val > 128)) need_report = true;
+      } else if (opcode == clang::BO_LE) {
+        if (IsIntegerLiteralExpr(rhs, &val) && (val >= 128)) need_report = true;
+      }
+    }
+  }
+
+  if (need_report) {
+    std::string ref_msg = "Controlling expressions shall not be invariant";
+    ReportTemplate(ref_msg, M_R_14_3, stmt);
+  }
+}
+
+/* MISRA
  * Rule: 14.4
  * The controlling expression of an if statement and the controlling expression
  * of an iteration-statement shall have essentially Boolean type

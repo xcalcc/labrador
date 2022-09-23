@@ -356,6 +356,24 @@ private:
     }
   }
 
+  /* MISRA
+   * Rule: 14.3
+   * Controlling expressions shall not be invariant
+   */
+  void CheckControlStmtVariant(const clang::Expr *stmt);
+
+  template<typename T>
+  void CheckValueOfControlStmt(const T *stmt) {
+    auto cond = stmt->getCond()->IgnoreParenImpCasts();
+    uint64_t val;
+    // exceptions
+    if (clang::isa<clang::DoStmt>(stmt)) {
+      if (IsIntegerLiteralExpr(cond, &val) && (val == 0)) return;
+    } else if (clang::isa<clang::WhileStmt>(stmt)) {
+      if (IsIntegerLiteralExpr(cond, &val) && (val == 1)) return;
+    }
+    CheckControlStmtVariant(cond);
+  }
 
   /* MISRA
    * Rule: 14.4
@@ -819,6 +837,7 @@ public:
     CheckIfWithoutElseStmt(stmt);
     CheckIfBrace(stmt);
     CheckIfWithCompoundStmt(stmt);
+    CheckValueOfControlStmt(stmt);
   }
 
   void VisitWhileStmt(const clang::WhileStmt *stmt) {
@@ -827,6 +846,7 @@ public:
     CheckMultiTerminate(stmt);
     CheckUsingAssignmentAsResult(stmt);
     CheckLoopOrSwitchWithCompoundStmt(stmt);
+    CheckValueOfControlStmt(stmt);
   }
 
   void VisitDoStmt(const clang::DoStmt *stmt) {
@@ -834,6 +854,7 @@ public:
     CheckMultiTerminate(stmt);
     CheckUsingAssignmentAsResult(stmt);
     CheckLoopOrSwitchWithCompoundStmt(stmt);
+    CheckValueOfControlStmt(stmt);
   }
 
   void VisitForStmt(const clang::ForStmt *stmt) {
@@ -843,6 +864,7 @@ public:
     CheckUsingAssignmentAsResult(stmt);
     CheckForStmtLoopCounter(stmt);
     CheckLoopOrSwitchWithCompoundStmt(stmt);
+    CheckValueOfControlStmt(stmt);
   }
 
   void VisitGotoStmt(const clang::GotoStmt *stmt) {
@@ -942,6 +964,7 @@ public:
     CheckZeroAsPointerConstant(stmt);
     CheckInappropriateEssentialTypeOfOperands(stmt);
     CheckPrecedenceOfOperator(stmt);
+    CheckValueOfControlStmt(stmt);
   }
 
   void VisitMemberExpr(const clang::MemberExpr *stmt) {
