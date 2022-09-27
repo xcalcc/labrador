@@ -1,0 +1,4 @@
+This is for example. The following kinds of rules are supported:
+- Preprocess callback based checker to check issues during lexing phase
+- MatchFinder callback based checker to check issues by AST pattern matching
+- AST consumer based checker to check issues by AST traversal

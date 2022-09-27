@@ -1,0 +1,16 @@
+Xcalibyte Standard Compliance Analyzer (XSCA) Architecture
+--------
+
+Rules can be implemented in 3 categories:
+- Preprocessor (lexer) rules
+- Parser tree (TBD, seems invalid) rules
+- AST rules
+
+For AST rules, there are also 3 kinds:
+- For Decl, like VarDecl, FunctionDecl, TypeDecl, etc
+- For Stmt/Expr, like IfStmt, BinaryExpr, etc
+- For Type, like EnumType, RecordType, etc
+
+For each manager:
+- Manages the callbacks which is called by Lex (PPCallbacks) or Sema (ASTConsumer)
+- Manages the rules belongs to this category

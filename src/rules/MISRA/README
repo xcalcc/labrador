@@ -1,0 +1,94 @@
+This is for MISRA-C-2012 with the following rules:
+
+Rule		Kind		Implementation
+--------------+---------------+--------------------------------
+1.1
+
+2.1
+2.2
+2.3         Decl        CheckUnusedTypedef TODO: fix
+2.4
+2.5
+2.6         Decl        CheckUnusedLabelInFunction
+2.7         Decl        CheckUnusedParameters
+4.1         Stmt        CheckOctalAndHexadecimalEscapeWithoutTerminated
+4.2         Diag        HandleDiagnostic
+
+
+5.1         Decl        CheckUndistinctExternalIdent
+5.2
+5.3         Decl
+
+5.6         Decl        CheckTypedefUnique
+5.7
+6.1         Decl        CheckInappropriateBitField
+
+6.2                     CheckSingleBitSignedValue
+7.1
+7.2
+7.3
+7.4         Decl        CheckStringLiteralToNonConstChar
+
+8.3 TODO
+8.8         Decl        CheckStaticSpecifier
+
+8.10        Decl
+8.11        Decl        CheckImplicitSizeWithExternalArray
+8.12        Decl        CheckUniqueImplicitEnumerator
+9.3         Decl        CheckArrayPartialInitialized
+9.4         Diag        HandleDiagnostic
+9.5
+
+10.2        Stmt        CheckAddOrSubOnCharacter
+10.3                    GJB8114 5.10.2.3 -> CheckIntToShorter
+10.4        Stmt        CheckArithmeticWithDifferentType
+10.5        Stmt        CheckInappropriateCast
+10.6        Stmt        CheckCompositeExprAssignToWiderTypeVar
+10.7        Stmt        CheckCompositeMixTypeExpr
+10.8        Stmt        CheckCompositeExprCastToWiderType
+
+11.2                    CheckIncompleteTypePointerCastToAnotherType
+11.3                    CheckCastPointerToDifferentType
+11.4        Stmt        CheckCastBetweenIntAndPointerÏ
+11.5        Stmt        CheckVoidPointerToOtherTypePointer
+11.6        Stmt        CheckArithTypeCastToVoidPointerType
+11.7        Stmt        CheckCastBetweenPointerAndNonIntType
+11.8        Stmt        CheckAssignRemoveConstOrVolatile
+11.9        Stmt        CheckZeroAsPointerConstant
+
+12.2        Stmt        CheckShiftOutOfRange
+12.3        Stmt        CheckCommaStmt
+12.4        Stmt        CheckUnsignedIntWrapAround
+12.5        Diag        HandleDiagnostic
+
+13.1        Stmt        CheckSideEffectWithinInitListExpr
+13.2        Stmt        CheckSideEffectWithOrder
+13.4        Stmt        CheckUsingAssignmentAsResult
+13.5        Stmt        CheckRHSOfLogicalOpHasSideEffect
+13.6        Stmt        CheckSideEffectInSizeof
+14.1        Stmt        CheckLoopVariable
+14.4        Stmt        CheckControlStmtImpl
+15.1        Stmt        CheckGotoStmt
+15.2        Stmt        CheckGotoBackward
+15.3        Stmt        CheckLabelNotEncloseWithGoto
+15.4        Stmt        CheckMultiTerminate
+15.5
+15.6
+15.7        Stmt        CheckIfWithoutElseStmt
+16.2        Stmt        CheckCaseStmtInSwitchBody
+16.3
+16.4        Stmt        CheckSwitchWithoutDefault
+16.5        Stmt        CheckDefaultStmtPosition
+16.6        Stmt        CheckCaseStmtNum
+17.4 TODO:
+17.5        Stmt        CheckArrayArgumentSize
+17.7        Stmt        CheckUnusedCallExprWithoutVoidCast
+17.8        Stmt        CheckModifyParameters
+18.4        Stmt        CheckAddOrSubOnPointer
+21.3        Stmt        CheckStdMemoryAllocationFunction
+21.6        Stmt        CheckIOFunctionInStdio
+21.7        Stmt        CheckIntConvertFunctionInStdlib
+21.8        Stmt        CheckSystemFuncInStdlib
+21.9        Stmt        CheckBsearchAndQsortInStdlib
+21.10       Stmt        CheckTimeFunctionInStdlib
+21.12       Stmt        CheckExceptionFeaturesInFenv

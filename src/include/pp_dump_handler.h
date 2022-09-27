@@ -1,0 +1,137 @@
+/*
+   Copyright (C) 2021 Xcalibyte (Shenzhen) Limited.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
+
+//
+// ====================================================================
+// pp_dump_handler.h
+// ====================================================================
+//
+// preprocessor dump handler which dumps preprocessor callback
+// parameters for reference
+//
+
+#ifndef PP_DUMP_HANDLER_INCLUDED
+#define PP_DUMP_HANDLER_INCLUDED
+
+#include "xsca_defs.h"
+#include "clang/Basic/FileManager.h"
+#include "clang/Frontend/CompilerInstance.h"
+#include "clang/Lex/PPCallbacks.h"
+#include "clang/Lex/Preprocessor.h"
+
+namespace xsca {
+
+// class PPDumpHandler
+class PPDumpHandler {
+public:
+  void FileChanged(clang::SourceLocation Loc,
+           clang::PPCallbacks::FileChangeReason Reason,
+           clang::SrcMgr::CharacteristicKind FileType,
+           clang::FileID PrevFID);
+
+  void InclusionDirective(clang::SourceLocation DirectiveLoc,
+           const clang::Token &IncludeToken, llvm::StringRef IncludedFilename,
+           bool IsAngled, clang::CharSourceRange FilenameRange,
+           const clang::FileEntry *IncludedFile, llvm::StringRef SearchPath,
+           llvm::StringRef RelativePath, const clang::Module *Imported,
+           clang::SrcMgr::CharacteristicKind FileType);
+
+  void EndOfMainFile();
+
+  void Ident(clang::SourceLocation Loc, llvm::StringRef Str);
+
+  void PragmaDirective(clang::SourceLocation Loc,
+           clang::PragmaIntroducerKind Introducer);
+
+  void PragmaComment(clang::SourceLocation Loc,
+           const clang::IdentifierInfo *Kind, llvm::StringRef Str);
+
+  void PragmaDetectMismatch(clang::SourceLocation Loc, llvm::StringRef Name,
+           llvm::StringRef Value);
+
+  void PragmaDebug(clang::SourceLocation Loc, llvm::StringRef DebugType);
+
+  void PragmaMessage(clang::SourceLocation Loc, llvm::StringRef Namespace,
+           clang::PPCallbacks::PragmaMessageKind Kind, llvm::StringRef Str);
+
+  void PragmaDiagnosticPush(clang::SourceLocation Loc,
+           llvm::StringRef Namespace);
+
+  void PragmaDiagnosticPop(clang::SourceLocation Loc,
+           llvm::StringRef Namespace);
+
+  void PragmaDiagnostic(clang::SourceLocation Loc, llvm::StringRef Namespace,
+           clang::diag::Severity Mapping, llvm::StringRef Str);
+
+  void HasInclude(clang::SourceLocation Loc, llvm::StringRef FileName,
+           bool IsAngled, llvm::Optional<clang::FileEntryRef> File,
+           clang::SrcMgr::CharacteristicKind FileType);
+
+  void PragmaOpenCLExtension(clang::SourceLocation NameLoc,
+           const clang::IdentifierInfo *Name, clang::SourceLocation StateLoc,
+           unsigned State);
+
+  void PragmaWarning(clang::SourceLocation Loc, llvm::StringRef WarningSpec,
+           llvm::ArrayRef<int> Ids);
+
+  void PragmaWarningPush(clang::SourceLocation Loc, int Level);
+
+  void PragmaWarningPop(clang::SourceLocation Loc);
+
+  void PragmaAssumeNonNullBegin(clang::SourceLocation Loc);
+
+  void PragmaAssumeNonNullEnd(clang::SourceLocation Loc);
+
+  void MacroExpands(const clang::Token &MacroNameTok,
+           const clang::MacroDefinition &MD, clang::SourceRange Range,
+           const clang::MacroArgs *Args);
+
+  void MacroDefined(const clang::Token &MacroNameTok,
+           const clang::MacroDirective *MD);
+
+  void MacroUndefined(const clang::Token &MacroNameTok,
+           const clang::MacroDefinition &MD,
+           const clang::MacroDirective *Undef);
+
+  void Defined(const clang::Token &MacroNameTok,
+           const clang::MacroDefinition &MD,
+           clang::SourceRange Range);
+
+  void SourceRangeSkipped(clang::SourceRange Range,
+           clang::SourceLocation EndifLoc);
+
+  void If(clang::SourceLocation Loc, clang::SourceRange ConditionalRange,
+           clang::PPCallbacks::ConditionValueKind ConditionalValue);
+
+  void Elif(clang::SourceLocation Loc, clang::SourceRange ConditionalRange,
+           clang::PPCallbacks::ConditionValueKind ConditionalValue,
+           clang::SourceLocation IfLoc);
+
+  void Ifdef(clang::SourceLocation Loc, const clang::Token &MacroNameTok,
+           const clang::MacroDefinition &MD);
+
+  void Ifndef(clang::SourceLocation Loc, const clang::Token &MacroNameTok,
+           const clang::MacroDefinition &MD);
+
+  void Else(clang::SourceLocation Loc, clang::SourceLocation IfLoc);
+
+  void Endif(clang::SourceLocation Loc, clang::SourceLocation IfLoc);
+
+};  // PPDumpHandler
+
+}  // namespace xsca
+
+#endif  // PP_DUMP_HANDLER_INCLUDED
