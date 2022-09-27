@@ -157,6 +157,16 @@ private:
   void CheckParameterNoIdentifier(const clang::FunctionDecl *decl);
 
   /* MISRA
+   * Rule: 8.3
+   * All declarations of an object or function shall use the same names and type qualifiers
+   */
+  void ReportDeclWithDifferentNameOrType(const clang::Decl *decl);
+
+  void CheckParameterNameAndType(const clang::FunctionDecl *decl);
+
+  void CheckTypeOfVar(const clang::VarDecl *decl);
+
+  /* MISRA
    * Rule: 8.4
    * A compatible declaration shall be visible when an object or function with
    * external linkage is defined
@@ -433,6 +443,7 @@ public:
     CheckPointerNestedMoreThanTwoLevel(decl);
     CheckUseFunctionNotCallOrDereference(decl);
     CheckDeclarationWithExternalLinkage(decl);
+    CheckTypeOfVar(decl);
   }
 
   void VisitParmVar(const clang::ParmVarDecl *decl) {
@@ -461,6 +472,7 @@ public:
     CheckParameterNoIdentifier(decl);
     CheckPointerNestedMoreThanTwoLevel(decl);
     CheckDeclarationWithExternalLinkage(decl);
+    CheckParameterNameAndType(decl);
   }
 
   void VisitField(const clang::FieldDecl *decl) {

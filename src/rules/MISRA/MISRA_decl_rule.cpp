@@ -620,6 +620,41 @@ void MISRADeclRule::CheckParameterNoIdentifier(const clang::FunctionDecl *decl) 
 }
 
 /* MISRA
+ * Rule: 8.3
+ * All declarations of an object or function shall use the same names and type qualifiers
+ */
+void MISRADeclRule::ReportDeclWithDifferentNameOrType(const clang::Decl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(MISRA, M_R_8_3, decl);
+  std::string ref_msg = "All declarations of an object or function shall use the "
+                        "same names and type qualifiers";
+  issue->SetRefMsg(ref_msg);
+}
+
+void MISRADeclRule::CheckParameterNameAndType(const clang::FunctionDecl *decl) {
+  auto prev = decl->getPreviousDecl();
+  if (!prev) return;
+  for (int i = 0; i < decl->getNumParams(); i++) {
+    if (i >= prev->getNumParams()) return;
+    auto cur_param = decl->getParamDecl(i);
+    auto prev_param = prev->getParamDecl(i);
+    if (cur_param->getName() != prev_param->getName() ||
+        cur_param->getType() != prev_param->getType()) {
+      ReportDeclWithDifferentNameOrType(cur_param);
+    }
+  }
+}
+
+void MISRADeclRule::CheckTypeOfVar(const clang::VarDecl *decl) {
+  auto prev = decl->getPreviousDecl();
+  if (!prev) return;
+  if (decl->getType() != prev->getType()) {
+    ReportDeclWithDifferentNameOrType(decl);
+  }
+}
+
+/* MISRA
  * Rule: 8.4
  * A compatible declaration shall be visible when an object or function with
  * external linkage is defined
