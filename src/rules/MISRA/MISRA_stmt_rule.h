@@ -43,6 +43,8 @@ private:
 
   std::unordered_map<const clang::VarDecl *, const clang::FunctionDecl *> _var_to_func;
 
+  std::set<const clang::Decl *> _used_tag;
+
   std::string GetTypeString(clang::QualType type);
 
   clang::QualType GetRawTypeOfTypedef(clang::QualType type);
@@ -90,6 +92,17 @@ private:
 
   // strip all parenthesis expression and implicit cast expression
   const clang::Expr *StripAllParenImpCast(const clang::Expr *stmt);
+
+  // get line number from sourceLocation
+  uint16_t getLineNumber(clang::SourceLocation loc);
+
+  /* MISRA
+   * Rule: 2.4
+   * A project should not contain unused tag declarations
+   */
+  void CheckUnusedTag(const clang::DeclRefExpr *stmt);
+
+  void CheckUnusedTag();
 
   /* MISRA
    * Rule: 4.1
@@ -750,6 +763,7 @@ public:
 
   void Finalize() {
     ReportDefinitionOfVarDeclInSingleFunction();
+    CheckUnusedTag();
   }
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -987,6 +1001,7 @@ public:
 
   void VisitDeclRefExpr(const clang::DeclRefExpr *stmt) {
       CheckDefinitionOfVarDeclInSingleFunction(stmt);
+      CheckUnusedTag(stmt);
   }
 //  void VisitCXXStaticCastExpr(const clang::CXXStaticCastExpr *stmt) {
 //    CheckExplictCastOnIntOrFloatIncreaseSize(stmt);

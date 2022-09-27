@@ -249,6 +249,79 @@ const clang::Expr *MISRAStmtRule::StripAllParenImpCast(const clang::Expr *stmt) 
   return res;
 }
 
+uint16_t MISRAStmtRule::getLineNumber(clang::SourceLocation loc) {
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  auto SpellingLoc = src_mgr->getSpellingLoc(loc);
+  clang::PresumedLoc PLoc = src_mgr->getPresumedLoc(SpellingLoc);
+  if (PLoc.isInvalid()) return 0;
+  return PLoc.getLine();
+}
+
+/* MISRA
+ * Rule: 2.4
+ * A project should not contain unused tag declarations
+ */
+void MISRAStmtRule::CheckUnusedTag(const clang::DeclRefExpr *stmt) {
+  auto decl = stmt->getDecl();
+  if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
+    auto type = var_decl->getType();
+    if (auto typedef_type = clang::dyn_cast<clang::TypedefType>(type)) {
+      auto decl = typedef_type->getDecl();
+      _used_tag.insert(decl);
+      if (type->isRecordType()) {
+        auto record_decl = type->getAs<clang::RecordType>()->getDecl();
+        auto record_line = getLineNumber(record_decl->getBeginLoc());
+        auto decl_line = getLineNumber(decl->getBeginLoc());
+        if (record_line && decl_line && record_line != decl_line) {
+          _used_tag.insert(record_decl);
+        }
+      }
+    } else if (type->isRecordType()) {
+      auto record_type = type.getCanonicalType()->getAs<clang::RecordType>();
+      _used_tag.insert(record_type->getDecl());
+    }
+  } else if (auto enum_const_decl = clang::dyn_cast<clang::EnumConstantDecl>(decl)) {
+    if (auto enum_decl = clang::cast<clang::EnumDecl>(enum_const_decl->getDeclContext())) {
+      _used_tag.insert(enum_decl);
+    }
+  }
+}
+
+void MISRAStmtRule::CheckUnusedTag() {
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+  constexpr uint32_t kind = IdentifierManager::VALUE |
+                            IdentifierManager::TYPE |
+                            IdentifierManager::TYPEDEF;
+  auto used_tags= &(this->_used_tag);
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  top_scope->TraverseAll<kind,
+    const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+    [&](const std::string &x, const clang::Decl *decl,
+        IdentifierManager *id_mgr) -> void {
+      if (auto enum_const_decl = clang::dyn_cast<clang::EnumConstantDecl>(decl)) {
+        if (auto enum_decl = clang::cast<clang::EnumDecl>(enum_const_decl->getDeclContext())) {
+          decl = enum_decl;
+        }
+      } else if (auto typeDef_decl = clang::dyn_cast<clang::TypedefDecl>(decl)) {
+        auto type = typeDef_decl->getTypeForDecl();
+        if (!type || !type->isRecordType()) return;
+      }
+
+      if (used_tags->find(decl) == used_tags->end()) {
+        if (auto record_decl = clang::dyn_cast<clang::RecordDecl>(decl)) {
+          if (record_decl->getName().empty()) return;
+        }
+        issue = report->ReportIssue(MISRA, M_R_2_4, decl);
+        std::string ref_msg = "A project should not contain unused tag declarations";
+        issue->SetRefMsg(ref_msg);
+      }
+    }, true);
+}
+
 /* MISRA
  * Rule: 4.1
  * Octal and hexadecimal escape sequences shall be terminated
