@@ -119,6 +119,71 @@ bool MISRADeclRule::IsIntegerLiteralExpr(const clang::Expr *expr, uint64_t *res)
 }
 
 /* MISRA
+ * Directive: 4.6
+ * typedefs that indicate size and signedness should be used in place of the
+ * basic numerical types
+ */
+void MISRADeclRule::ReportTypeOfBasicNumericalType(const clang::Decl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(MISRA, M_D_4_6, decl);
+  std::string ref_msg = "typedefs that indicate size and signedness should be used "
+                        "in place of the basic numerical types";
+  issue->SetRefMsg(ref_msg);
+}
+
+bool MISRADeclRule::IsBasicNumericalType(const clang::QualType type) {
+  if (!clang::isa<clang::BuiltinType>(type)) return false;
+  if (auto bt = type->getAs<clang::BuiltinType>()) {
+    if (bt->getKind() > clang::BuiltinType::Bool &&
+        bt->getKind() <= clang::BuiltinType::Int128) {
+      if (bt->getKind() != clang::BuiltinType::Char_S) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+void MISRADeclRule::CheckTypedefOfBasicNumericalType(const clang::TypedefDecl *decl) {
+  auto type = decl->getTypeSourceInfo()->getType();
+  auto str = decl->getNameAsString();
+  if (IsBasicNumericalType(type)) {
+    if (type->isUnsignedIntegerType()) {
+      if (str.rfind("u", 0) != 0 && str.rfind("U", 0) != 0) {
+        ReportTypeOfBasicNumericalType(decl);
+      }
+    }
+    if (str.find("8") == std::string::npos &&
+        str.find("16") == std::string::npos &&
+        str.find("32") == std::string::npos &&
+        str.find("64") == std::string::npos &&
+        str.find("128") == std::string::npos) {
+      ReportTypeOfBasicNumericalType(decl);
+    }
+  }
+}
+
+void MISRADeclRule::CheckTypeOfBasicNumericalType(const clang::VarDecl *decl) {
+  if (IsBasicNumericalType(decl->getType())) {
+    ReportTypeOfBasicNumericalType(decl);
+  }
+}
+
+void MISRADeclRule::CheckTypeOfBasicNumericalType(const clang::FunctionDecl *decl) {
+  if (decl->getIdentifier() && decl->getName().str() == "main") return;
+
+  for (const auto &it : decl->parameters()) {
+    if (IsBasicNumericalType(decl->getType())) {
+      ReportTypeOfBasicNumericalType(it);
+    }
+  }
+  if (IsBasicNumericalType(decl->getReturnType())) {
+    ReportTypeOfBasicNumericalType(decl);
+  }
+}
+
+/* MISRA
  * Rule: 2.3
  * A project should not contain unused type declarations
  */
@@ -646,7 +711,7 @@ void MISRADeclRule::CheckParameterNameAndType(const clang::FunctionDecl *decl) {
   }
 }
 
-void MISRADeclRule::CheckTypeOfVar(const clang::VarDecl *decl) {
+void MISRADeclRule::CheckTypeOfPrevVarDecl(const clang::VarDecl *decl) {
   auto prev = decl->getPreviousDecl();
   if (!prev) return;
   if (decl->getType() != prev->getType()) {

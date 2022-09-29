@@ -57,10 +57,25 @@ private:
   // check if the expr is an IntegerLiteral expression
   bool IsIntegerLiteralExpr(const clang::Expr *expr, uint64_t *res);
 
-    /* MISRA
-    * Rule: 2.3
-    * A project should not contain unused type declarations
-    */
+  /* MISRA
+   * Directive: 4.6
+   * typedefs that indicate size and signedness should be used in place of the
+   * basic numerical types
+   */
+  void ReportTypeOfBasicNumericalType(const clang::Decl *decl);
+
+  bool IsBasicNumericalType(const clang::QualType type);
+
+  void CheckTypedefOfBasicNumericalType(const clang::TypedefDecl *decl);
+
+  void CheckTypeOfBasicNumericalType(const clang::VarDecl *decl);
+
+  void CheckTypeOfBasicNumericalType(const clang::FunctionDecl *decl);
+
+  /* MISRA
+   * Rule: 2.3
+   * A project should not contain unused type declarations
+   */
   void CheckUnusedTypedef(clang::QualType type);
   void CheckUnusedTypedef(const clang::FunctionDecl *decl);
   void CheckUnusedTypedef(const clang::TypedefDecl *decl);
@@ -164,7 +179,7 @@ private:
 
   void CheckParameterNameAndType(const clang::FunctionDecl *decl);
 
-  void CheckTypeOfVar(const clang::VarDecl *decl);
+  void CheckTypeOfPrevVarDecl(const clang::VarDecl *decl);
 
   /* MISRA
    * Rule: 8.4
@@ -443,7 +458,8 @@ public:
     CheckPointerNestedMoreThanTwoLevel(decl);
     CheckUseFunctionNotCallOrDereference(decl);
     CheckDeclarationWithExternalLinkage(decl);
-    CheckTypeOfVar(decl);
+    CheckTypeOfPrevVarDecl(decl);
+    CheckTypeOfBasicNumericalType(decl);
   }
 
   void VisitParmVar(const clang::ParmVarDecl *decl) {
@@ -458,6 +474,7 @@ public:
   void VisitTypedef(const clang::TypedefDecl *decl) {
     CheckUnusedTypedef(decl);
     CheckUnionKeyword(decl);
+    CheckTypedefOfBasicNumericalType(decl);
   }
 
   void VisitFunction(const clang::FunctionDecl *decl) {
@@ -473,6 +490,7 @@ public:
     CheckPointerNestedMoreThanTwoLevel(decl);
     CheckDeclarationWithExternalLinkage(decl);
     CheckParameterNameAndType(decl);
+    CheckTypeOfBasicNumericalType(decl);
   }
 
   void VisitField(const clang::FieldDecl *decl) {
