@@ -584,6 +584,85 @@ MISRAStmtRule::RecordThrowObjectTypes(const clang::Stmt *stmt) {
 }
 
 /* MISRA
+ * Rule: 8.13
+ * A pointer should point to a const-qualified type whenever possible
+ */
+void MISRAStmtRule::CheckModifiedPointerDecl(const clang::Expr* expr) {
+  auto ptr_expr = expr;
+  if (auto unary = clang::dyn_cast<clang::UnaryOperator>(expr)) {
+    ptr_expr = unary->getSubExpr()->IgnoreParenImpCasts();
+  }
+  if (auto decl_expr = clang::dyn_cast<clang::DeclRefExpr>(ptr_expr)) {
+    auto decl = decl_expr->getDecl();
+    if (!decl->getType()->isPointerType()) return;
+    if (clang::isa<clang::VarDecl>(decl)) {
+      _modified_pointer_decl.insert(decl);
+    }
+  }
+}
+void MISRAStmtRule::CheckAssignmentOfPointer(const clang::BinaryOperator *stmt) {
+  if (!stmt->isAssignmentOp() && !stmt->isCompoundAssignmentOp()) return;
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  CheckModifiedPointerDecl(lhs);
+}
+
+void MISRAStmtRule::CheckAssignmentOfPointer(const clang::CompoundAssignOperator *stmt) {
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  CheckModifiedPointerDecl(lhs);
+}
+
+void MISRAStmtRule::CheckAssignmentOfPointer(const clang::CallExpr *stmt) {
+  auto decl = GetCalleeDecl(stmt);
+  if (decl == nullptr) return;
+  int i = 0;
+  for (const clang::Expr *arg :  stmt->arguments()) {
+    if (i >= decl->param_size()) break;
+    auto arg_type = arg->IgnoreParenImpCasts()->getType();
+    if (!arg_type->isPointerType()) continue;
+    auto param_decl = decl->getParamDecl(i);
+    if (param_decl == nullptr) {
+      i++;
+      continue;
+    }
+    auto param_type = param_decl->getType();
+    if (!param_type->isPointerType()) continue;
+    if (!arg_type->getPointeeType().isConstQualified() &&
+        !param_type->getPointeeType().isConstQualified()) {
+      if (auto decl_expr = clang::dyn_cast<clang::DeclRefExpr>(arg->IgnoreParenImpCasts())) {
+        _modified_pointer_decl.insert(decl_expr->getDecl());
+      }
+    }
+    i++;
+  }
+}
+
+void MISRAStmtRule::ReportNeedConstQualifiedVar() {
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+  constexpr uint32_t kind = IdentifierManager::VAR;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  top_scope->TraverseAll<kind,
+    const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+    [&](const std::string &x, const clang::Decl *decl,
+        IdentifierManager *id_mgr) -> void {
+      if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
+        auto type = var_decl->getType();
+        if (!type->isPointerType()) return;
+        if (_modified_pointer_decl.find(decl) == _modified_pointer_decl.end()) {
+          if (!type->getPointeeType().isConstQualified()) {
+            issue = report->ReportIssue(MISRA, M_R_8_13, decl);
+            std::string ref_msg = "A pointer should point to a const-qualified type whenever possible";
+            issue->SetRefMsg(ref_msg);
+          }
+        }
+      }
+    }, true);
+}
+
+/* MISRA
  * Rule: 10.1
  * Operands shall not be of an inappropriate essential type
  */

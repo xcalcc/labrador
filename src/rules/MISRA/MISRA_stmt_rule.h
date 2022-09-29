@@ -45,6 +45,8 @@ private:
 
   std::set<const clang::Decl *> _used_tag;
 
+  std::set<const clang::Decl *> _modified_pointer_decl;
+
   std::string GetTypeString(clang::QualType type);
 
   clang::QualType GetRawTypeOfTypedef(clang::QualType type);
@@ -154,6 +156,16 @@ private:
   void CheckDefinitionOfVarDeclInSingleFunction(const clang::DeclRefExpr *stmt);
 
   void ReportDefinitionOfVarDeclInSingleFunction();
+
+  /* MISRA
+   * Rule: 8.13
+   * A pointer should point to a const-qualified type whenever possible
+   */
+  void CheckModifiedPointerDecl(const clang::Expr* expr);
+  void CheckAssignmentOfPointer(const clang::BinaryOperator *stmt);
+  void CheckAssignmentOfPointer(const clang::CompoundAssignOperator *stmt);
+  void CheckAssignmentOfPointer(const clang::CallExpr *stmt);
+  void ReportNeedConstQualifiedVar();
 
   /* MISRA
    * Rule: 10.1
@@ -764,6 +776,7 @@ public:
   void Finalize() {
     ReportDefinitionOfVarDeclInSingleFunction();
     CheckUnusedTag();
+    ReportNeedConstQualifiedVar();
   }
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -791,6 +804,7 @@ public:
     CheckAssignAddrOfLocalVar(stmt);
     CheckValueTypeForCtype(stmt);
     CheckPrecedenceOfOperator(stmt);
+    CheckAssignmentOfPointer(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
@@ -798,6 +812,7 @@ public:
     CheckAddOrSubOnPointer(stmt);
     CheckModifyParameters(stmt);
     CheckInappropriateEssentialTypeOfOperands(stmt);
+    CheckAssignmentOfPointer(stmt);
   }
 
   void VisitCallExpr(const clang::CallExpr *stmt) {
@@ -816,6 +831,7 @@ public:
     CheckDynamicMemoryAllocation(stmt);
     CheckImplicitlyDeclaredFunction(stmt);
     CheckArgumentsOfMemcmp(stmt);
+    CheckAssignmentOfPointer(stmt);
   }
 
   void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {
