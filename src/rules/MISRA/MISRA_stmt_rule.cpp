@@ -265,6 +265,9 @@ void MISRAStmtRule::CheckUnusedTag(const clang::DeclRefExpr *stmt) {
   auto decl = stmt->getDecl();
   if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
     auto type = var_decl->getType();
+    if (auto ptr_type = clang::dyn_cast<clang::PointerType>(type)) {
+      type = ptr_type->getPointeeType();
+    }
     if (auto typedef_type = clang::dyn_cast<clang::TypedefType>(type)) {
       auto decl = typedef_type->getDecl();
       _used_tag.insert(decl);
