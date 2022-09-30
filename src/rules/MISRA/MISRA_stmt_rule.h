@@ -103,7 +103,7 @@ private:
    * A project should not contain unused tag declarations
    */
   void CheckUnusedTag(const clang::DeclRefExpr *stmt);
-
+  void CheckUnusedTag(const clang::QualType type);
   void CheckUnusedTag();
 
   /* MISRA

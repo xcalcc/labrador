@@ -263,30 +263,36 @@ uint16_t MISRAStmtRule::getLineNumber(clang::SourceLocation loc) {
  */
 void MISRAStmtRule::CheckUnusedTag(const clang::DeclRefExpr *stmt) {
   auto decl = stmt->getDecl();
-  if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
-    auto type = var_decl->getType();
-    if (auto ptr_type = clang::dyn_cast<clang::PointerType>(type)) {
-      type = ptr_type->getPointeeType();
-    }
-    if (auto typedef_type = clang::dyn_cast<clang::TypedefType>(type)) {
-      auto decl = typedef_type->getDecl();
-      _used_tag.insert(decl);
-      if (type->isRecordType()) {
-        auto record_decl = type->getAs<clang::RecordType>()->getDecl();
-        auto record_line = getLineNumber(record_decl->getBeginLoc());
-        auto decl_line = getLineNumber(decl->getBeginLoc());
-        if (record_line && decl_line && record_line != decl_line) {
-          _used_tag.insert(record_decl);
-        }
-      }
-    } else if (type->isRecordType()) {
-      auto record_type = type.getCanonicalType()->getAs<clang::RecordType>();
-      _used_tag.insert(record_type->getDecl());
-    }
-  } else if (auto enum_const_decl = clang::dyn_cast<clang::EnumConstantDecl>(decl)) {
+  if (auto enum_const_decl = clang::dyn_cast<clang::EnumConstantDecl>(decl)) {
     if (auto enum_decl = clang::cast<clang::EnumDecl>(enum_const_decl->getDeclContext())) {
       _used_tag.insert(enum_decl);
     }
+  }
+}
+
+void MISRAStmtRule::CheckUnusedTag(clang::QualType type) {
+  if (auto elaborated_type = clang::dyn_cast<clang::ElaboratedType>(type)) {
+    type = elaborated_type->desugar();
+  }
+  if (auto ptr_type = clang::dyn_cast<clang::PointerType>(type)) {
+    type = ptr_type->getPointeeType();
+  }
+  if (auto typedef_type = clang::dyn_cast<clang::TypedefType>(type)) {
+    auto decl = typedef_type->getDecl();
+    _used_tag.insert(decl);
+    if (type->isRecordType()) {
+      auto record_decl = type->getAs<clang::RecordType>()->getDecl();
+      auto record_line = getLineNumber(record_decl->getBeginLoc());
+      auto decl_line = getLineNumber(decl->getBeginLoc());
+      if (record_line && decl_line && record_line != decl_line) {
+        _used_tag.insert(record_decl);
+      }
+    }
+  } else if (type->isRecordType()) {
+    auto record_type = type.getCanonicalType()->getAs<clang::RecordType>();
+    _used_tag.insert(record_type->getDecl());
+  } else if (const auto *enum_type = type->getAs<clang::EnumType>()) {
+    _used_tag.insert(enum_type->getDecl());
   }
 }
 
@@ -294,6 +300,18 @@ void MISRAStmtRule::CheckUnusedTag() {
   auto src_mgr = XcalCheckerManager::GetSourceManager();
   auto scope_mgr = XcalCheckerManager::GetScopeManager();
   auto top_scope = scope_mgr->GlobalScope();
+
+  top_scope->TraverseAll<IdentifierManager::VAR,
+    const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+    [&](const std::string &x, const clang::Decl *decl,
+        IdentifierManager *id_mgr) -> void {
+      if (auto enum_decl = clang::dyn_cast<clang::EnumDecl>(decl->getDeclContext())) {
+        _used_tag.insert(enum_decl);
+      } else if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
+        CheckUnusedTag(var_decl->getType());
+      }
+    }, true);
+
   constexpr uint32_t kind = IdentifierManager::VALUE |
                             IdentifierManager::TYPE |
                             IdentifierManager::TYPEDEF;
