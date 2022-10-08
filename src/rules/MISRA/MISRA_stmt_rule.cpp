@@ -609,6 +609,9 @@ void MISRAStmtRule::CheckModifiedPointerDecl(const clang::Expr* expr) {
   auto ptr_expr = expr;
   if (auto unary = clang::dyn_cast<clang::UnaryOperator>(expr)) {
     ptr_expr = unary->getSubExpr()->IgnoreParenImpCasts();
+    if (auto cast_expr = clang::dyn_cast<clang::CStyleCastExpr>(ptr_expr)) {
+      ptr_expr = cast_expr->getSubExpr()->IgnoreParenImpCasts();
+    }
   }
   if (auto decl_expr = clang::dyn_cast<clang::DeclRefExpr>(ptr_expr)) {
     auto decl = decl_expr->getDecl();
@@ -671,8 +674,13 @@ void MISRAStmtRule::ReportNeedConstQualifiedVar() {
         if (!type->isPointerType()) return;
         if (_modified_pointer_decl.find(decl) == _modified_pointer_decl.end()) {
           if (!type->getPointeeType().isConstQualified()) {
+            const clang::DeclContext *decl_context = var_decl->getDeclContext();
+            if (auto func_decl = clang::dyn_cast<clang::FunctionDecl>(decl_context)) {
+              if (!func_decl->getBody()) return;
+            }
             issue = report->ReportIssue(MISRA, M_R_8_13, decl);
-            std::string ref_msg = "A pointer should point to a const-qualified type whenever possible";
+            std::string ref_msg = "A pointer should point to a const-qualified type whenever possible: ";
+            ref_msg += var_decl->getNameAsString();
             issue->SetRefMsg(ref_msg);
           }
         }

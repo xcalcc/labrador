@@ -58,6 +58,17 @@ private:
   bool IsIntegerLiteralExpr(const clang::Expr *expr, uint64_t *res);
 
   /* MISRA
+   * Directive: 4.5
+   * Identifiers in the same namespace with overlapping visibility should be
+   * typographically unambiguous
+   */
+  void StringReplaceAll(std::string &base, std::string src, std::string des);
+
+  uint16_t getLineNumber(clang::SourceLocation loc);
+
+  void CheckUnambiguousIdentifier();
+
+  /* MISRA
    * Directive: 4.6
    * typedefs that indicate size and signedness should be used in place of the
    * basic numerical types
@@ -443,6 +454,7 @@ public:
     CheckInternalIdentifierUnique();
     CheckIdentifierSameScopeUndistinct();
     CheckTentativeDefinition();
+    CheckUnambiguousIdentifier();
   }
 
   void VisitVar(const clang::VarDecl *decl) {

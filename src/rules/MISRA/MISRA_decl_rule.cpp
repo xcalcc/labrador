@@ -119,6 +119,78 @@ bool MISRADeclRule::IsIntegerLiteralExpr(const clang::Expr *expr, uint64_t *res)
 }
 
 /* MISRA
+ * Directive: 4.5
+ * Identifiers in the same namespace with overlapping visibility should be
+ * typographically unambiguous
+ */
+void MISRADeclRule::StringReplaceAll(std::string &base, std::string src, std::string des) {
+  auto pos = 0;
+  auto str_len = src.size();
+  auto des_len = des.size();
+  pos = base.find(src, pos);
+  while (pos != std::string::npos) {
+    base.replace(pos, str_len, des);
+    pos = base.find(src, pos + des_len);
+  }
+}
+
+uint16_t MISRADeclRule::getLineNumber(clang::SourceLocation loc) {
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  auto SpellingLoc = src_mgr->getSpellingLoc(loc);
+  clang::PresumedLoc PLoc = src_mgr->getPresumedLoc(SpellingLoc);
+  if (PLoc.isInvalid()) return 0;
+  return PLoc.getLine();
+}
+
+void MISRADeclRule::CheckUnambiguousIdentifier() {
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+  constexpr uint32_t kind = IdentifierManager::VAR;
+
+  std::unordered_map<std::string, const clang::VarDecl *> vars;
+
+  top_scope->TraverseCurrentScope<kind,
+      const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+      [&](const std::string &x, const clang::Decl *decl, IdentifierManager *id_mgr) -> void {
+        XcalIssue *issue = nullptr;
+        XcalReport *report = XcalCheckerManager::GetReport();
+
+        const auto *var_decl = clang::dyn_cast<clang::VarDecl>(decl);
+        if (var_decl) {
+          auto name = var_decl->getNameAsString();
+          StringReplaceAll(name, "rn", "m");
+          StringReplaceAll(name, "n", "h");
+          StringReplaceAll(name, "_", "");
+          std::transform(name.begin(), name.end(), name.begin(), ::toupper);
+          StringReplaceAll(name, "I", "1");
+          StringReplaceAll(name, "S", "5");
+          StringReplaceAll(name, "Z", "2");
+          StringReplaceAll(name, "O", "0");
+          StringReplaceAll(name, "B", "8");
+          bool found = false;
+          for (const auto &it : vars) {
+            if (name == it.first &&
+                var_decl->getNameAsString() != it.second->getNameAsString()) {
+              found = true;
+              issue = report->ReportIssue(MISRA, M_D_4_5, it.second);
+              std::string ref_msg = "Identifiers in the same namespace with overlapping visibility "
+                                    "should be typographically unambiguous: ";
+              ref_msg += var_decl->getNameAsString();
+              ref_msg += ": L";
+              ref_msg += std::to_string(getLineNumber(var_decl->getLocation()));
+              issue->SetRefMsg(ref_msg);
+              issue->AddDecl(var_decl);
+            }
+          }
+          if (!found) {
+            vars.emplace(std::make_pair(name, var_decl));
+          }
+        }
+      }, true, vars);
+}
+
+
+/* MISRA
  * Directive: 4.6
  * typedefs that indicate size and signedness should be used in place of the
  * basic numerical types
