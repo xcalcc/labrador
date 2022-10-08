@@ -258,6 +258,36 @@ uint16_t MISRAStmtRule::getLineNumber(clang::SourceLocation loc) {
 }
 
 /* MISRA
+ * Rule: 2.2
+ * There shall be no dead code
+ */
+void MISRAStmtRule::CheckDeadCode(const clang::BinaryOperator *stmt) {
+  if (!stmt->isAdditiveOp() && !stmt->isMultiplicativeOp()) return;
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+  bool need_report = false;
+  uint64_t val;
+  if (stmt->isAdditiveOp()) {
+    if (IsIntegerLiteralExpr(rhs, &val) && (val == 0)) {
+      need_report = true;
+    } else {
+      if (stmt->getOpcode() == clang::BO_Add &&
+          IsIntegerLiteralExpr(lhs, &val) && (val == 0)) {
+        need_report = true;
+      }
+    }
+  } else {
+    if (IsIntegerLiteralExpr(rhs, &val) && (val == 1)) {
+      need_report = true;
+    }
+  }
+  if (need_report) {
+    std::string ref_msg = "There shall be no dead code";
+    ReportTemplate(ref_msg, M_R_2_2, stmt);
+  }
+}
+
+/* MISRA
  * Rule: 2.4
  * A project should not contain unused tag declarations
  */

@@ -99,6 +99,12 @@ private:
   uint16_t getLineNumber(clang::SourceLocation loc);
 
   /* MISRA
+   * Rule: 2.2
+   * There shall be no dead code
+   */
+  void CheckDeadCode(const clang::BinaryOperator *stmt);
+
+  /* MISRA
    * Rule: 2.4
    * A project should not contain unused tag declarations
    */
@@ -805,6 +811,7 @@ public:
     CheckValueTypeForCtype(stmt);
     CheckPrecedenceOfOperator(stmt);
     CheckAssignmentOfPointer(stmt);
+    CheckDeadCode(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
