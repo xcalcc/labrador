@@ -47,6 +47,8 @@ private:
 
   std::set<const clang::Decl *> _modified_pointer_decl;
 
+  std::set<const clang::RecordDecl *> _dereferenced_decl;
+
   std::string GetTypeString(clang::QualType type);
 
   clang::QualType GetRawTypeOfTypedef(clang::QualType type);
@@ -99,6 +101,20 @@ private:
   uint16_t getLineNumber(clang::SourceLocation loc);
 
   /* MISRA
+   * Directive: 4.8
+   * If a pointer to a structure or union is never dereferenced within a
+   * translation unit, then the implementation of the object should be hidden
+   */
+  void CheckDereferencedDecl(const clang::MemberExpr *stmt);
+  void CheckDereferencedDecl();
+
+  /* MISRA
+   * Directive: 4.12
+   * Dynamic memory allocation shall not be used
+   */
+  void CheckDynamicMemoryAllocation(const clang::CallExpr *stmt);
+
+  /* MISRA
    * Rule: 2.2
    * There shall be no dead code
    */
@@ -117,12 +133,6 @@ private:
    * Octal and hexadecimal escape sequences shall be terminated
    */
   void CheckOctalAndHexadecimalEscapeWithoutTerminated(const clang::Expr *stmt);
-
-  /* MISRA
-   * Directive: 4.12
-   * Dynamic memory allocation shall not be used
-   */
-  void CheckDynamicMemoryAllocation(const clang::CallExpr *stmt);
 
   /* MISRA
    * Rule: 7.1
@@ -783,6 +793,7 @@ public:
     ReportDefinitionOfVarDeclInSingleFunction();
     CheckUnusedTag();
     ReportNeedConstQualifiedVar();
+    CheckDereferencedDecl();
   }
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -1006,6 +1017,7 @@ public:
 
   void VisitMemberExpr(const clang::MemberExpr *stmt) {
     CheckDirectManipulationOfFILEPointer(stmt);
+    CheckDereferencedDecl(stmt);
   }
 
   void VisitIntegerLiteral(const clang::IntegerLiteral *stmt) {

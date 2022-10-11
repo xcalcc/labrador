@@ -25,6 +25,7 @@
 #define MISRA       "MISRA"
 #define M_D_4_5     "MSR_D_4_5"
 #define M_D_4_6     "MSR_D_4_6"
+#define M_D_4_8     "MSR_D_4_8"
 #define M_D_4_12    "MSR_D_4_12"
 #define M_R_2_2     "MSR_2_2"
 #define M_R_2_3     "MSR_2_3"

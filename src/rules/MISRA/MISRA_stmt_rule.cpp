@@ -258,6 +258,84 @@ uint16_t MISRAStmtRule::getLineNumber(clang::SourceLocation loc) {
 }
 
 /* MISRA
+ * Directive: 4.8
+ * If a pointer to a structure or union is never dereferenced within a
+ * translation unit, then the implementation of the object should be hidden
+ */
+void MISRAStmtRule::CheckDereferencedDecl(const clang::MemberExpr *stmt) {
+  auto base = stmt->getBase()->IgnoreParenImpCasts();
+  if (base == nullptr) return;
+  auto type = base->getType();
+  if (!type->isPointerType()) return;
+  auto ptr_type = GetUnderlyingType(type->getPointeeType());
+  if (auto record_type = clang::dyn_cast<clang::RecordType>(ptr_type)) {
+    const clang::RecordDecl *rd= record_type->getDecl();
+    rd = rd->getDefinition();
+    if (rd) {
+      _dereferenced_decl.insert(rd);
+    }
+  }
+}
+
+void MISRAStmtRule::CheckDereferencedDecl() {
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  constexpr uint32_t kind = IdentifierManager::VAR;
+  auto dereferenced = &(this->_dereferenced_decl);
+
+  top_scope->TraverseAll<kind,
+      const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+      [&](const std::string &name, const clang::Decl *decl, IdentifierManager *id_mgr) {
+        if (clang::isa<clang::ParmVarDecl>(decl)) return;
+        if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
+          auto type = var_decl->getType();
+          if (auto tmp = clang::dyn_cast<clang::TypedefType>(type)) {
+            type = tmp->getDecl()->getTypeForDecl()->getCanonicalTypeInternal();
+          }
+          if (!type->isPointerType()) return;
+          if (auto record_type = clang::dyn_cast<clang::RecordType>(type->getPointeeType())) {
+            const clang::RecordDecl *rd= record_type->getDecl();
+            rd = rd->getDefinition();
+            if (rd) {
+              if (dereferenced->find(reinterpret_cast<const clang::RecordDecl *const>(rd)) ==
+                  dereferenced->end()) {
+                std::string ref_msg = "If a pointer to a structure or union is never dereferenced within a "
+                                      "translation unit, then the implementation of the object should be hidden";
+                issue = report->ReportIssue(MISRA, M_D_4_8, decl);
+                issue->SetRefMsg(ref_msg);
+              }
+            }
+          }
+        }
+      }, true);
+}
+
+/* MISRA
+ * Directive: 4.12
+ * Dynamic memory allocation shall not be used
+ */
+void MISRAStmtRule::CheckDynamicMemoryAllocation(const clang::CallExpr *stmt) {
+  auto callee = GetCalleeDecl(stmt);
+  if (callee == nullptr) return;
+
+  // call function pointer would return nullptr
+  if (callee == nullptr) return;
+  auto name = callee->getNameAsString();
+  auto conf_mgr = XcalCheckerManager::GetConfigureManager();
+
+  if (conf_mgr->IsMemAllocFunction(name)) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_D_4_12, stmt);
+    std::string ref_msg = "Dynamic memory allocation shall not be used";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+/* MISRA
  * Rule: 2.2
  * There shall be no dead code
  */
@@ -438,29 +516,6 @@ void MISRAStmtRule::CheckOctalAndHexadecimalEscapeWithoutTerminated(const clang:
     ReportTemplate(ref_msg, M_R_4_1, stmt);
   }
 }
-
-/* MISRA
- * Directive: 4.12
- * Dynamic memory allocation shall not be used
- */
-void MISRAStmtRule::CheckDynamicMemoryAllocation(const clang::CallExpr *stmt) {
-  auto callee = GetCalleeDecl(stmt);
-  if (callee == nullptr) return;
-
-  // call function pointer would return nullptr
-  if (callee == nullptr) return;
-  auto name = callee->getNameAsString();
-  auto conf_mgr = XcalCheckerManager::GetConfigureManager();
-
-  if (conf_mgr->IsMemAllocFunction(name)) {
-    XcalIssue *issue = nullptr;
-    XcalReport *report = XcalCheckerManager::GetReport();
-    issue = report->ReportIssue(MISRA, M_D_4_12, stmt);
-    std::string ref_msg = "Dynamic memory allocation shall not be used";
-    issue->SetRefMsg(ref_msg);
-  }
-}
-
 
 /* MISRA
  * Rule: 7.1
