@@ -241,6 +241,9 @@ XcalIssue *XcalReport::ReportIssue(const char *std, const char *rule, const clan
     issue->SetIgnore(true);
 
   XcalIssue *issue_ptr = issue.get();
+  if (issue_ptr->GetLocation().isInvalid()) {
+    issue->SetIgnore(true);
+  }
   _issue_vec.push_back(std::move(issue));
   return issue_ptr;
 }

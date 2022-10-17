@@ -3088,7 +3088,7 @@ void MISRAStmtRule::CheckDownCastToDerivedClass(const clang::CastExpr *stmt) {
   if (!origin_class || !target_class) return;
 
   // check if this class is polymorphic
-  if (!origin_class->isPolymorphic()) return;
+  if (!origin_class->hasDefinition() || !origin_class->isPolymorphic()) return;
 
   if (target_class->isDerivedFrom(origin_class)) {
     XcalIssue *issue = nullptr;
