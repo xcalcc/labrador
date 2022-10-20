@@ -167,6 +167,8 @@ clang::QualType MISRAStmtRule::GetUnderlyingType(clang::QualType type) {
     return elaborated_type->desugar();
   } else if (auto substtmp_type = clang::dyn_cast<clang::SubstTemplateTypeParmType>(type)) {
     return substtmp_type->desugar();
+  } else if (auto auto_type = clang::dyn_cast<clang::AutoType>(type)) {
+    return auto_type->desugar();
   }
   return type;
 }
@@ -180,13 +182,14 @@ clang::BuiltinType::Kind MISRAStmtRule::GetBTKind(clang::QualType type, bool &st
     if (ud_type == prev_type) break;
     else prev_type = ud_type;
   }
-  if (!ud_type->isBuiltinType()) {
+  if (const clang::BuiltinType *bt = ud_type->getAs<clang::BuiltinType>()) {
+    DBG_ASSERT(ud_type->isBuiltinType(), "This is not BuiltinType");
+    status = true;
+    return bt->getKind();
+  } else {
     status = false;
     return clang::BuiltinType::Kind::Bool;
   }
-  DBG_ASSERT(ud_type->isBuiltinType(), "This is not BuiltinType");
-  status = true;
-  return clang::cast<clang::BuiltinType>(ud_type)->getKind();
 }
 
 // if this binary statement is composite expression
