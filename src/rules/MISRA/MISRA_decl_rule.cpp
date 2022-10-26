@@ -118,6 +118,26 @@ bool MISRADeclRule::IsIntegerLiteralExpr(const clang::Expr *expr, uint64_t *res)
   return state;
 }
 
+/*
+ * get builtin type of typedef
+ */
+clang::QualType MISRADeclRule::GetUnderlyingType(clang::QualType *type) {
+  return GetUnderlyingType(*type);
+}
+
+clang::QualType MISRADeclRule::GetUnderlyingType(clang::QualType type) {
+  if (auto type_def = clang::dyn_cast<clang::TypedefType>(type)) {
+    return type_def->desugar();
+  } else if (auto elaborated_type = clang::dyn_cast<clang::ElaboratedType>(type)) {
+    return elaborated_type->desugar();
+  } else if (auto substtmp_type = clang::dyn_cast<clang::SubstTemplateTypeParmType>(type)) {
+    return substtmp_type->desugar();
+  } else if (auto auto_type = clang::dyn_cast<clang::AutoType>(type)) {
+    return auto_type->desugar();
+  }
+  return type;
+}
+
 /* MISRA
  * Directive: 4.5
  * Identifiers in the same namespace with overlapping visibility should be
@@ -786,7 +806,7 @@ void MISRADeclRule::CheckParameterNameAndType(const clang::FunctionDecl *decl) {
 void MISRADeclRule::CheckTypeOfPrevVarDecl(const clang::VarDecl *decl) {
   auto prev = decl->getPreviousDecl();
   if (!prev) return;
-  if (decl->getType() != prev->getType()) {
+  if (GetUnderlyingType(decl->getType()) != GetUnderlyingType(prev->getType())) {
     ReportDeclWithDifferentNameOrType(decl);
   }
 }

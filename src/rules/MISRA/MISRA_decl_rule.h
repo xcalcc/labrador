@@ -57,6 +57,10 @@ private:
   // check if the expr is an IntegerLiteral expression
   bool IsIntegerLiteralExpr(const clang::Expr *expr, uint64_t *res);
 
+  // get builtin type of typedef
+  clang::QualType GetUnderlyingType(clang::QualType type);
+  clang::QualType GetUnderlyingType(clang::QualType *type);
+
   /* MISRA
    * Directive: 4.5
    * Identifiers in the same namespace with overlapping visibility should be
