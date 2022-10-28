@@ -350,6 +350,7 @@ private:
    */
   void CheckMultiIncOrDecExpr(const clang::BinaryOperator *stmt);
   void CheckMultiIncOrDecExpr(const clang::CallExpr *stmt);
+  void CheckMultiIncOrDecExpr(const clang::InitListExpr *stmt);
 
   /* MISRA
    * Rule: 13.4
@@ -984,6 +985,7 @@ public:
 
   void VisitInitListExpr(const clang::InitListExpr *stmt) {
     CheckSideEffectWithinInitListExpr(stmt);
+    CheckMultiIncOrDecExpr(stmt);
   }
 
   void VisitUnaryExprOrTypeTraitExpr(const clang::UnaryExprOrTypeTraitExpr *stmt) {

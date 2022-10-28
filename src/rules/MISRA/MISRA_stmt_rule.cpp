@@ -1754,6 +1754,26 @@ void MISRAStmtRule::CheckMultiIncOrDecExpr(const clang::CallExpr *stmt) {
   }
 }
 
+void MISRAStmtRule::CheckMultiIncOrDecExpr(const clang::InitListExpr *stmt) {
+  std::vector<const clang::Expr *> sinks;
+  for (const auto &it : stmt->inits()) {
+    auto init = it->IgnoreParenImpCasts();
+    if (HasIncOrDecExpr(init)) sinks.push_back(it);
+  }
+
+  if (!sinks.empty()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_13_3, stmt);
+    std::string ref_msg = "A full expression containing an increment (++) or "
+                          "decrement (--) operator should have no other "
+                          "potential side effects other than that caused "
+                          "by the increment or decrement operator";
+    issue->SetRefMsg(ref_msg);
+    for (const auto &it : sinks) issue->AddStmt(it);
+  }
+}
+
 /* MISRA
  * Rule: 13.4
  * The result of an assignment operator should not be used
