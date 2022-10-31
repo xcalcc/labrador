@@ -780,13 +780,14 @@ void MISRADeclRule::CheckParameterNoIdentifier(const clang::FunctionDecl *decl) 
  * Rule: 8.3
  * All declarations of an object or function shall use the same names and type qualifiers
  */
-void MISRADeclRule::ReportDeclWithDifferentNameOrType(const clang::Decl *decl) {
+void MISRADeclRule::ReportDeclWithDifferentNameOrType(const clang::Decl *decl, const clang::Decl *prev) {
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
   issue = report->ReportIssue(MISRA, M_R_8_3, decl);
   std::string ref_msg = "All declarations of an object or function shall use the "
                         "same names and type qualifiers";
   issue->SetRefMsg(ref_msg);
+  issue->AddDecl(prev);
 }
 
 void MISRADeclRule::CheckParameterNameAndType(const clang::FunctionDecl *decl) {
@@ -798,7 +799,7 @@ void MISRADeclRule::CheckParameterNameAndType(const clang::FunctionDecl *decl) {
     auto prev_param = prev->getParamDecl(i);
     if (cur_param->getName() != prev_param->getName() ||
         cur_param->getType() != prev_param->getType()) {
-      ReportDeclWithDifferentNameOrType(cur_param);
+      ReportDeclWithDifferentNameOrType(cur_param, prev_param);
     }
   }
 }
@@ -807,7 +808,7 @@ void MISRADeclRule::CheckTypeOfPrevVarDecl(const clang::VarDecl *decl) {
   auto prev = decl->getPreviousDecl();
   if (!prev) return;
   if (GetUnderlyingType(decl->getType()) != GetUnderlyingType(prev->getType())) {
-    ReportDeclWithDifferentNameOrType(decl);
+    ReportDeclWithDifferentNameOrType(decl, prev);
   }
 }
 
