@@ -395,8 +395,20 @@ void MISRAStmtRule::CheckUnusedTag(clang::QualType type) {
       auto record_decl = type->getAs<clang::RecordType>()->getDecl();
       auto record_line = getLineNumber(record_decl->getBeginLoc());
       auto decl_line = getLineNumber(decl->getBeginLoc());
-      if (record_line && decl_line && record_line != decl_line) {
-        _used_tag.insert(record_decl);
+      if (record_line && decl_line) {
+        if (record_line != decl_line) {
+          _used_tag.insert(record_decl);
+          auto prev_decl = record_decl->getPreviousDecl();
+          if (prev_decl) _used_tag.insert(prev_decl);
+        } else {
+          auto record_name = record_decl->getName();
+          auto typedecl_name = decl->getName();
+          if (!record_name.empty() &&
+              !typedecl_name.empty() &&
+              record_name == typedecl_name) {
+            _used_tag.insert(record_decl);
+          }
+        }
       }
     }
   } else if (type->isRecordType()) {
@@ -412,7 +424,7 @@ void MISRAStmtRule::CheckUnusedTag() {
   auto scope_mgr = XcalCheckerManager::GetScopeManager();
   auto top_scope = scope_mgr->GlobalScope();
 
-  top_scope->TraverseAll<IdentifierManager::VAR,
+  top_scope->TraverseAll<IdentifierManager::VAR | IdentifierManager::FIELD,
     const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
     [&](const std::string &x, const clang::Decl *decl,
         IdentifierManager *id_mgr) -> void {
@@ -420,6 +432,8 @@ void MISRAStmtRule::CheckUnusedTag() {
         _used_tag.insert(enum_decl);
       } else if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
         CheckUnusedTag(var_decl->getType());
+      } else if (auto field_decl = clang::dyn_cast<clang::FieldDecl>(decl)) {
+        CheckUnusedTag(field_decl->getType());
       }
     }, true);
 
