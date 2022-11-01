@@ -190,7 +190,7 @@ private:
    * Rule: 8.3
    * All declarations of an object or function shall use the same names and type qualifiers
    */
-  void ReportDeclWithDifferentNameOrType(const clang::Decl *decl);
+  void ReportDeclWithDifferentNameOrType(const clang::Decl *decl, const clang::Decl *prev);
 
   void CheckParameterNameAndType(const clang::FunctionDecl *decl);
 

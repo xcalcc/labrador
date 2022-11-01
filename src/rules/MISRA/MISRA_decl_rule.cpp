@@ -797,7 +797,10 @@ void MISRADeclRule::CheckParameterNameAndType(const clang::FunctionDecl *decl) {
     if (i >= prev->getNumParams()) return;
     auto cur_param = decl->getParamDecl(i);
     auto prev_param = prev->getParamDecl(i);
-    if (cur_param->getName() != prev_param->getName() ||
+    auto cur_param_name = cur_param->getName();
+    auto prev_param_name = prev_param->getName();
+    if (cur_param_name.empty() || prev_param_name.empty()) return;
+    if (cur_param_name != prev_param_name ||
         cur_param->getType() != prev_param->getType()) {
       ReportDeclWithDifferentNameOrType(cur_param, prev_param);
     }
@@ -807,7 +810,15 @@ void MISRADeclRule::CheckParameterNameAndType(const clang::FunctionDecl *decl) {
 void MISRADeclRule::CheckTypeOfPrevVarDecl(const clang::VarDecl *decl) {
   auto prev = decl->getPreviousDecl();
   if (!prev) return;
-  if (GetUnderlyingType(decl->getType()) != GetUnderlyingType(prev->getType())) {
+
+  auto ctx = XcalCheckerManager::GetAstContext();
+  auto decl_type = GetUnderlyingType(decl->getType());
+  auto prev_type = GetUnderlyingType(prev->getType());
+  if (decl_type->isArrayType() && prev_type->isArrayType()) {
+    decl_type = ctx->getBaseElementType(decl_type);
+    prev_type = ctx->getBaseElementType(prev_type);
+  }
+  if (decl_type != prev_type) {
     ReportDeclWithDifferentNameOrType(decl, prev);
   }
 }
