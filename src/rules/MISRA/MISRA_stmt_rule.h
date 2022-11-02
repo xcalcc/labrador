@@ -187,10 +187,12 @@ private:
    * Rule: 10.1
    * Operands shall not be of an inappropriate essential type
    */
+  void ReportInappropriateEssentialType(const clang::Stmt *stmt);
   void CheckInappropriateEssentialTypeOfOperands(const clang::BinaryOperator *stmt);
   void CheckInappropriateEssentialTypeOfOperands(const clang::UnaryOperator *stmt);
   void CheckInappropriateEssentialTypeOfOperands(const clang::ConditionalOperator *stmt);
   void CheckInappropriateEssentialTypeOfOperands(const clang::CompoundAssignOperator *stmt);
+  void CheckInappropriateEssentialTypeOfOperands(const clang::ArraySubscriptExpr *stmt);
 
   /* MISRA
    * Rule: 10.2
@@ -878,6 +880,7 @@ public:
   void VisitArraySubscriptExpr(const clang::ArraySubscriptExpr *stmt) {
     CheckUsingAssignmentAsResult(stmt);
     CheckArrayBoundsExceeded(stmt);
+    CheckInappropriateEssentialTypeOfOperands(stmt);
   }
 
   void VisitIfStmt(const clang::IfStmt *stmt) {

@@ -791,6 +791,11 @@ void MISRAStmtRule::ReportNeedConstQualifiedVar() {
  * Rule: 10.1
  * Operands shall not be of an inappropriate essential type
  */
+void MISRAStmtRule::ReportInappropriateEssentialType(const clang::Stmt *stmt) {
+  std::string ref_msg = "Operands shall not be of an inappropriate essential type";
+  ReportTemplate(ref_msg, M_R_10_1, stmt);
+}
+
 void MISRAStmtRule::CheckInappropriateEssentialTypeOfOperands(const clang::BinaryOperator *stmt) {
   if (stmt->isAssignmentOp()) return;
 
@@ -798,29 +803,49 @@ void MISRAStmtRule::CheckInappropriateEssentialTypeOfOperands(const clang::Binar
   auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
   auto lhs_type = lhs->getType();
   auto rhs_type = rhs->getType();
+  bool status = false;
+  clang::BuiltinType::Kind lhs_kind = GetBTKind(lhs_type, status);
+  // ignore checking the status, since the type may be EnumeralType
+  clang::BuiltinType::Kind rhs_kind = GetBTKind(rhs_type, status);
+
   auto opcode = stmt->getOpcode();
   bool need_report = false;
-
+  const clang::Stmt *report_stmt = nullptr;
   if (stmt->isLogicalOp()) {
-    if (!lhs_type->isBooleanType() || !rhs_type->isBooleanType()) need_report = true;
+    if (!lhs_type->isBooleanType()) ReportInappropriateEssentialType(lhs);
+    if (!rhs_type->isBooleanType()) ReportInappropriateEssentialType(rhs);
   } else if (stmt->isMultiplicativeOp()) {
-    if (lhs_type->isBooleanType() || lhs_type->isEnumeralType() ||
-        rhs_type->isBooleanType() || rhs_type->isEnumeralType()) {
-      need_report = true;
-    } else if (lhs_type->isCharType() || rhs_type->isCharType()) {
-      if (lhs_type->isSignedIntegerType() || lhs_type->isUnsignedIntegerType() ||
-          rhs_type->isSignedIntegerType() || rhs_type->isUnsignedIntegerType()) return;
-      need_report = true;
+    if (opcode == clang::BO_Rem) {
+      if (lhs_type->isFloatingType()) ReportInappropriateEssentialType(lhs);
+      if (rhs_type->isFloatingType()) ReportInappropriateEssentialType(rhs);
+    }
+    if (lhs_type->isBooleanType() ||
+        lhs_type->isEnumeralType() ||
+        lhs_kind == clang::BuiltinType::Char_U ||
+        lhs_kind == clang::BuiltinType::Char_S) {
+      ReportInappropriateEssentialType(lhs);
+    }
+    if (rhs_type->isBooleanType() ||
+        rhs_type->isEnumeralType() ||
+        rhs_kind == clang::BuiltinType::Char_U ||
+        rhs_kind == clang::BuiltinType::Char_S) {
+      ReportInappropriateEssentialType(rhs);
     }
   } else if (stmt->isBitwiseOp() || stmt->isShiftOp()) {
-    if ((lhs_type->isCharType() && !lhs_type->isUnsignedIntegerType()) ||
-        (rhs_type->isCharType() && !rhs_type->isUnsignedIntegerType())) {
-      need_report = true;
-    } else if (lhs_type->isBooleanType() || lhs_type->isEnumeralType() ||
-               lhs_type->isSignedIntegerType() || lhs_type->isFloatingType() ||
-               rhs_type->isBooleanType() || rhs_type->isEnumeralType() ||
-               rhs_type->isFloatingType()) {
-      need_report = true;
+    if (lhs_type->isBooleanType() ||
+        lhs_type->isEnumeralType() ||
+        lhs_type->isSignedIntegerType() ||
+        lhs_type->isFloatingType() ||
+        lhs_kind == clang::BuiltinType::Char_U ||
+        lhs_kind == clang::BuiltinType::Char_S) {
+      ReportInappropriateEssentialType(lhs);
+    }
+    if (rhs_type->isBooleanType() ||
+        rhs_type->isEnumeralType() ||
+        rhs_type->isFloatingType() ||
+        rhs_kind == clang::BuiltinType::Char_U ||
+        rhs_kind == clang::BuiltinType::Char_S) {
+      ReportInappropriateEssentialType(rhs);
     } else if (rhs_type->isSignedIntegerType()) {
       // A non-negative integer constant expression of essentially signed type
       // may be used as the right hand operand to a shift operator.
@@ -829,37 +854,39 @@ void MISRAStmtRule::CheckInappropriateEssentialTypeOfOperands(const clang::Binar
         clang::Expr::EvalResult res;
         if (rhs->EvaluateAsInt(res, *ctx)) {
           auto value = res.Val.getInt().getSExtValue();
-          if (value > 0) return;
+          if (value >= 0) return;
         }
       }
-      need_report = true;
+      ReportInappropriateEssentialType(rhs);
     }
   } else if (stmt->isAdditiveOp()) {
-    if (lhs_type->isBooleanType() || lhs_type->isEnumeralType() ||
-        rhs_type->isBooleanType() || rhs_type->isEnumeralType()) {
-      need_report = true;
+    if (lhs_type->isBooleanType() || lhs_type->isEnumeralType()) {
+      ReportInappropriateEssentialType(lhs);
+    }
+    if (rhs_type->isBooleanType() || rhs_type->isEnumeralType()) {
+      ReportInappropriateEssentialType(rhs);
     }
   } else if (opcode >= clang::BO_LT && opcode <= clang::BO_GE) {
-    if (lhs_type->isBooleanType() || rhs_type->isBooleanType()) need_report = true;
-  }
-
-  if (need_report) {
-    std::string ref_msg = "Operands shall not be of an inappropriate essential type";
-    ReportTemplate(ref_msg, M_R_10_1, stmt);
+    if (lhs_type->isBooleanType()) ReportInappropriateEssentialType(lhs);
+    if (rhs_type->isBooleanType()) ReportInappropriateEssentialType(rhs);
   }
 }
 
 void MISRAStmtRule::CheckInappropriateEssentialTypeOfOperands(const clang::UnaryOperator *stmt) {
   auto sub = stmt->getSubExpr()->IgnoreParenImpCasts();
   auto sub_type = sub->getType();
+  bool status = false;
+  clang::BuiltinType::Kind sub_kind = GetBTKind(sub_type, status);
+
   auto opcode = stmt->getOpcode();
   bool need_report = false;
   if (stmt->isIncrementDecrementOp()) {
     if (sub_type->isBooleanType() || sub_type->isEnumeralType()) need_report = true;
   } else if (opcode == clang::UO_Plus || opcode == clang::UO_Minus) {
-    if (sub_type->isBooleanType() || sub_type->isEnumeralType()) {
-      need_report = true;
-    } else if (sub_type->isCharType() && !sub_type->isSignedIntegerType() && !sub_type->isUnsignedIntegerType()) {
+    if (sub_type->isBooleanType() ||
+        sub_type->isEnumeralType() ||
+        sub_kind == clang::BuiltinType::Char_U ||
+        sub_kind == clang::BuiltinType::Char_S) {
       need_report = true;
     } else if (opcode == clang::UO_Minus && sub_type->isUnsignedIntegerType()) {
       need_report = true;
@@ -867,15 +894,18 @@ void MISRAStmtRule::CheckInappropriateEssentialTypeOfOperands(const clang::Unary
   } else if (opcode == clang::UO_LNot) {
     if (!sub_type->isBooleanType()) need_report = true;
   } else if (opcode == clang::UO_Not) {
-    if (sub_type->isBooleanType() || sub_type->isEnumeralType() ||
-        sub_type->isSignedIntegerType() || sub_type->isFloatingType() ||
-        (sub_type->isCharType() && !sub_type->isUnsignedIntegerType())) {
+    if (sub_type->isBooleanType() ||
+        sub_type->isEnumeralType() ||
+        sub_type->isSignedIntegerType() ||
+        sub_type->isFloatingType() ||
+        sub_kind == clang::BuiltinType::Char_U ||
+        sub_kind == clang::BuiltinType::Char_S) {
       need_report = true;
     }
   }
   if (need_report) {
     std::string ref_msg = "Operands shall not be of an inappropriate essential type";
-    ReportTemplate(ref_msg, M_R_10_1, stmt);
+    ReportTemplate(ref_msg, M_R_10_1, sub);
   }
 }
 
@@ -901,6 +931,22 @@ void MISRAStmtRule::CheckInappropriateEssentialTypeOfOperands(const clang::Compo
     }
   }
 }
+
+void MISRAStmtRule::CheckInappropriateEssentialTypeOfOperands(const clang::ArraySubscriptExpr *stmt) {
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+  if (rhs == nullptr) return;
+  auto rhs_type = rhs->getType();
+  bool status = false;
+  clang::BuiltinType::Kind rhs_kind = GetBTKind(rhs_type, status);
+  if (rhs_type->isBooleanType() ||
+      rhs_type->isFloatingType() ||
+      rhs_kind == clang::BuiltinType::Char_U ||
+      rhs_kind == clang::BuiltinType::Char_S) {
+    std::string ref_msg = "Operands shall not be of an inappropriate essential type";
+    ReportTemplate(ref_msg, M_R_10_1, rhs);
+  }
+}
+
 
 /* MISRA
  * Rule: 8.9
