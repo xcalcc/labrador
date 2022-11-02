@@ -347,24 +347,21 @@ void MISRAStmtRule::CheckDeadCode(const clang::BinaryOperator *stmt) {
   auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
   auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
   bool need_report = false;
+  std::string ref_msg = "There shall be no dead code";
   uint64_t val;
   if (stmt->isAdditiveOp()) {
     if (IsIntegerLiteralExpr(rhs, &val) && (val == 0)) {
-      need_report = true;
+      ReportTemplate(ref_msg, M_R_2_2, rhs);
     } else {
       if (stmt->getOpcode() == clang::BO_Add &&
           IsIntegerLiteralExpr(lhs, &val) && (val == 0)) {
-        need_report = true;
+        ReportTemplate(ref_msg, M_R_2_2, lhs);
       }
     }
   } else {
     if (IsIntegerLiteralExpr(rhs, &val) && (val == 1)) {
-      need_report = true;
+      ReportTemplate(ref_msg, M_R_2_2, rhs);
     }
-  }
-  if (need_report) {
-    std::string ref_msg = "There shall be no dead code";
-    ReportTemplate(ref_msg, M_R_2_2, stmt);
   }
 }
 
