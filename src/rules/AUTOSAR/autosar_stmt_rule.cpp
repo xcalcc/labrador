@@ -192,6 +192,7 @@ void AUTOSARStmtRule::CheckLambdaExplictReturnType(const clang::LambdaExpr *stmt
 }
 
 void AUTOSARStmtRule::CheckLambdaInTypeidtype(const clang::CXXTypeidExpr *stmt) {
+  if (stmt->isTypeOperand()) return;
   auto op = stmt->getExprOperand();
   if (auto ref_expr = clang::dyn_cast<clang::DeclRefExpr>(op)) {
     auto ref_type = ref_expr->getType();

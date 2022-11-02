@@ -118,6 +118,163 @@ bool MISRADeclRule::IsIntegerLiteralExpr(const clang::Expr *expr, uint64_t *res)
   return state;
 }
 
+/*
+ * get builtin type of typedef
+ */
+clang::QualType MISRADeclRule::GetUnderlyingType(clang::QualType *type) {
+  return GetUnderlyingType(*type);
+}
+
+clang::QualType MISRADeclRule::GetUnderlyingType(clang::QualType type) {
+  if (auto type_def = clang::dyn_cast<clang::TypedefType>(type)) {
+    return type_def->desugar();
+  } else if (auto elaborated_type = clang::dyn_cast<clang::ElaboratedType>(type)) {
+    return elaborated_type->desugar();
+  } else if (auto substtmp_type = clang::dyn_cast<clang::SubstTemplateTypeParmType>(type)) {
+    return substtmp_type->desugar();
+  } else if (auto auto_type = clang::dyn_cast<clang::AutoType>(type)) {
+    return auto_type->desugar();
+  }
+  return type;
+}
+
+/* MISRA
+ * Directive: 4.5
+ * Identifiers in the same namespace with overlapping visibility should be
+ * typographically unambiguous
+ */
+void MISRADeclRule::StringReplaceAll(std::string &base, std::string src, std::string des) {
+  auto pos = 0;
+  auto str_len = src.size();
+  auto des_len = des.size();
+  pos = base.find(src, pos);
+  while (pos != std::string::npos) {
+    base.replace(pos, str_len, des);
+    pos = base.find(src, pos + des_len);
+  }
+}
+
+uint16_t MISRADeclRule::getLineNumber(clang::SourceLocation loc) {
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  auto SpellingLoc = src_mgr->getSpellingLoc(loc);
+  clang::PresumedLoc PLoc = src_mgr->getPresumedLoc(SpellingLoc);
+  if (PLoc.isInvalid()) return 0;
+  return PLoc.getLine();
+}
+
+void MISRADeclRule::CheckUnambiguousIdentifier() {
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+  constexpr uint32_t kind = IdentifierManager::VAR;
+
+  std::unordered_map<std::string, const clang::VarDecl *> vars;
+
+  top_scope->TraverseCurrentScope<kind,
+      const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+      [&](const std::string &x, const clang::Decl *decl, IdentifierManager *id_mgr) -> void {
+        XcalIssue *issue = nullptr;
+        XcalReport *report = XcalCheckerManager::GetReport();
+
+        const auto *var_decl = clang::dyn_cast<clang::VarDecl>(decl);
+        if (var_decl) {
+          auto name = var_decl->getNameAsString();
+          StringReplaceAll(name, "rn", "m");
+          StringReplaceAll(name, "n", "h");
+          StringReplaceAll(name, "_", "");
+          std::transform(name.begin(), name.end(), name.begin(), ::toupper);
+          StringReplaceAll(name, "I", "1");
+          StringReplaceAll(name, "S", "5");
+          StringReplaceAll(name, "Z", "2");
+          StringReplaceAll(name, "O", "0");
+          StringReplaceAll(name, "B", "8");
+          bool found = false;
+          for (const auto &it : vars) {
+            if (name == it.first &&
+                var_decl->getNameAsString() != it.second->getNameAsString()) {
+              found = true;
+              issue = report->ReportIssue(MISRA, M_D_4_5, it.second);
+              std::string ref_msg = "Identifiers in the same namespace with overlapping visibility "
+                                    "should be typographically unambiguous: ";
+              ref_msg += var_decl->getNameAsString();
+              ref_msg += ": L";
+              ref_msg += std::to_string(getLineNumber(var_decl->getLocation()));
+              issue->SetRefMsg(ref_msg);
+              issue->AddDecl(var_decl);
+            }
+          }
+          if (!found) {
+            vars.emplace(std::make_pair(name, var_decl));
+          }
+        }
+      }, true, vars);
+}
+
+
+/* MISRA
+ * Directive: 4.6
+ * typedefs that indicate size and signedness should be used in place of the
+ * basic numerical types
+ */
+void MISRADeclRule::ReportTypeOfBasicNumericalType(const clang::Decl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(MISRA, M_D_4_6, decl);
+  std::string ref_msg = "typedefs that indicate size and signedness should be used "
+                        "in place of the basic numerical types";
+  issue->SetRefMsg(ref_msg);
+}
+
+bool MISRADeclRule::IsBasicNumericalType(const clang::QualType type) {
+  if (!clang::isa<clang::BuiltinType>(type)) return false;
+  if (auto bt = type->getAs<clang::BuiltinType>()) {
+    if (bt->getKind() > clang::BuiltinType::Bool &&
+        bt->getKind() <= clang::BuiltinType::Int128) {
+      if (bt->getKind() != clang::BuiltinType::Char_S) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+void MISRADeclRule::CheckTypedefOfBasicNumericalType(const clang::TypedefDecl *decl) {
+  auto type = decl->getTypeSourceInfo()->getType();
+  auto str = decl->getNameAsString();
+  if (IsBasicNumericalType(type)) {
+    if (type->isUnsignedIntegerType()) {
+      if (str.rfind("u", 0) != 0 && str.rfind("U", 0) != 0) {
+        ReportTypeOfBasicNumericalType(decl);
+      }
+    }
+    if (str.find("8") == std::string::npos &&
+        str.find("16") == std::string::npos &&
+        str.find("32") == std::string::npos &&
+        str.find("64") == std::string::npos &&
+        str.find("128") == std::string::npos) {
+      ReportTypeOfBasicNumericalType(decl);
+    }
+  }
+}
+
+void MISRADeclRule::CheckTypeOfBasicNumericalType(const clang::VarDecl *decl) {
+  if (IsBasicNumericalType(decl->getType())) {
+    ReportTypeOfBasicNumericalType(decl);
+  }
+}
+
+void MISRADeclRule::CheckTypeOfBasicNumericalType(const clang::FunctionDecl *decl) {
+  if (decl->getIdentifier() && decl->getName().str() == "main") return;
+
+  for (const auto &it : decl->parameters()) {
+    if (IsBasicNumericalType(decl->getType())) {
+      ReportTypeOfBasicNumericalType(it);
+    }
+  }
+  if (IsBasicNumericalType(decl->getReturnType())) {
+    ReportTypeOfBasicNumericalType(decl);
+  }
+}
+
 /* MISRA
  * Rule: 2.3
  * A project should not contain unused type declarations
@@ -616,6 +773,53 @@ void MISRADeclRule::CheckParameterNoIdentifier(const clang::FunctionDecl *decl) 
       std::string ref_msg = "Function types shall be in prototype form with named parameters";
       issue->SetRefMsg(ref_msg);
     }
+  }
+}
+
+/* MISRA
+ * Rule: 8.3
+ * All declarations of an object or function shall use the same names and type qualifiers
+ */
+void MISRADeclRule::ReportDeclWithDifferentNameOrType(const clang::Decl *decl, const clang::Decl *prev) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(MISRA, M_R_8_3, decl);
+  std::string ref_msg = "All declarations of an object or function shall use the "
+                        "same names and type qualifiers";
+  issue->SetRefMsg(ref_msg);
+  issue->AddDecl(prev);
+}
+
+void MISRADeclRule::CheckParameterNameAndType(const clang::FunctionDecl *decl) {
+  auto prev = decl->getPreviousDecl();
+  if (!prev) return;
+  for (int i = 0; i < decl->getNumParams(); i++) {
+    if (i >= prev->getNumParams()) return;
+    auto cur_param = decl->getParamDecl(i);
+    auto prev_param = prev->getParamDecl(i);
+    auto cur_param_name = cur_param->getName();
+    auto prev_param_name = prev_param->getName();
+    if (cur_param_name.empty() || prev_param_name.empty()) return;
+    if (cur_param_name != prev_param_name ||
+        cur_param->getType() != prev_param->getType()) {
+      ReportDeclWithDifferentNameOrType(cur_param, prev_param);
+    }
+  }
+}
+
+void MISRADeclRule::CheckTypeOfPrevVarDecl(const clang::VarDecl *decl) {
+  auto prev = decl->getPreviousDecl();
+  if (!prev) return;
+
+  auto ctx = XcalCheckerManager::GetAstContext();
+  auto decl_type = GetUnderlyingType(decl->getType());
+  auto prev_type = GetUnderlyingType(prev->getType());
+  if (decl_type->isArrayType() && prev_type->isArrayType()) {
+    decl_type = ctx->getBaseElementType(decl_type);
+    prev_type = ctx->getBaseElementType(prev_type);
+  }
+  if (decl_type != prev_type) {
+    ReportDeclWithDifferentNameOrType(decl, prev);
   }
 }
 

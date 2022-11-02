@@ -57,10 +57,40 @@ private:
   // check if the expr is an IntegerLiteral expression
   bool IsIntegerLiteralExpr(const clang::Expr *expr, uint64_t *res);
 
-    /* MISRA
-    * Rule: 2.3
-    * A project should not contain unused type declarations
-    */
+  // get builtin type of typedef
+  clang::QualType GetUnderlyingType(clang::QualType type);
+  clang::QualType GetUnderlyingType(clang::QualType *type);
+
+  /* MISRA
+   * Directive: 4.5
+   * Identifiers in the same namespace with overlapping visibility should be
+   * typographically unambiguous
+   */
+  void StringReplaceAll(std::string &base, std::string src, std::string des);
+
+  uint16_t getLineNumber(clang::SourceLocation loc);
+
+  void CheckUnambiguousIdentifier();
+
+  /* MISRA
+   * Directive: 4.6
+   * typedefs that indicate size and signedness should be used in place of the
+   * basic numerical types
+   */
+  void ReportTypeOfBasicNumericalType(const clang::Decl *decl);
+
+  bool IsBasicNumericalType(const clang::QualType type);
+
+  void CheckTypedefOfBasicNumericalType(const clang::TypedefDecl *decl);
+
+  void CheckTypeOfBasicNumericalType(const clang::VarDecl *decl);
+
+  void CheckTypeOfBasicNumericalType(const clang::FunctionDecl *decl);
+
+  /* MISRA
+   * Rule: 2.3
+   * A project should not contain unused type declarations
+   */
   void CheckUnusedTypedef(clang::QualType type);
   void CheckUnusedTypedef(const clang::FunctionDecl *decl);
   void CheckUnusedTypedef(const clang::TypedefDecl *decl);
@@ -155,6 +185,16 @@ private:
    * Function types shall be in prototype form with named parameters
    */
   void CheckParameterNoIdentifier(const clang::FunctionDecl *decl);
+
+  /* MISRA
+   * Rule: 8.3
+   * All declarations of an object or function shall use the same names and type qualifiers
+   */
+  void ReportDeclWithDifferentNameOrType(const clang::Decl *decl, const clang::Decl *prev);
+
+  void CheckParameterNameAndType(const clang::FunctionDecl *decl);
+
+  void CheckTypeOfPrevVarDecl(const clang::VarDecl *decl);
 
   /* MISRA
    * Rule: 8.4
@@ -418,6 +458,7 @@ public:
     CheckInternalIdentifierUnique();
     CheckIdentifierSameScopeUndistinct();
     CheckTentativeDefinition();
+    CheckUnambiguousIdentifier();
   }
 
   void VisitVar(const clang::VarDecl *decl) {
@@ -433,6 +474,8 @@ public:
     CheckPointerNestedMoreThanTwoLevel(decl);
     CheckUseFunctionNotCallOrDereference(decl);
     CheckDeclarationWithExternalLinkage(decl);
+    CheckTypeOfPrevVarDecl(decl);
+    CheckTypeOfBasicNumericalType(decl);
   }
 
   void VisitParmVar(const clang::ParmVarDecl *decl) {
@@ -447,6 +490,7 @@ public:
   void VisitTypedef(const clang::TypedefDecl *decl) {
     CheckUnusedTypedef(decl);
     CheckUnionKeyword(decl);
+    CheckTypedefOfBasicNumericalType(decl);
   }
 
   void VisitFunction(const clang::FunctionDecl *decl) {
@@ -461,6 +505,8 @@ public:
     CheckParameterNoIdentifier(decl);
     CheckPointerNestedMoreThanTwoLevel(decl);
     CheckDeclarationWithExternalLinkage(decl);
+    CheckParameterNameAndType(decl);
+    CheckTypeOfBasicNumericalType(decl);
   }
 
   void VisitField(const clang::FieldDecl *decl) {

@@ -43,6 +43,12 @@ private:
 
   std::unordered_map<const clang::VarDecl *, const clang::FunctionDecl *> _var_to_func;
 
+  std::set<const clang::Decl *> _used_tag;
+
+  std::set<const clang::Decl *> _modified_pointer_decl;
+
+  std::set<const clang::RecordDecl *> _dereferenced_decl;
+
   std::string GetTypeString(clang::QualType type);
 
   clang::QualType GetRawTypeOfTypedef(clang::QualType type);
@@ -91,17 +97,42 @@ private:
   // strip all parenthesis expression and implicit cast expression
   const clang::Expr *StripAllParenImpCast(const clang::Expr *stmt);
 
+  // get line number from sourceLocation
+  uint16_t getLineNumber(clang::SourceLocation loc);
+
   /* MISRA
-   * Rule: 4.1
-   * Octal and hexadecimal escape sequences shall be terminated
+   * Directive: 4.8
+   * If a pointer to a structure or union is never dereferenced within a
+   * translation unit, then the implementation of the object should be hidden
    */
-  void CheckOctalAndHexadecimalEscapeWithoutTerminated(const clang::Expr *stmt);
+  void CheckDereferencedDecl(const clang::MemberExpr *stmt);
+  void CheckDereferencedDecl();
 
   /* MISRA
    * Directive: 4.12
    * Dynamic memory allocation shall not be used
    */
   void CheckDynamicMemoryAllocation(const clang::CallExpr *stmt);
+
+  /* MISRA
+   * Rule: 2.2
+   * There shall be no dead code
+   */
+  void CheckDeadCode(const clang::BinaryOperator *stmt);
+
+  /* MISRA
+   * Rule: 2.4
+   * A project should not contain unused tag declarations
+   */
+  void CheckUnusedTag(const clang::DeclRefExpr *stmt);
+  void CheckUnusedTag(const clang::QualType type);
+  void CheckUnusedTag();
+
+  /* MISRA
+   * Rule: 4.1
+   * Octal and hexadecimal escape sequences shall be terminated
+   */
+  void CheckOctalAndHexadecimalEscapeWithoutTerminated(const clang::Expr *stmt);
 
   /* MISRA
    * Rule: 7.1
@@ -141,6 +172,16 @@ private:
   void CheckDefinitionOfVarDeclInSingleFunction(const clang::DeclRefExpr *stmt);
 
   void ReportDefinitionOfVarDeclInSingleFunction();
+
+  /* MISRA
+   * Rule: 8.13
+   * A pointer should point to a const-qualified type whenever possible
+   */
+  void CheckModifiedPointerDecl(const clang::Expr* expr);
+  void CheckAssignmentOfPointer(const clang::BinaryOperator *stmt);
+  void CheckAssignmentOfPointer(const clang::CompoundAssignOperator *stmt);
+  void CheckAssignmentOfPointer(const clang::CallExpr *stmt);
+  void ReportNeedConstQualifiedVar();
 
   /* MISRA
    * Rule: 10.1
@@ -309,6 +350,7 @@ private:
    */
   void CheckMultiIncOrDecExpr(const clang::BinaryOperator *stmt);
   void CheckMultiIncOrDecExpr(const clang::CallExpr *stmt);
+  void CheckMultiIncOrDecExpr(const clang::InitListExpr *stmt);
 
   /* MISRA
    * Rule: 13.4
@@ -750,6 +792,9 @@ public:
 
   void Finalize() {
     ReportDefinitionOfVarDeclInSingleFunction();
+    CheckUnusedTag();
+    ReportNeedConstQualifiedVar();
+    CheckDereferencedDecl();
   }
 
   void VisitBinaryOperator(const clang::BinaryOperator *stmt) {
@@ -777,6 +822,8 @@ public:
     CheckAssignAddrOfLocalVar(stmt);
     CheckValueTypeForCtype(stmt);
     CheckPrecedenceOfOperator(stmt);
+    CheckAssignmentOfPointer(stmt);
+    CheckDeadCode(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
@@ -784,6 +831,7 @@ public:
     CheckAddOrSubOnPointer(stmt);
     CheckModifyParameters(stmt);
     CheckInappropriateEssentialTypeOfOperands(stmt);
+    CheckAssignmentOfPointer(stmt);
   }
 
   void VisitCallExpr(const clang::CallExpr *stmt) {
@@ -802,6 +850,7 @@ public:
     CheckDynamicMemoryAllocation(stmt);
     CheckImplicitlyDeclaredFunction(stmt);
     CheckArgumentsOfMemcmp(stmt);
+    CheckAssignmentOfPointer(stmt);
   }
 
   void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {
@@ -936,6 +985,7 @@ public:
 
   void VisitInitListExpr(const clang::InitListExpr *stmt) {
     CheckSideEffectWithinInitListExpr(stmt);
+    CheckMultiIncOrDecExpr(stmt);
   }
 
   void VisitUnaryExprOrTypeTraitExpr(const clang::UnaryExprOrTypeTraitExpr *stmt) {
@@ -969,6 +1019,7 @@ public:
 
   void VisitMemberExpr(const clang::MemberExpr *stmt) {
     CheckDirectManipulationOfFILEPointer(stmt);
+    CheckDereferencedDecl(stmt);
   }
 
   void VisitIntegerLiteral(const clang::IntegerLiteral *stmt) {
@@ -987,6 +1038,7 @@ public:
 
   void VisitDeclRefExpr(const clang::DeclRefExpr *stmt) {
       CheckDefinitionOfVarDeclInSingleFunction(stmt);
+      CheckUnusedTag(stmt);
   }
 //  void VisitCXXStaticCastExpr(const clang::CXXStaticCastExpr *stmt) {
 //    CheckExplictCastOnIntOrFloatIncreaseSize(stmt);

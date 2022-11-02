@@ -167,6 +167,8 @@ clang::QualType MISRAStmtRule::GetUnderlyingType(clang::QualType type) {
     return elaborated_type->desugar();
   } else if (auto substtmp_type = clang::dyn_cast<clang::SubstTemplateTypeParmType>(type)) {
     return substtmp_type->desugar();
+  } else if (auto auto_type = clang::dyn_cast<clang::AutoType>(type)) {
+    return auto_type->desugar();
   }
   return type;
 }
@@ -180,13 +182,14 @@ clang::BuiltinType::Kind MISRAStmtRule::GetBTKind(clang::QualType type, bool &st
     if (ud_type == prev_type) break;
     else prev_type = ud_type;
   }
-  if (!ud_type->isBuiltinType()) {
+  if (const clang::BuiltinType *bt = ud_type->getAs<clang::BuiltinType>()) {
+    DBG_ASSERT(ud_type->isBuiltinType(), "This is not BuiltinType");
+    status = true;
+    return bt->getKind();
+  } else {
     status = false;
     return clang::BuiltinType::Kind::Bool;
   }
-  DBG_ASSERT(ud_type->isBuiltinType(), "This is not BuiltinType");
-  status = true;
-  return clang::cast<clang::BuiltinType>(ud_type)->getKind();
 }
 
 // if this binary statement is composite expression
@@ -247,6 +250,222 @@ const clang::Expr *MISRAStmtRule::StripAllParenImpCast(const clang::Expr *stmt) 
     stmt_class = res->getStmtClass();
   }
   return res;
+}
+
+uint16_t MISRAStmtRule::getLineNumber(clang::SourceLocation loc) {
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  auto SpellingLoc = src_mgr->getSpellingLoc(loc);
+  clang::PresumedLoc PLoc = src_mgr->getPresumedLoc(SpellingLoc);
+  if (PLoc.isInvalid()) return 0;
+  return PLoc.getLine();
+}
+
+/* MISRA
+ * Directive: 4.8
+ * If a pointer to a structure or union is never dereferenced within a
+ * translation unit, then the implementation of the object should be hidden
+ */
+void MISRAStmtRule::CheckDereferencedDecl(const clang::MemberExpr *stmt) {
+  auto base = stmt->getBase()->IgnoreParenImpCasts();
+  if (base == nullptr) return;
+  auto type = base->getType();
+  if (!type->isPointerType()) return;
+  auto ptr_type = GetUnderlyingType(type->getPointeeType());
+  if (auto record_type = clang::dyn_cast<clang::RecordType>(ptr_type)) {
+    const clang::RecordDecl *rd= record_type->getDecl();
+    rd = rd->getDefinition();
+    if (rd) {
+      _dereferenced_decl.insert(rd);
+    }
+  }
+}
+
+void MISRAStmtRule::CheckDereferencedDecl() {
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  constexpr uint32_t kind = IdentifierManager::VAR;
+  auto dereferenced = &(this->_dereferenced_decl);
+
+  top_scope->TraverseAll<kind,
+      const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+      [&](const std::string &name, const clang::Decl *decl, IdentifierManager *id_mgr) {
+        if (clang::isa<clang::ParmVarDecl>(decl)) return;
+        if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
+          auto type = var_decl->getType();
+          if (auto tmp = clang::dyn_cast<clang::TypedefType>(type)) {
+            type = tmp->getDecl()->getTypeForDecl()->getCanonicalTypeInternal();
+          }
+          if (!type->isPointerType()) return;
+          if (auto record_type = clang::dyn_cast<clang::RecordType>(type->getPointeeType())) {
+            const clang::RecordDecl *rd= record_type->getDecl();
+            rd = rd->getDefinition();
+            if (rd) {
+              if (dereferenced->find(reinterpret_cast<const clang::RecordDecl *const>(rd)) ==
+                  dereferenced->end()) {
+                std::string ref_msg = "If a pointer to a structure or union is never dereferenced within a "
+                                      "translation unit, then the implementation of the object should be hidden";
+                issue = report->ReportIssue(MISRA, M_D_4_8, decl);
+                issue->SetRefMsg(ref_msg);
+              }
+            }
+          }
+        }
+      }, true);
+}
+
+/* MISRA
+ * Directive: 4.12
+ * Dynamic memory allocation shall not be used
+ */
+void MISRAStmtRule::CheckDynamicMemoryAllocation(const clang::CallExpr *stmt) {
+  auto callee = GetCalleeDecl(stmt);
+  if (callee == nullptr) return;
+
+  // call function pointer would return nullptr
+  if (callee == nullptr) return;
+  auto name = callee->getNameAsString();
+  auto conf_mgr = XcalCheckerManager::GetConfigureManager();
+
+  if (conf_mgr->IsMemAllocFunction(name)) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_D_4_12, stmt);
+    std::string ref_msg = "Dynamic memory allocation shall not be used";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+/* MISRA
+ * Rule: 2.2
+ * There shall be no dead code
+ */
+void MISRAStmtRule::CheckDeadCode(const clang::BinaryOperator *stmt) {
+  if (!stmt->isAdditiveOp() && !stmt->isMultiplicativeOp()) return;
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
+  bool need_report = false;
+  uint64_t val;
+  if (stmt->isAdditiveOp()) {
+    if (IsIntegerLiteralExpr(rhs, &val) && (val == 0)) {
+      need_report = true;
+    } else {
+      if (stmt->getOpcode() == clang::BO_Add &&
+          IsIntegerLiteralExpr(lhs, &val) && (val == 0)) {
+        need_report = true;
+      }
+    }
+  } else {
+    if (IsIntegerLiteralExpr(rhs, &val) && (val == 1)) {
+      need_report = true;
+    }
+  }
+  if (need_report) {
+    std::string ref_msg = "There shall be no dead code";
+    ReportTemplate(ref_msg, M_R_2_2, stmt);
+  }
+}
+
+/* MISRA
+ * Rule: 2.4
+ * A project should not contain unused tag declarations
+ */
+void MISRAStmtRule::CheckUnusedTag(const clang::DeclRefExpr *stmt) {
+  auto decl = stmt->getDecl();
+  if (auto enum_const_decl = clang::dyn_cast<clang::EnumConstantDecl>(decl)) {
+    if (auto enum_decl = clang::cast<clang::EnumDecl>(enum_const_decl->getDeclContext())) {
+      _used_tag.insert(enum_decl);
+    }
+  }
+}
+
+void MISRAStmtRule::CheckUnusedTag(clang::QualType type) {
+  if (auto elaborated_type = clang::dyn_cast<clang::ElaboratedType>(type)) {
+    type = elaborated_type->desugar();
+  }
+  if (auto ptr_type = clang::dyn_cast<clang::PointerType>(type)) {
+    type = ptr_type->getPointeeType();
+  }
+  if (auto typedef_type = clang::dyn_cast<clang::TypedefType>(type)) {
+    auto decl = typedef_type->getDecl();
+    _used_tag.insert(decl);
+    if (type->isRecordType()) {
+      auto record_decl = type->getAs<clang::RecordType>()->getDecl();
+      auto record_line = getLineNumber(record_decl->getBeginLoc());
+      auto decl_line = getLineNumber(decl->getBeginLoc());
+      if (record_line && decl_line) {
+        if (record_line != decl_line) {
+          _used_tag.insert(record_decl);
+          auto prev_decl = record_decl->getPreviousDecl();
+          if (prev_decl) _used_tag.insert(prev_decl);
+        } else {
+          auto record_name = record_decl->getName();
+          auto typedecl_name = decl->getName();
+          if (!record_name.empty() &&
+              !typedecl_name.empty() &&
+              record_name == typedecl_name) {
+            _used_tag.insert(record_decl);
+          }
+        }
+      }
+    }
+  } else if (type->isRecordType()) {
+    auto record_type = type.getCanonicalType()->getAs<clang::RecordType>();
+    _used_tag.insert(record_type->getDecl());
+  } else if (const auto *enum_type = type->getAs<clang::EnumType>()) {
+    _used_tag.insert(enum_type->getDecl());
+  }
+}
+
+void MISRAStmtRule::CheckUnusedTag() {
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+
+  top_scope->TraverseAll<IdentifierManager::VAR | IdentifierManager::FIELD,
+    const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+    [&](const std::string &x, const clang::Decl *decl,
+        IdentifierManager *id_mgr) -> void {
+      if (auto enum_decl = clang::dyn_cast<clang::EnumDecl>(decl->getDeclContext())) {
+        _used_tag.insert(enum_decl);
+      } else if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
+        CheckUnusedTag(var_decl->getType());
+      } else if (auto field_decl = clang::dyn_cast<clang::FieldDecl>(decl)) {
+        CheckUnusedTag(field_decl->getType());
+      }
+    }, true);
+
+  constexpr uint32_t kind = IdentifierManager::VALUE |
+                            IdentifierManager::TYPE |
+                            IdentifierManager::TYPEDEF;
+  auto used_tags= &(this->_used_tag);
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  top_scope->TraverseAll<kind,
+    const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+    [&](const std::string &x, const clang::Decl *decl,
+        IdentifierManager *id_mgr) -> void {
+      if (auto enum_const_decl = clang::dyn_cast<clang::EnumConstantDecl>(decl)) {
+        if (auto enum_decl = clang::cast<clang::EnumDecl>(enum_const_decl->getDeclContext())) {
+          decl = enum_decl;
+        }
+      } else if (auto typeDef_decl = clang::dyn_cast<clang::TypedefDecl>(decl)) {
+        auto type = typeDef_decl->getTypeForDecl();
+        if (!type || !type->isRecordType()) return;
+      }
+
+      if (used_tags->find(decl) == used_tags->end()) {
+        if (auto record_decl = clang::dyn_cast<clang::RecordDecl>(decl)) {
+          if (record_decl->getName().empty()) return;
+        }
+        issue = report->ReportIssue(MISRA, M_R_2_4, decl);
+        std::string ref_msg = "A project should not contain unused tag declarations";
+        issue->SetRefMsg(ref_msg);
+      }
+    }, true);
 }
 
 /* MISRA
@@ -314,29 +533,6 @@ void MISRAStmtRule::CheckOctalAndHexadecimalEscapeWithoutTerminated(const clang:
     ReportTemplate(ref_msg, M_R_4_1, stmt);
   }
 }
-
-/* MISRA
- * Directive: 4.12
- * Dynamic memory allocation shall not be used
- */
-void MISRAStmtRule::CheckDynamicMemoryAllocation(const clang::CallExpr *stmt) {
-  auto callee = GetCalleeDecl(stmt);
-  if (callee == nullptr) return;
-
-  // call function pointer would return nullptr
-  if (callee == nullptr) return;
-  auto name = callee->getNameAsString();
-  auto conf_mgr = XcalCheckerManager::GetConfigureManager();
-
-  if (conf_mgr->IsMemAllocFunction(name)) {
-    XcalIssue *issue = nullptr;
-    XcalReport *report = XcalCheckerManager::GetReport();
-    issue = report->ReportIssue(MISRA, M_D_4_12, stmt);
-    std::string ref_msg = "Dynamic memory allocation shall not be used";
-    issue->SetRefMsg(ref_msg);
-  }
-}
-
 
 /* MISRA
  * Rule: 7.1
@@ -505,6 +701,93 @@ MISRAStmtRule::RecordThrowObjectTypes(const clang::Stmt *stmt) {
     }
   }
   return std::move(obj_types);
+}
+
+/* MISRA
+ * Rule: 8.13
+ * A pointer should point to a const-qualified type whenever possible
+ */
+void MISRAStmtRule::CheckModifiedPointerDecl(const clang::Expr* expr) {
+  auto ptr_expr = expr;
+  if (auto unary = clang::dyn_cast<clang::UnaryOperator>(expr)) {
+    ptr_expr = unary->getSubExpr()->IgnoreParenImpCasts();
+    if (auto cast_expr = clang::dyn_cast<clang::CStyleCastExpr>(ptr_expr)) {
+      ptr_expr = cast_expr->getSubExpr()->IgnoreParenImpCasts();
+    }
+  }
+  if (auto decl_expr = clang::dyn_cast<clang::DeclRefExpr>(ptr_expr)) {
+    auto decl = decl_expr->getDecl();
+    if (!decl->getType()->isPointerType()) return;
+    if (clang::isa<clang::VarDecl>(decl)) {
+      _modified_pointer_decl.insert(decl);
+    }
+  }
+}
+void MISRAStmtRule::CheckAssignmentOfPointer(const clang::BinaryOperator *stmt) {
+  if (!stmt->isAssignmentOp() && !stmt->isCompoundAssignmentOp()) return;
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  CheckModifiedPointerDecl(lhs);
+}
+
+void MISRAStmtRule::CheckAssignmentOfPointer(const clang::CompoundAssignOperator *stmt) {
+  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
+  CheckModifiedPointerDecl(lhs);
+}
+
+void MISRAStmtRule::CheckAssignmentOfPointer(const clang::CallExpr *stmt) {
+  auto decl = GetCalleeDecl(stmt);
+  if (decl == nullptr) return;
+  int i = 0;
+  for (const clang::Expr *arg :  stmt->arguments()) {
+    if (i >= decl->param_size()) break;
+    auto arg_type = arg->IgnoreParenImpCasts()->getType();
+    if (!arg_type->isPointerType()) continue;
+    auto param_decl = decl->getParamDecl(i);
+    if (param_decl == nullptr) {
+      i++;
+      continue;
+    }
+    auto param_type = param_decl->getType();
+    if (!param_type->isPointerType()) continue;
+    if (!arg_type->getPointeeType().isConstQualified() &&
+        !param_type->getPointeeType().isConstQualified()) {
+      if (auto decl_expr = clang::dyn_cast<clang::DeclRefExpr>(arg->IgnoreParenImpCasts())) {
+        _modified_pointer_decl.insert(decl_expr->getDecl());
+      }
+    }
+    i++;
+  }
+}
+
+void MISRAStmtRule::ReportNeedConstQualifiedVar() {
+  auto scope_mgr = XcalCheckerManager::GetScopeManager();
+  auto top_scope = scope_mgr->GlobalScope();
+  constexpr uint32_t kind = IdentifierManager::VAR;
+
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  top_scope->TraverseAll<kind,
+    const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+    [&](const std::string &x, const clang::Decl *decl,
+        IdentifierManager *id_mgr) -> void {
+      if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
+        auto type = var_decl->getType();
+        if (!type->isPointerType()) return;
+        if (_modified_pointer_decl.find(decl) == _modified_pointer_decl.end()) {
+          if (!type->getPointeeType().isConstQualified()) {
+            const clang::DeclContext *decl_context = var_decl->getDeclContext();
+            if (auto func_decl = clang::dyn_cast<clang::FunctionDecl>(decl_context)) {
+              if (!func_decl->getBody()) return;
+            }
+            issue = report->ReportIssue(MISRA, M_R_8_13, decl);
+            std::string ref_msg = "A pointer should point to a const-qualified type whenever possible: ";
+            ref_msg += var_decl->getNameAsString();
+            issue->SetRefMsg(ref_msg);
+          }
+        }
+      }
+    }, true);
 }
 
 /* MISRA
@@ -1482,6 +1765,26 @@ void MISRAStmtRule::CheckMultiIncOrDecExpr(const clang::CallExpr *stmt) {
       issue->SetRefMsg(ref_msg);
       break;
     }
+  }
+}
+
+void MISRAStmtRule::CheckMultiIncOrDecExpr(const clang::InitListExpr *stmt) {
+  std::vector<const clang::Expr *> sinks;
+  for (const auto &it : stmt->inits()) {
+    auto init = it->IgnoreParenImpCasts();
+    if (HasIncOrDecExpr(init)) sinks.push_back(it);
+  }
+
+  if (!sinks.empty()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_13_3, stmt);
+    std::string ref_msg = "A full expression containing an increment (++) or "
+                          "decrement (--) operator should have no other "
+                          "potential side effects other than that caused "
+                          "by the increment or decrement operator";
+    issue->SetRefMsg(ref_msg);
+    for (const auto &it : sinks) issue->AddStmt(it);
   }
 }
 
@@ -2822,7 +3125,7 @@ void MISRAStmtRule::CheckDownCastToDerivedClass(const clang::CastExpr *stmt) {
   if (!origin_class || !target_class) return;
 
   // check if this class is polymorphic
-  if (!origin_class->isPolymorphic()) return;
+  if (!origin_class->hasDefinition() || !origin_class->isPolymorphic()) return;
 
   if (target_class->isDerivedFrom(origin_class)) {
     XcalIssue *issue = nullptr;

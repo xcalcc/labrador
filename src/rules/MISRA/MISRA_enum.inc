@@ -23,8 +23,13 @@
 //
 
 #define MISRA       "MISRA"
+#define M_D_4_5     "MSR_D_4_5"
+#define M_D_4_6     "MSR_D_4_6"
+#define M_D_4_8     "MSR_D_4_8"
 #define M_D_4_12    "MSR_D_4_12"
+#define M_R_2_2     "MSR_2_2"
 #define M_R_2_3     "MSR_2_3"
+#define M_R_2_4     "MSR_2_4"
 #define M_R_2_6     "MSR_2_6"
 #define M_R_2_7     "MSR_2_7"
 #define M_R_4_1     "MSR_4_1"
@@ -45,6 +50,7 @@
 #define M_R_7_4     "MSR_7_4"
 #define M_R_8_1     "MSR_8_1"
 #define M_R_8_2     "MSR_8_2"
+#define M_R_8_3     "MSR_8_3"
 #define M_R_8_4     "MSR_8_4"
 #define M_R_8_8     "MSR_8_8"
 #define M_R_8_9     "MSR_8_9"
