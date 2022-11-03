@@ -2768,7 +2768,7 @@ void MISRAStmtRule::CheckValueTypeForCtype(const clang::BinaryOperator *stmt) {
             }
             XcalIssue *issue = nullptr;
             XcalReport *report = XcalCheckerManager::GetReport();
-            issue = report->ReportIssue(MISRA, M_R_21_13, stmt);
+            issue = report->ReportIssue(MISRA, M_R_21_13, sub);
             std::string ref_msg = "Any value passed to a function in <ctype.h> shall be representable as "
                                  "an unsigned char or be the value EOF";
             issue->SetRefMsg(ref_msg);
