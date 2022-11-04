@@ -704,13 +704,10 @@ void MISRADeclRule::CheckInappropriateBitField(const clang::RecordDecl *decl) {
     }
 
     if (need_report) {
-      if (issue == nullptr) {
-        issue = report->ReportIssue(MISRA, M_R_6_1, decl);
-        std::string ref_msg = "Bit-fields shall only be declared with an appropriate type: ";
-        ref_msg += decl->getNameAsString();
-        issue->SetRefMsg(ref_msg);
-      }
-      issue->AddDecl(field);
+      issue = report->ReportIssue(MISRA, M_R_6_1, field);
+      std::string ref_msg = "Bit-fields shall only be declared with an appropriate type: ";
+      ref_msg += field->getNameAsString();
+      issue->SetRefMsg(ref_msg);
     }
   }
 }
