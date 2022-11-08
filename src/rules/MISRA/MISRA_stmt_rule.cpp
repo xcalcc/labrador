@@ -2424,6 +2424,10 @@ void MISRAStmtRule::CheckCaseStmtNum(const clang::SwitchStmt *stmt) {
 void MISRAStmtRule::CheckImplicitlyDeclaredFunction(const clang::CallExpr *stmt) {
   auto callee_decl = GetCalleeDecl(stmt);
   if (callee_decl == nullptr) return;
+  if (callee_decl->getBuiltinID() &&
+      callee_decl->getName().startswith("__builtin_")) {
+    return;
+  }
   if (auto decl = clang::dyn_cast<clang::Decl>(callee_decl)) {
     if (decl->isImplicit()) {
       XcalIssue *issue = nullptr;
