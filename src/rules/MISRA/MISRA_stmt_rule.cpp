@@ -1380,7 +1380,13 @@ void MISRAStmtRule::CheckCastPointerToDifferentType(const clang::CStyleCastExpr 
   auto type = stmt->getType();
   auto sub_type = stmt->getSubExpr()->IgnoreParenImpCasts()->getType();
   if (!type->isPointerType() || !sub_type->isPointerType()) return;
-  if (type != sub_type) {
+  // exceptions:
+  // 1. It is permitted to convert a pointer to object type into a pointer to
+  //    one of the object types char, signed char or unsigned char
+  // 2. The rule applies to the unqualified pointer types.
+  auto pointee_type = type->getPointeeType().getUnqualifiedType();
+  if (GetUnderlyingType(pointee_type)->isCharType()) return;
+  if (pointee_type != sub_type->getPointeeType().getUnqualifiedType()) {
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
     issue = report->ReportIssue(MISRA, M_R_11_3, stmt);
