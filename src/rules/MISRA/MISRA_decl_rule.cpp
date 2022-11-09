@@ -1240,9 +1240,14 @@ void MISRADeclRule::CheckPointerNestedMoreThanTwoLevel(const clang::FunctionDecl
  */
 void MISRADeclRule::CheckFlexibleArray(const clang::RecordDecl *decl) {
   if (decl->hasFlexibleArrayMember()) {
+    // get last field decl
+    clang::FieldDecl *last_field = nullptr;
+    for (const auto &field : decl->fields())
+      last_field = field;
+    if (last_field == nullptr) return;
     XcalIssue *issue = nullptr;
     XcalReport *report = XcalCheckerManager::GetReport();
-    issue = report->ReportIssue(MISRA, M_R_18_7, decl);
+    issue = report->ReportIssue(MISRA, M_R_18_7, last_field);
     std::string ref_msg = "Flexible array members shall not be declared";
     issue->SetRefMsg(ref_msg);
   }
