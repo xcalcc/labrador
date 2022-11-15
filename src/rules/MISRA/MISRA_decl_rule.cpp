@@ -760,15 +760,51 @@ void MISRADeclRule::CheckStringLiteralToNonConstChar(const clang::VarDecl *decl)
  * Rule: 8.2
  * Function types shall be in prototype form with named parameters
  */
-void MISRADeclRule::CheckParameterNoIdentifier(const clang::FunctionDecl *decl) {
+void MISRADeclRule::ReportParameterNoIdentifier(const clang::Decl *decl) {
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(MISRA, M_R_8_2, decl);
+  std::string ref_msg = "Function types shall be in prototype form with named parameters";
+  issue->SetRefMsg(ref_msg);
+}
+
+bool MISRADeclRule::IsFunctionNoProtoType(clang::QualType type) {
+  if (type->isPointerType()) {
+    type = type->getPointeeType();
+  }
+  if (auto paren_type = clang::dyn_cast<clang::ParenType>(type)) {
+    type = paren_type->getInnerType();
+  }
+  if (type->isFunctionNoProtoType()) {
+    return true;
+  }
+  return false;
+}
+
+void MISRADeclRule::CheckParameterNoIdentifier(const clang::VarDecl *decl) {
+  auto type = decl->getType();
+  if (clang::isa<clang::TypedefType>(type)) return;
+  if (IsFunctionNoProtoType(type)) {
+    ReportParameterNoIdentifier(decl);
+  }
+}
+
+void MISRADeclRule::CheckParameterNoIdentifier(const clang::TypedefDecl *decl) {
+  auto type = decl->getTypeSourceInfo()->getType();
+  if (clang::isa<clang::TypedefType>(type)) return;
+  if (IsFunctionNoProtoType(type)) {
+    ReportParameterNoIdentifier(decl);
+  }
+}
+
+void MISRADeclRule::CheckParameterNoIdentifier(const clang::FunctionDecl *decl) {
+  if (IsFunctionNoProtoType(decl->getType()))
+    ReportParameterNoIdentifier(decl);
 
   for (const auto &it : decl->parameters()) {
     if (it->getNameAsString().empty()) {
-      issue = report->ReportIssue(MISRA, M_R_8_2, decl);
-      std::string ref_msg = "Function types shall be in prototype form with named parameters";
-      issue->SetRefMsg(ref_msg);
+      ReportParameterNoIdentifier(decl);
+      break;
     }
   }
 }

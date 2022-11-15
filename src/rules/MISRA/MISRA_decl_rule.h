@@ -184,6 +184,14 @@ private:
    * Rule: 8.2
    * Function types shall be in prototype form with named parameters
    */
+  void ReportParameterNoIdentifier(const clang::Decl *decl);
+
+  bool IsFunctionNoProtoType(clang::QualType type);
+
+  void CheckParameterNoIdentifier(const clang::VarDecl *decl);
+
+  void CheckParameterNoIdentifier(const clang::TypedefDecl *decl);
+
   void CheckParameterNoIdentifier(const clang::FunctionDecl *decl);
 
   /* MISRA
@@ -476,6 +484,7 @@ public:
     CheckDeclarationWithExternalLinkage(decl);
     CheckTypeOfPrevVarDecl(decl);
     CheckTypeOfBasicNumericalType(decl);
+    CheckParameterNoIdentifier(decl);
   }
 
   void VisitParmVar(const clang::ParmVarDecl *decl) {
@@ -491,6 +500,7 @@ public:
     CheckUnusedTypedef(decl);
     CheckUnionKeyword(decl);
     CheckTypedefOfBasicNumericalType(decl);
+    CheckParameterNoIdentifier(decl);
   }
 
   void VisitFunction(const clang::FunctionDecl *decl) {
