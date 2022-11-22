@@ -66,6 +66,9 @@ private:
   // check if the expr is an IntegerLiteral expression
   bool IsIntegerLiteralExpr(const clang::Expr *expr, uint64_t *res = nullptr);
 
+  // check if the stmt is volatile qualified
+  bool IsVolatileQualified(const clang::Stmt *stmt);
+
   // check if the expr has side effect
   bool HasSideEffect(const clang::Stmt *stmt);
 
@@ -341,8 +344,10 @@ private:
    * The value of an expression and its persistent side
    * effects shall be the same under all permitted evaluation orders
    */
-  bool isInc(const clang::Expr *expr);
+  bool IsInc(const clang::Stmt *stmt, const clang::Expr *&base);
+  bool IsSameDeclaration(const clang::Expr *expr1, const clang::Expr *expr2);
   void CheckSideEffectWithOrder(const clang::BinaryOperator *stmt);
+  void CheckSideEffectWithOrder(const clang::CallExpr *stmt);
   void ReportSideEffect(const clang::Stmt *stmt);
 
   /* MISRA
@@ -853,6 +858,7 @@ public:
     CheckImplicitlyDeclaredFunction(stmt);
     CheckArgumentsOfMemcmp(stmt);
     CheckAssignmentOfPointer(stmt);
+    CheckSideEffectWithOrder(stmt);
   }
 
   void VisitCStyleCastExpr(const clang::CStyleCastExpr *stmt) {

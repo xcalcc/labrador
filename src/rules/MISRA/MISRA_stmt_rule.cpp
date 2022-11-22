@@ -86,6 +86,16 @@ bool MISRAStmtRule::IsIntegerLiteralExpr(const clang::Expr *expr, uint64_t *res)
   return state;
 }
 
+// check if the stmt is volatile qualified
+bool MISRAStmtRule::IsVolatileQualified(const clang::Stmt *stmt) {
+  if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(stmt)) {
+    auto decl = decl_ref->getDecl();
+    if (decl->getType().isVolatileQualified())
+      return true;
+  }
+  return false;
+}
+
 // check if the stmt has side effect
 bool MISRAStmtRule::HasSideEffect(const clang::Stmt *stmt) {
   bool res = false;
@@ -1737,14 +1747,48 @@ void MISRAStmtRule::CheckSideEffectWithinInitListExpr(const clang::InitListExpr 
  * The value of an expression and its persistent side
  * effects shall be the same under all permitted evaluation orders
  */
-bool MISRAStmtRule::isInc(const clang::Expr *expr) {
-  if (expr == nullptr) return false;
-  if (auto unary = clang::dyn_cast<clang::UnaryOperator>(expr)) {
-    return unary->isIncrementDecrementOp();
+bool MISRAStmtRule::IsInc(const clang::Stmt *stmt, const clang::Expr *&base) {
+  if (stmt == nullptr) return false;
+  if (auto unary = clang::dyn_cast<clang::UnaryOperator>(stmt)) {
+    if (unary->isIncrementDecrementOp()) {
+      base = unary->getSubExpr();
+      return true;
+    }
+  }
+  for (const auto &it : stmt->children()) {
+    const clang::Expr *child_base = nullptr;
+    if (IsInc(it, child_base)) {
+      base = child_base;
+      return true;
+    }
   }
   return false;
 }
 
+bool MISRAStmtRule::IsSameDeclaration(const clang::Expr *expr1,
+                                      const clang::Expr *expr2) {
+  if (expr1 == nullptr || expr2 == nullptr) return false;
+  expr1 = expr1->IgnoreParenImpCasts();
+  expr2 = expr2->IgnoreParenImpCasts();
+  if (auto unary = clang::dyn_cast<clang::UnaryOperator>(expr1)) {
+    expr1 = unary->getSubExpr();
+  }
+  if (auto unary = clang::dyn_cast<clang::UnaryOperator>(expr2)) {
+    expr2 = unary->getSubExpr();
+  }
+  if (!clang::isa<clang::DeclRefExpr>(expr1) ||
+      !clang::isa<clang::DeclRefExpr>(expr2)) {
+    return false;
+  }
+  const clang::Decl *decl1 = clang::cast<clang::DeclRefExpr>(expr1)->getDecl();
+  const clang::Decl *decl2 = clang::cast<clang::DeclRefExpr>(expr2)->getDecl();
+  if (!decl1 || !decl2) return false;
+  if (auto named_decl1 = clang::dyn_cast<clang::NamedDecl>(decl1))
+    decl1 = named_decl1->getUnderlyingDecl();
+  if (auto named_decl2 = clang::dyn_cast<clang::NamedDecl>(decl2))
+    decl2 = named_decl2->getUnderlyingDecl();
+  return decl1->getCanonicalDecl() == decl2->getCanonicalDecl();
+}
 
 void MISRAStmtRule::CheckSideEffectWithOrder(const clang::BinaryOperator *stmt) {
   auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
@@ -1753,8 +1797,62 @@ void MISRAStmtRule::CheckSideEffectWithOrder(const clang::BinaryOperator *stmt) 
   // ingore comma
   if (stmt->isCommaOp()) return;
 
-  if (isInc(lhs) && isInc(rhs)) {
+  const clang::Expr *lhs_base = nullptr;
+  const clang::Expr *rhs_base = nullptr;
+  if (IsInc(lhs, lhs_base) && IsInc(rhs, rhs_base) &&
+      lhs_base && rhs_base &&
+      IsSameDeclaration(lhs_base, rhs_base)) {
     ReportSideEffect(stmt);
+  }
+  if (IsVolatileQualified(lhs) && IsVolatileQualified(rhs)) {
+    ReportSideEffect(stmt);
+  }
+}
+
+void MISRAStmtRule::CheckSideEffectWithOrder(const clang::CallExpr *stmt) {
+  const clang::Expr *callee_base = nullptr;
+  if (!stmt->getDirectCallee()) {
+    auto mem_expr = clang::dyn_cast<clang::MemberExpr>(stmt->getCallee()->IgnoreParenImpCasts());
+    if (mem_expr) {
+      callee_base = mem_expr->getBase();
+    }
+  }
+  if (callee_base == nullptr) return;
+  /*
+   * case : p->fn(g2(&p));
+   * the relative order of evaluation of a function designator and function arguments
+   * is unspecified. if p is modified in function g2, it is unspecified whether p->fn
+   * uses the value of p prior to the call of g2 or after it.
+   */
+  for (const auto &args : stmt->arguments()) {
+    if (auto call_expr = clang::dyn_cast<clang::CallExpr>(args)) {
+      if (!call_expr->getNumArgs()) continue;
+      auto decl = call_expr->getDirectCallee();
+      if (!decl) continue;
+      auto func_decl = clang::dyn_cast<clang::FunctionDecl>(decl);
+      if (!func_decl) continue;
+      uint32_t idx = 0;
+      for (const auto &it : call_expr->arguments()) {
+        if (auto unary = clang::dyn_cast<clang::UnaryOperator>(it)) {
+          if (unary->getOpcode() == clang::UO_AddrOf &&
+              IsSameDeclaration(unary->getSubExpr(), callee_base)) {
+            if (idx >= func_decl->getNumParams()) continue;
+            const clang::Expr *arg_base = nullptr;
+            if (IsInc(func_decl->getBody(), arg_base)) {
+              arg_base = arg_base->IgnoreParenImpCasts();
+              if (auto unary = clang::dyn_cast<clang::UnaryOperator>(arg_base)) {
+                arg_base = unary->getSubExpr()->IgnoreParenImpCasts();
+              }
+              if (auto decl_expr = clang::dyn_cast<clang::DeclRefExpr>(arg_base)) {
+                auto arg_decl = decl_expr->getDecl();
+                if (arg_decl == func_decl->getParamDecl(idx)) ReportSideEffect(stmt);
+              }
+            }
+          }
+        }
+        idx++;
+      }
+    }
   }
 }
 
@@ -1777,7 +1875,7 @@ void MISRAStmtRule::CheckMultiIncOrDecExpr(const clang::BinaryOperator *stmt) {
 
   auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
   auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
-  if (stmt->isAssignmentOp() || stmt->isCompoundAssignmentOp()) {
+  if (stmt->isAssignmentOp() || stmt->isCompoundAssignmentOp() || stmt->isEqualityOp()) {
     if (HasIncOrDecExpr(lhs) || HasIncOrDecExpr(rhs)) need_report = true;
   } else {
     if (HasIncOrDecExpr(lhs) && HasIncOrDecExpr(rhs)) need_report = true;
@@ -1804,7 +1902,8 @@ void MISRAStmtRule::CheckMultiIncOrDecExpr(const clang::BinaryOperator *stmt) {
 
 void MISRAStmtRule::CheckMultiIncOrDecExpr(const clang::CallExpr *stmt) {
   for (const auto &args : stmt->arguments()) {
-    if (isInc(args)) {
+    const clang::Expr *base = nullptr;
+    if (IsInc(args, base)) {
       XcalIssue *issue = nullptr;
       XcalReport *report = XcalCheckerManager::GetReport();
       issue = report->ReportIssue(MISRA, M_R_13_3, stmt);
