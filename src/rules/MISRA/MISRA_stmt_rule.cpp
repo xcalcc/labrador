@@ -578,8 +578,8 @@ void MISRAStmtRule::CheckUnsignedIntegerSuffix(const clang::IntegerLiteral *stmt
     clang::LangOptions lang_ops;
     clang::SmallString<256> buffer;
     llvm::StringRef val = clang::Lexer::getSpelling(sl, buffer, *src_mgr, lang_ops);
-    unsigned int size = val.size();
-    if (size > 2 && val[size - 1] != 'u' && val[size - 1] != 'U') {
+    if (val.find("u") == std::string::npos &&
+        val.find("U") == std::string::npos) {
       std::string ref_msg = "A \"u\" or \"U\" suffix shall be applied to all integer constants that are "
                             "represented in an unsigned type";
       ReportTemplate(ref_msg, M_R_7_2, stmt);
