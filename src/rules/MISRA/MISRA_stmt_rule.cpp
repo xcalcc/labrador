@@ -2336,16 +2336,25 @@ void MISRAStmtRule::CheckSyntaxRuleOfSWitchStmt(const clang::SwitchStmt *stmt) {
   if (!clang::isa<clang::CompoundStmt>(body)) {
     ReportSyntaxRuleOfSWitchStmt(body);
   }
-  for (const auto &it : body->children()) {
-    if (!IsCaseStmt(it) && it->getStmtClass() != clang::Stmt::BreakStmtClass) {
-      ReportSyntaxRuleOfSWitchStmt(it);
+  auto it = body->child_begin();
+  auto end = body->child_end();
+  if (it == end) return;
+  if (!IsCaseStmt(*it))
+    ReportSyntaxRuleOfSWitchStmt(*it);
+  for (; it != end; it++) {
+    if (auto case_stmt = clang::dyn_cast<clang::CaseStmt>(*it)) {
+      auto sub = case_stmt->getSubStmt();
+      if (clang::isa<clang::CompoundStmt>(sub)) {
+        auto next = std::next(it);
+        if (!IsCaseStmt(*next) && next->getStmtClass() != clang::Stmt::BreakStmtClass)
+          ReportSyntaxRuleOfSWitchStmt(*next);
+      }
     }
   }
 }
 
 void MISRAStmtRule::CheckSyntaxRuleOfCaseStmt(const clang::CaseStmt *stmt) {
   auto sub = stmt->getSubStmt();
-  if (IsCaseStmt(sub)) ReportSyntaxRuleOfSWitchStmt(sub);
   if (clang::isa<clang::CompoundStmt>(sub)) {
     for (const auto &it : sub->children()) {
       if (IsCaseStmt(it)) ReportSyntaxRuleOfSWitchStmt(it);
