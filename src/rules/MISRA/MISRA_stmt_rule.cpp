@@ -2502,6 +2502,8 @@ void MISRAStmtRule::CheckDefaultStmtPosition(const clang::SwitchStmt *stmt) {
         has_default = true;
         if (cases->getNextSwitchCase() == nullptr) {
           return;
+        } else if (cases->getNextSwitchCase() == cases->getSubStmt()) {
+          return;
         } else break;
       }
     }
@@ -2510,7 +2512,7 @@ void MISRAStmtRule::CheckDefaultStmtPosition(const clang::SwitchStmt *stmt) {
   }
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
-  issue = report->ReportIssue(MISRA, M_R_16_5, stmt);
+  issue = report->ReportIssue(MISRA, M_R_16_5, cases);
   std::string ref_msg = "A default label shall appear as either the "
                         "first or the last switch label of a switch statement";
   issue->SetRefMsg(ref_msg);
