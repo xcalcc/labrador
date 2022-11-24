@@ -2790,15 +2790,15 @@ void MISRAStmtRule::CheckIntConvertFunctionInStdlib(const clang::CallExpr *stmt)
 
 /* MISRA
  * Rule: 21.8
- * The library functions abort, exit, getenv and system of <stdlib.h> shall not be used
+ * The Standard Library functions abort, exit and system of <stdlib.h> shall not be used
  */
 void MISRAStmtRule::CheckSystemFuncInStdlib(const clang::CallExpr *stmt) {
-  std::vector<std::string> fid_funcs = {"abort", "exit", "getenv", "system"};
+  std::vector<std::string> fid_funcs = {"abort", "exit", "system"};
   auto callee = GetCalleeDecl(stmt);
   if (callee == nullptr) return;
   auto name = callee->getNameAsString();
 
-  std::string info = "The library functions abort, exit, getenv and system of <stdlib.h> shall not be used";
+  std::string info = "The Standard Library functions abort, exit and system of <stdlib.h> shall not be used";
   HasThisFunctionThenReport(fid_funcs, name, stmt, M_R_21_8, info);
 }
 
