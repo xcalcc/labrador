@@ -2883,6 +2883,13 @@ void MISRAStmtRule::CheckValueTypeForCtype(const clang::BinaryOperator *stmt) {
             if (auto sub_decl_ref = clang::dyn_cast<clang::DeclRefExpr>(sub)) {
               auto decl = sub_decl_ref->getDecl();
               if (!decl || decl->getType()->isCharType()) return;
+              if (decl->getType()->isIntegerType()) {
+                if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
+                  if (var_decl->hasInit()) {
+                    if (clang::isa<clang::CharacterLiteral>(var_decl->getInit())) return;
+                  }
+                }
+              }
             }
             XcalIssue *issue = nullptr;
             XcalReport *report = XcalCheckerManager::GetReport();
