@@ -183,6 +183,7 @@ private:
    * A pointer should point to a const-qualified type whenever possible
    */
   void CheckModifiedPointerDecl(const clang::Expr* expr);
+  void CheckAssignmentOfPointer(const clang::UnaryOperator *stmt);
   void CheckAssignmentOfPointer(const clang::BinaryOperator *stmt);
   void CheckAssignmentOfPointer(const clang::CompoundAssignOperator *stmt);
   void CheckAssignmentOfPointer(const clang::CallExpr *stmt);
@@ -1012,6 +1013,7 @@ public:
     CheckInappropriateEssentialTypeOfOperands(stmt);
     CheckFILEPointerDereference(stmt);
     CheckArrayBoundsExceeded(stmt);
+    CheckAssignmentOfPointer(stmt);
   }
 
   void VisitReturnStmt(const clang::ReturnStmt *stmt) {

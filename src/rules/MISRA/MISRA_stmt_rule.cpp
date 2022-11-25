@@ -721,6 +721,8 @@ void MISRAStmtRule::CheckModifiedPointerDecl(const clang::Expr* expr) {
     if (auto cast_expr = clang::dyn_cast<clang::CStyleCastExpr>(ptr_expr)) {
       ptr_expr = cast_expr->getSubExpr()->IgnoreParenImpCasts();
     }
+  } else if (auto array = clang::dyn_cast<clang::ArraySubscriptExpr>(expr)) {
+    ptr_expr = array->getBase()->IgnoreParenImpCasts();
   }
   if (auto decl_expr = clang::dyn_cast<clang::DeclRefExpr>(ptr_expr)) {
     auto decl = decl_expr->getDecl();
@@ -730,6 +732,13 @@ void MISRAStmtRule::CheckModifiedPointerDecl(const clang::Expr* expr) {
     }
   }
 }
+
+void MISRAStmtRule::CheckAssignmentOfPointer(const clang::UnaryOperator *stmt) {
+  if (!stmt->isIncrementDecrementOp()) return;
+  auto sub = stmt->getSubExpr()->IgnoreParenImpCasts();
+  CheckModifiedPointerDecl(sub);
+}
+
 void MISRAStmtRule::CheckAssignmentOfPointer(const clang::BinaryOperator *stmt) {
   if (!stmt->isAssignmentOp() && !stmt->isCompoundAssignmentOp()) return;
   auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
@@ -748,14 +757,20 @@ void MISRAStmtRule::CheckAssignmentOfPointer(const clang::CallExpr *stmt) {
   for (const clang::Expr *arg :  stmt->arguments()) {
     if (i >= decl->param_size()) break;
     auto arg_type = arg->IgnoreParenImpCasts()->getType();
-    if (!arg_type->isPointerType()) continue;
+    if (!arg_type->isPointerType()) {
+      i++;
+      continue;
+    }
     auto param_decl = decl->getParamDecl(i);
     if (param_decl == nullptr) {
       i++;
       continue;
     }
     auto param_type = param_decl->getType();
-    if (!param_type->isPointerType()) continue;
+    if (!param_type->isPointerType()) {
+      i++;
+      continue;
+    }
     if (!arg_type->getPointeeType().isConstQualified() &&
         !param_type->getPointeeType().isConstQualified()) {
       if (auto decl_expr = clang::dyn_cast<clang::DeclRefExpr>(arg->IgnoreParenImpCasts())) {
@@ -781,6 +796,7 @@ void MISRAStmtRule::ReportNeedConstQualifiedVar() {
       if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
         auto type = var_decl->getType();
         if (!type->isPointerType()) return;
+        decl = var_decl->getCanonicalDecl();
         if (_modified_pointer_decl.find(decl) == _modified_pointer_decl.end()) {
           if (!type->getPointeeType().isConstQualified()) {
             const clang::DeclContext *decl_context = var_decl->getDeclContext();
