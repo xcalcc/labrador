@@ -2070,13 +2070,6 @@ void MISRAStmtRule::CheckControlStmtVariant(const clang::Expr *stmt) {
   uint64_t val;
   if (IsIntegerLiteralExpr(stmt, &val) && (val == 0 || val == 1)) {
     need_report = true;
-  } else if (auto decl_expr = clang::dyn_cast<clang::DeclRefExpr>(stmt)) {
-    auto decl = decl_expr->getDecl();
-    if (clang::isa<clang::ParmVarDecl>(decl)) {
-      need_report = true;
-    } else if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
-      if (var_decl->hasInit()) need_report = true;
-    }
   } else if (auto bin_op = clang::dyn_cast<clang::BinaryOperator>(stmt)) {
     auto opcode = bin_op->getOpcode();
     auto lhs = bin_op->getLHS()->IgnoreParenImpCasts();
