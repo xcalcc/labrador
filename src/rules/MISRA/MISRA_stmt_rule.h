@@ -49,6 +49,8 @@ private:
 
   std::set<const clang::RecordDecl *> _dereferenced_decl;
 
+  std::set<const clang::ArraySubscriptExpr *> _checked_array_expr;
+
   std::string GetTypeString(clang::QualType type);
 
   clang::QualType GetRawTypeOfTypedef(clang::QualType type);
@@ -561,6 +563,14 @@ private:
    */
   void CheckModifyParameters(const clang::BinaryOperator *stmt);
 
+  /*
+   * MISRA: 18.1
+   * A pointer resulting from arithmetic on a pointer operand shall address
+   * an element of the same arrays as that pointer operand.
+   */
+  void CheckArrayBoundsExceeded(const clang::ArraySubscriptExpr *stmt, bool is_dereferenced = true);
+  void CheckArrayBoundsExceeded(const clang::UnaryOperator *stmt);
+
   /* MISRA
    * Rule: 18.4
    * The +, -, += and -= operators should not be applied to an expression of pointer type
@@ -788,13 +798,6 @@ private:
   void CollectThrowType(const clang::CXXThrowExpr *stmt);
   void CollectThrowType(const clang::CallExpr *stmt);
 
-  /*
-   * MISRA: 18.1
-   * A pointer resulting from arithmetic on a pointer operand shall address
-   * an element of the same arrays as that pointer operand.
-   */
-  void CheckArrayBoundsExceeded(const clang::ArraySubscriptExpr *stmt);
-
 public:
 
   void Finalize() {
@@ -1007,6 +1010,7 @@ public:
     CheckBoolUsedAsNonLogicalOperand(stmt);
     CheckInappropriateEssentialTypeOfOperands(stmt);
     CheckFILEPointerDereference(stmt);
+    CheckArrayBoundsExceeded(stmt);
   }
 
   void VisitReturnStmt(const clang::ReturnStmt *stmt) {
