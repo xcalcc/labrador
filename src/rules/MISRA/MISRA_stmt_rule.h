@@ -258,6 +258,7 @@ private:
    * Rule: 11.2
    * Conversions shall not be performed between a pointer to an incomplete type and any other type
    */
+  bool IsPointerToIncompleteType(const clang::QualType type);
   void CheckIncompleteTypePointerCastToAnotherType(const clang::CStyleCastExpr *stmt);
 
   /* MISRA

@@ -1361,22 +1361,34 @@ void MISRAStmtRule::CheckCastFunctionPointerType(const clang::CStyleCastExpr *st
  * Rule: 11.2
  * Conversions shall not be performed between a pointer to an incomplete type and any other type
  */
-void MISRAStmtRule::CheckIncompleteTypePointerCastToAnotherType(const clang::CStyleCastExpr *stmt) {
-  auto sub_type = stmt->getSubExpr()->IgnoreParenImpCasts()->getType();
-  if (!sub_type->isPointerType()) return;
-
-  auto pointee = clang::dyn_cast<clang::PointerType>(sub_type);
-  if (!pointee) return;
+bool MISRAStmtRule::IsPointerToIncompleteType(const clang::QualType type) {
+  if (!type->isPointerType()) return false;
+  auto pointee = clang::dyn_cast<clang::PointerType>(type);
+  if (!pointee) return false;
   auto pointee_type = pointee->getPointeeType();
-  if (!pointee_type->isRecordType()) return;
+  if (!pointee_type->isRecordType()) return false;
   auto struct_decl = pointee_type->getAs<clang::RecordType>()->getDecl();
-  if (!struct_decl || struct_decl->isCompleteDefinition()) return;
+  if (!struct_decl || struct_decl->isCompleteDefinition()) return false;
+  return true;
+}
 
-  if (sub_type == stmt->getType()) return;
+void MISRAStmtRule::CheckIncompleteTypePointerCastToAnotherType(const clang::CStyleCastExpr *stmt) {
+  auto type = stmt->getType();
+  auto sub_type = stmt->getSubExpr()->IgnoreParenImpCasts()->getType();
+
+  bool need_report = false;
+  if (IsPointerToIncompleteType(sub_type) &&
+      sub_type != stmt->getType() &&
+      !type->isVoidType()) {
+    need_report = true;
+  } else if (IsPointerToIncompleteType(type)) {
+    need_report = true;
+  }
+  if (!need_report) return;
 
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
-  issue = report->ReportIssue(MISRA, M_R_11_2, stmt->getSubExpr()->IgnoreParenImpCasts());
+  issue = report->ReportIssue(MISRA, M_R_11_2, stmt);
   std::string ref_msg = "Conversions shall not be performed between a pointer to an "
                         "incomplete type and any other type";
   issue->SetRefMsg(ref_msg);
