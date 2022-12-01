@@ -120,6 +120,12 @@ private:
   void CheckDynamicMemoryAllocation(const clang::CallExpr *stmt);
 
   /* MISRA
+   * Rule: 1.3
+   * There shall be no occurrence of undefined or critical unspecified behaviour
+   */
+  void CheckCriticalUnspecifiedBehaviour(const clang::CastExpr *stmt);
+
+  /* MISRA
    * Rule: 2.2
    * There shall be no dead code
    */
@@ -876,6 +882,7 @@ public:
     CheckCastPointerToDifferentType(stmt);
     CheckNULLUsedAsInteger(stmt);
     CheckCastFunctionPointerType(stmt);
+    CheckCriticalUnspecifiedBehaviour(stmt);
   }
 
   void VisitImplicitCastExpr(const clang::ImplicitCastExpr *stmt) {

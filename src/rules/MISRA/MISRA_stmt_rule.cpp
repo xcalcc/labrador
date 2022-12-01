@@ -348,6 +348,29 @@ void MISRAStmtRule::CheckDynamicMemoryAllocation(const clang::CallExpr *stmt) {
   }
 }
 
+  /* MISRA
+   * Rule: 1.3
+   * There shall be no occurrence of undefined or critical unspecified behaviour
+   */
+void MISRAStmtRule::CheckCriticalUnspecifiedBehaviour(const clang::CastExpr *stmt) {
+  auto ctx = XcalCheckerManager::GetAstContext();
+  auto type = stmt->IgnoreParenImpCasts()->getType();
+  auto sub_type = stmt->getSubExpr()->IgnoreParenImpCasts()->getType();
+
+  // except for (void *)0
+  auto sub_stmt = stmt->getSubExpr();
+  if (sub_stmt->IgnoreCasts()->isNullPointerConstant(*ctx, clang::Expr::NPC_ValueDependentIsNull))
+    return;
+
+  if ((type->isPointerType() && !type->isVoidPointerType()) && sub_type->isVoidPointerType()) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_1_3, stmt);
+    std::string ref_msg = "There shall be no occurrence of undefined or critical unspecified behaviour";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
 /* MISRA
  * Rule: 2.2
  * There shall be no dead code
