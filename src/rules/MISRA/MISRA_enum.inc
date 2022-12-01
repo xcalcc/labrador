@@ -28,6 +28,7 @@
 #define M_D_4_8     "MSR_D_4_8"
 #define M_D_4_12    "MSR_D_4_12"
 #define M_R_1_1     "MSR_1_1"
+#define M_R_1_2     "MSR_1_2"
 #define M_R_2_2     "MSR_2_2"
 #define M_R_2_3     "MSR_2_3"
 #define M_R_2_4     "MSR_2_4"

@@ -276,6 +276,42 @@ void MISRADeclRule::CheckTypeOfBasicNumericalType(const clang::FunctionDecl *dec
 }
 
 /* MISRA
+ * Rule: 1.2
+ * Language extensions should not be used
+ */
+void MISRADeclRule::CheckLanguageExtension(const clang::FunctionDecl *decl) {
+  if (!decl->isInlineSpecified()) return;
+
+  bool need_report = false;
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  clang::SourceLocation begin = decl->getBeginLoc();
+  clang::SourceLocation end = decl->getTypeSpecStartLoc();
+  clang::LangOptions langOps;
+  do {
+    clang::Token tok;
+    clang::Lexer::getRawToken(begin, tok, *src_mgr, langOps);
+    if (tok.getLength() == 10) {
+      llvm::StringRef val = clang::Lexer::getSpelling(tok, *src_mgr, langOps);
+      if (strcmp(val.data(), "__inline__") == 0) {
+        need_report = true;
+        break;
+      }
+    }
+    auto next = clang::Lexer::findNextToken(begin, *src_mgr, langOps);
+    if (!next.hasValue()) break;
+    begin = next->getLocation();
+  } while (begin.isValid() && begin < end);
+
+  if (need_report) {
+    XcalIssue *issue = nullptr;
+    XcalReport *report = XcalCheckerManager::GetReport();
+    issue = report->ReportIssue(MISRA, M_R_1_2, decl);
+    std::string ref_msg = "Language extensions should not be used";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+/* MISRA
  * Rule: 2.3
  * A project should not contain unused type declarations
  */

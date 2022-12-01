@@ -88,6 +88,12 @@ private:
   void CheckTypeOfBasicNumericalType(const clang::FunctionDecl *decl);
 
   /* MISRA
+   * Rule: 1.2
+   * Language extensions should not be used
+   */
+  void CheckLanguageExtension(const clang::FunctionDecl *decl);
+
+  /* MISRA
    * Rule: 2.3
    * A project should not contain unused type declarations
    */
@@ -517,6 +523,7 @@ public:
     CheckDeclarationWithExternalLinkage(decl);
     CheckParameterNameAndType(decl);
     CheckTypeOfBasicNumericalType(decl);
+    CheckLanguageExtension(decl);
   }
 
   void VisitField(const clang::FieldDecl *decl) {
