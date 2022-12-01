@@ -125,6 +125,7 @@
 #define M_R_18_7    "MSR_18_7"
 #define M_R_18_8    "MSR_18_8"
 #define M_R_19_2    "MSR_19_2"
+#define M_R_20_3    "MSR_20_3"
 #define M_R_21_3    "MSR_21_3"
 #define M_R_21_4    "MSR_21_4"
 #define M_R_21_5    "MSR_21_5"

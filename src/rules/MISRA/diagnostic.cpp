@@ -36,6 +36,9 @@ void MISRADiagnostic::HandleDiagnostic(clang::DiagnosticsEngine::Level diagnosti
   printf("%u\n", diagnosticInfo.getID());
 #endif
   switch (diagnosticInfo.getID()) {
+    case 911:
+      AddIssue(M_R_20_3, msg, location);
+      break;
     case 1067:  // MISRA 4.2
       AddIssue(M_R_4_2, "Trigraphs should not be used", location);
       break;
