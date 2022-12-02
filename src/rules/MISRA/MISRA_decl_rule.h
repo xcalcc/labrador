@@ -162,6 +162,13 @@ private:
   void CheckTageUnique();
 
   /* MISRA
+   * Rule: 5.8
+   * Identifiers that define objects or functions with external linkage shall be
+   * unique
+   */
+  void CheckExternalIdentifierUnique();
+
+  /* MISRA
    * Rule: 5.9
    * Identifiers that define objects or functions with internal linkage shall be unique
    */
@@ -473,6 +480,7 @@ public:
     CheckIdentifierSameScopeUndistinct();
     CheckTentativeDefinition();
     CheckUnambiguousIdentifier();
+    CheckExternalIdentifierUnique();
   }
 
   void VisitVar(const clang::VarDecl *decl) {
