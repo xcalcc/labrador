@@ -51,6 +51,8 @@ private:
 
   std::set<const clang::ArraySubscriptExpr *> _checked_array_expr;
 
+  std::set<const clang::Decl *> _side_effect_func;
+
   std::string GetTypeString(clang::QualType type);
 
   clang::QualType GetRawTypeOfTypedef(clang::QualType type);
@@ -70,6 +72,9 @@ private:
 
   // check if the stmt is volatile qualified
   bool IsVolatileQualified(const clang::Stmt *stmt);
+
+  // check if current function has persistent side effect
+  bool HasPersistentSideEffect(const clang::UnaryOperator *stmt);
 
   // check if the expr has side effect
   bool HasSideEffect(const clang::Stmt *stmt);
@@ -1021,6 +1026,7 @@ public:
     CheckFILEPointerDereference(stmt);
     CheckArrayBoundsExceeded(stmt);
     CheckAssignmentOfPointer(stmt);
+    HasPersistentSideEffect(stmt);
   }
 
   void VisitReturnStmt(const clang::ReturnStmt *stmt) {

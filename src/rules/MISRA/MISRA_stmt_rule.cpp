@@ -96,6 +96,26 @@ bool MISRAStmtRule::IsVolatileQualified(const clang::Stmt *stmt) {
   return false;
 }
 
+// check if current function has persistent side effect
+bool MISRAStmtRule::HasPersistentSideEffect(const clang::UnaryOperator *stmt) {
+  if (stmt->isIncrementDecrementOp()) {
+    auto sub = stmt->getSubExpr()->IgnoreParenImpCasts();
+    if (auto expr = clang::dyn_cast<clang::DeclRefExpr>(sub)) {
+      auto decl = expr->getDecl();
+      if (auto var = clang::dyn_cast<clang::VarDecl>(decl)) {
+        auto ctx = XcalCheckerManager::GetAstContext();
+        auto linkage = ctx->GetGVALinkageForVariable(var);
+        if (linkage == clang::GVA_StrongExternal ||
+            var->getStorageClass() == clang::StorageClass::SC_Static) {
+          _side_effect_func.insert(_current_function_decl->getCanonicalDecl());
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
 // check if the stmt has side effect
 bool MISRAStmtRule::HasSideEffect(const clang::Stmt *stmt) {
   bool res = false;
@@ -2033,11 +2053,29 @@ void MISRAStmtRule::CheckUsingAssignmentAsResult(const clang::BinaryOperator *st
 void MISRAStmtRule::CheckRHSOfLogicalOpHasSideEffect(const clang::BinaryOperator *stmt) {
   if (!stmt->isLogicalOp()) return;
   bool res = false;
-  res = HasSpecificStmt(stmt->getRHS()->IgnoreParenImpCasts(), [](const clang::Stmt *st) -> bool {
-    if (auto call = clang::dyn_cast<clang::CallExpr>(st)) return true;
-    else if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(st)) {
+  res = HasSpecificStmt(stmt->getRHS()->IgnoreParenImpCasts(), [&](const clang::Stmt *st) -> bool {
+    if (auto expr = clang::dyn_cast<clang::Expr>(st)) {
+      st = expr->IgnoreParenImpCasts();
+    }
+    // return true only if the function callee has persistent side effect
+    if (auto call = clang::dyn_cast<clang::CallExpr>(st)) {
+      auto callee = GetCalleeDecl(call);
+      if (callee == nullptr) return false;
+      if (_side_effect_func.find(callee->getCanonicalDecl()) != _side_effect_func.end()) return true;
+    } else if (auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(st)) {
       auto decl = decl_ref->getDecl();
       if (decl->getType().isVolatileQualified()) return true;
+      if (auto var = clang::dyn_cast<clang::VarDecl>(decl)) {
+        if (var->hasInit()) {
+          auto init = var->getInit()->IgnoreParenImpCasts();
+          if (auto init_ref = clang::dyn_cast<clang::DeclRefExpr>(init)) {
+            auto init_decl = init_ref->getDecl();
+            if (auto func_decl = clang::dyn_cast<clang::FunctionDecl>(init_decl)) {
+              if (_side_effect_func.find(func_decl->getCanonicalDecl()) != _side_effect_func.end()) return true;
+            }
+          }
+        }
+      }
     }
     return false;
   });
