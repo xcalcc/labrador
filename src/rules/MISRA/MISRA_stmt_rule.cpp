@@ -746,6 +746,8 @@ void MISRAStmtRule::CheckModifiedPointerDecl(const clang::Expr* expr) {
     }
   } else if (auto array = clang::dyn_cast<clang::ArraySubscriptExpr>(expr)) {
     ptr_expr = array->getBase()->IgnoreParenImpCasts();
+  } else if (auto mem_expr = clang::dyn_cast<clang::MemberExpr>(expr)) {
+    ptr_expr = mem_expr->getBase()->IgnoreParenImpCasts();
   }
   if (auto decl_expr = clang::dyn_cast<clang::DeclRefExpr>(ptr_expr)) {
     auto decl = decl_expr->getDecl();
