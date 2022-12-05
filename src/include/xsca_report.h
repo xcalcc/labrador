@@ -120,6 +120,31 @@ public:
 
 };  // XcalReport
 
+// class XcalPDB
+class XcalPDB {
+private:
+  FILE *_pdb_file;  // .pdb file
+
+  public:
+  // constructor
+  XcalPDB() : _pdb_file(NULL) {}
+
+  ~XcalPDB() {
+    if (_pdb_file)
+      fclose(_pdb_file);
+  }
+
+  void Initialize(const char* pdb) {
+    if (pdb) {
+      _pdb_file = fopen(pdb, "w");
+    }
+  }
+
+  void WriteSymbolInfo(const char* name, const char* kind, bool defined,
+                       const clang::SourceLocation SL, const char* type,
+                       const clang::StorageClass SC, const clang::Linkage L);
+ }; // XcalPDB
+
 #define REPORT(fmt, ...) printf(fmt, ##__VA_ARGS__);
 
 }  // namespace xsca

@@ -264,4 +264,28 @@ XcalIssue *XcalReport::ReportIssue(const char *std, const char *rule, const clan
   return issue_ptr;
 }
 
+void XcalPDB::WriteSymbolInfo(const char* name, const char* kind, bool defined,
+                              const clang::SourceLocation SL, const char* type,
+                              const clang::StorageClass SC, const clang::Linkage L) {
+  if (_pdb_file == NULL)
+    return;
+
+  auto src_mgr = XcalCheckerManager::GetSourceManager();
+  auto SpellingLoc = src_mgr->getSpellingLoc(SL);
+  clang::PresumedLoc PLoc = src_mgr->getPresumedLoc(SpellingLoc);
+  uint16_t line = 0;
+  uint16_t col = 0;
+  const char* filename = nullptr;
+  if (PLoc.isInvalid())
+    return;
+
+  line = PLoc.getLine();
+  col = PLoc.getColumn();
+  filename = PLoc.getFilename();
+  auto func = XcalCheckerManager::GetCurrentFunction();
+  const char* funcname = func == NULL ? "" : func->getName().data();
+  fprintf(_pdb_file, "%s;;%s;;%d;;%s;;%d:%d;;%s;;%s;;%d;;%d\n",
+          name, kind, defined, filename, line, col, funcname, type, SC, L);
+}
+
 }  // namespace xsca

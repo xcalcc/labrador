@@ -176,6 +176,11 @@ private:
    */
   void CheckExternalIdentifierUnique();
 
+  // Note: write out symbol info into pdb for post processing
+  void WriteFuncDeclToPDB(const clang::FunctionDecl *decl);
+  void WriteParmVarDeclToPDB(const clang::ParmVarDecl *decl);
+  void WriteVarDeclToPDB(const clang::VarDecl *decl);
+
   /* MISRA
    * Rule: 5.9
    * Identifiers that define objects or functions with internal linkage shall be unique
@@ -507,11 +512,13 @@ public:
     CheckTypeOfPrevVarDecl(decl);
     CheckTypeOfBasicNumericalType(decl);
     CheckParameterNoIdentifier(decl);
+    WriteVarDeclToPDB(decl);
   }
 
   void VisitParmVar(const clang::ParmVarDecl *decl) {
     CheckRestrict<clang::ParmVarDecl>(decl);
     CheckPointerNestedLevel(decl);
+    WriteParmVarDeclToPDB(decl);
   }
 
   void VisitEnum(const clang::EnumDecl *decl) {
@@ -540,6 +547,7 @@ public:
     CheckParameterNameAndType(decl);
     CheckTypeOfBasicNumericalType(decl);
     CheckLanguageExtension(decl);
+    WriteFuncDeclToPDB(decl);
   }
 
   void VisitField(const clang::FieldDecl *decl) {
