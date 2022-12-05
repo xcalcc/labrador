@@ -62,6 +62,14 @@ private:
   clang::QualType GetUnderlyingType(clang::QualType *type);
 
   /* MISRA
+   * Directive: 1.1
+   *
+   * Any implementation-defined behaviour on which the output of the
+   * program depends shall be documented and understood
+   */
+  void ReportImplementationDefinedBehaviour(const clang::Decl *decl);
+
+  /* MISRA
    * Directive: 4.5
    * Identifiers in the same namespace with overlapping visibility should be
    * typographically unambiguous

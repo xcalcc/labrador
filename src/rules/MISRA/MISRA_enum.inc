@@ -23,6 +23,7 @@
 //
 
 #define MISRA       "MISRA"
+#define M_D_1_1     "MSR_D_1_1"
 #define M_D_4_5     "MSR_D_4_5"
 #define M_D_4_6     "MSR_D_4_6"
 #define M_D_4_8     "MSR_D_4_8"

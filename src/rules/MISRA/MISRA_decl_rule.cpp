@@ -139,6 +139,21 @@ clang::QualType MISRADeclRule::GetUnderlyingType(clang::QualType type) {
 }
 
 /* MISRA
+ * Directive: 1.1
+ *
+ * Any implementation-defined behaviour on which the output of the
+ * program depends shall be documented and understood
+ */
+void MISRADeclRule::ReportImplementationDefinedBehaviour(const clang::Decl *decl) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+  issue = report->ReportIssue(MISRA, M_D_1_1, decl);
+  std::string ref_msg = "Any implementation-defined behaviour on which the output of the "
+                        "program depends shall be documented and understood";
+  issue->SetRefMsg(ref_msg);
+}
+
+/* MISRA
  * Directive: 4.5
  * Identifiers in the same namespace with overlapping visibility should be
  * typographically unambiguous
@@ -447,7 +462,7 @@ void MISRADeclRule::CheckUndistinctExternalIdent() {
 
   top_scope->TraverseAll<kind,
       const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
-      [&vars](const std::string &x, const clang::Decl *decl, IdentifierManager *id_mgr) -> void {
+      [&](const std::string &x, const clang::Decl *decl, IdentifierManager *id_mgr) -> void {
         XcalIssue *issue = nullptr;
         XcalReport *report = XcalCheckerManager::GetReport();
 
@@ -465,6 +480,8 @@ void MISRADeclRule::CheckUndistinctExternalIdent() {
                 ref_msg += var_decl->getNameAsString();
                 issue->SetRefMsg(ref_msg);
                 issue->AddDecl(var_decl);
+                // report for Directive 1.1
+                ReportImplementationDefinedBehaviour(it.second);
               }
             }
 
