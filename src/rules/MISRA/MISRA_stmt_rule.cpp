@@ -1229,6 +1229,68 @@ void MISRAStmtRule::CheckArithmeticWithDifferentType(const clang::BinaryOperator
 }
 
 /* MISRA
+ * Rule: 10.5
+ * The value of an expression should not be cast to an inappropriate essential type
+ */
+void MISRAStmtRule::CheckInappropriateCast(const clang::CStyleCastExpr *stmt) {
+  XcalIssue *issue = nullptr;
+  XcalReport *report = XcalCheckerManager::GetReport();
+
+  auto from_type = stmt->getSubExpr()->IgnoreParenImpCasts()->getType();
+  auto to_type = stmt->IgnoreParenImpCasts()->getType();
+
+  bool need_report = false;
+  if (from_type->isBooleanType()) {
+    if (!to_type->isBooleanType()) {
+      need_report = true;
+    }
+  } else if (from_type->isCharType()) {
+    if (to_type->isBooleanType() || to_type->isEnumeralType() || to_type->isFloatingType()) {
+      need_report = true;
+    }
+  } else if (from_type->isEnumeralType()) {
+    if (to_type->isBooleanType() || to_type->isEnumeralType()) {
+      need_report = true;
+    }
+  } else if (from_type->isSignedIntegerType()) {
+    if (to_type->isEnumeralType()) {
+      need_report = true;
+    } else if (to_type->isBooleanType()) {
+      if (auto literal = clang::dyn_cast<clang::IntegerLiteral>(stmt->getSubExpr()->IgnoreParenImpCasts())) {
+        auto ctx = XcalCheckerManager::GetAstContext();
+        int value;
+        clang::Expr::EvalResult eval_result;
+
+        // try to fold the const expr
+        if (literal->EvaluateAsInt(eval_result, *ctx)) {
+          value = eval_result.Val.getInt().getZExtValue();
+        } else {
+          value = literal->getValue().getZExtValue();
+        }
+
+        if (value != 0 && value != 1) need_report = true;
+      } else {
+        need_report = true;
+      }
+    }
+  } else if (from_type->isUnsignedIntegerType()) {
+    if (to_type->isBooleanType() || to_type->isEnumeralType()) {
+      need_report = true;
+    }
+  } else if (from_type->isFloatingType()) {
+    if (to_type->isBooleanType() || to_type->isCharType() || to_type->isEnumeralType()) {
+      need_report = true;
+    }
+  }
+
+  if (need_report) {
+    issue = report->ReportIssue(MISRA, M_R_10_5, stmt);
+    std::string ref_msg = "The value of an expression should not be cast to an inappropriate essential type";
+    issue->SetRefMsg(ref_msg);
+  }
+}
+
+/* MISRA
  * Rule: 10.6
  * The value of a composite expression shall not be assigned to an object with wider essential type
  */

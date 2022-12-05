@@ -237,8 +237,9 @@ private:
   /* MISRA
    * Rule: 10.5
    * The value of an expression should not be cast to an inappropriate essential type
-   * MOVED TO AUTOSAR A5-0-3
+   * from AUTOSAR A5-0-3
    */
+  void CheckInappropriateCast(const clang::CStyleCastExpr *stmt);
 
   /* MISRA
    * Rule: 10.6
@@ -888,6 +889,7 @@ public:
     CheckNULLUsedAsInteger(stmt);
     CheckCastFunctionPointerType(stmt);
     CheckCriticalUnspecifiedBehaviour(stmt);
+    CheckInappropriateCast(stmt);
   }
 
   void VisitImplicitCastExpr(const clang::ImplicitCastExpr *stmt) {

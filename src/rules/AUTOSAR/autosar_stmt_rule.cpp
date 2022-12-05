@@ -112,7 +112,7 @@ void AUTOSARStmtRule::CheckInappropriateCast(const clang::CStyleCastExpr *stmt) 
       need_report = true;
     }
   } else if (from_type->isEnumeralType()) {
-    if (to_type->isBooleanType()) {
+    if (to_type->isBooleanType() || to_type->isEnumeralType()) {
       need_report = true;
     }
   } else if (from_type->isSignedIntegerType()) {
@@ -132,6 +132,8 @@ void AUTOSARStmtRule::CheckInappropriateCast(const clang::CStyleCastExpr *stmt) 
         }
 
         if (value != 0 && value != 1) need_report = true;
+      } else {
+       need_report = true;
       }
     }
   } else if (from_type->isUnsignedIntegerType()) {
