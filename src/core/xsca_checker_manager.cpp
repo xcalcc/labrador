@@ -55,6 +55,10 @@ XcalCheckerManager::InitCheckers(clang::CompilerInstance &CI,
       .rtrim(".i").rtrim(".ii");
   _report->Initialize(_source_mgr, basename(const_cast<char *>((file+".fe.vtxt").str().c_str())));
 
+  // initialize PDB
+  _pdb = std::make_unique<XcalPDB>();
+  _pdb->Initialize(basename(const_cast<char *>((file+".pdb").str().c_str())));
+
   // initializer consumers and ppcallbacks
   std::vector<std::unique_ptr<clang::ASTConsumer> > consumers;
   clang::Preprocessor *pp = &CI.getPreprocessor();

@@ -52,6 +52,7 @@ public:
 class XcalCheckerManager {
 private:
   std::unique_ptr<XcalReport>                           _report;
+  std::unique_ptr<XcalPDB>                              _pdb;
   std::unique_ptr<XcalChecker>                          _dump_checker;
   std::unique_ptr<ScopeManager>                         _scope_mgr;
   std::unique_ptr<ConfigureManager>                     _conf_mgr;
@@ -97,6 +98,12 @@ public:
   GetReport() {
     DBG_ASSERT(_instance._report.get() != nullptr, "report is null");
     return _instance._report.get();
+  }
+
+  static XcalPDB *
+  GetPDB() {
+    DBG_ASSERT(_instance._pdb.get() != nullptr, "pdb is null");
+    return _instance._pdb.get();
   }
 
   static ScopeManager *
