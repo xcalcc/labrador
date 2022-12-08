@@ -728,30 +728,30 @@ void MISRADeclRule::WriteFuncDeclToPDB(const clang::FunctionDecl *decl) {
   XcalPDB *pdb = XcalCheckerManager::GetPDB();
   if (pdb == NULL)
     return;
-  pdb->WriteSymbolInfo(decl->getName().data(), decl->clang::Decl::getDeclKindName(),
-                       decl->isThisDeclarationADefinition(), decl->getLocation(),
-                       decl->getType().getAsString().c_str(), decl->getStorageClass(),
-                       decl->getLinkageInternal());
+  // pdb->WriteSymbolInfo(decl->getName().data(), decl->clang::Decl::getDeclKindName(),
+  //                      decl->isThisDeclarationADefinition(), decl->getLocation(),
+  //                      decl->getType().getAsString().c_str(), decl->getStorageClass(),
+  //                      decl->getLinkageInternal());
 }
 
 void MISRADeclRule::WriteParmVarDeclToPDB(const clang::ParmVarDecl *decl) {
   XcalPDB *pdb = XcalCheckerManager::GetPDB();
   if (pdb == NULL)
     return;
-  pdb->WriteSymbolInfo(decl->getName().data(), decl->clang::Decl::getDeclKindName(),
-                       decl->isThisDeclarationADefinition(), decl->getLocation(),
-                       decl->getType().getAsString().c_str(), decl->getStorageClass(),
-                       decl->getLinkageInternal());
+  // pdb->WriteSymbolInfo(decl->getName().data(), decl->clang::Decl::getDeclKindName(),
+  //                      decl->isThisDeclarationADefinition(), decl->getLocation(),
+  //                      decl->getType().getAsString().c_str(), decl->getStorageClass(),
+  //                      decl->getLinkageInternal());
 }
 
 void MISRADeclRule::WriteVarDeclToPDB(const clang::VarDecl *decl) {
   XcalPDB *pdb = XcalCheckerManager::GetPDB();
   if (pdb == NULL)
     return;
-  pdb->WriteSymbolInfo(decl->getName().data(), decl->clang::Decl::getDeclKindName(),
-                       decl->isThisDeclarationADefinition(), decl->getLocation(),
-                       decl->getType().getAsString().c_str(), decl->getStorageClass(),
-                       decl->getLinkageInternal());
+  // pdb->WriteSymbolInfo(decl->getName().data(), decl->clang::Decl::getDeclKindName(),
+  //                      decl->isThisDeclarationADefinition(), decl->getLocation(),
+  //                      decl->getType().getAsString().c_str(), decl->getStorageClass(),
+  //                      decl->getLinkageInternal());
 }
 
 /* MISRA

@@ -143,7 +143,7 @@ private:
   void WriteSymbolInfo(const char* name, const char* kind, bool defined,
                        const clang::SourceLocation SL, const char* type,
                        const clang::StorageClass SC, const clang::Linkage L);
- }; // XcalPDB
+}; // XcalPDB
 
 #define REPORT(fmt, ...) printf(fmt, ##__VA_ARGS__);
 
