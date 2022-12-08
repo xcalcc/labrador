@@ -2492,6 +2492,7 @@ void MISRAStmtRule::CheckSyntaxRuleOfSWitchStmt(const clang::SwitchStmt *stmt) {
       auto sub = case_stmt->getSubStmt();
       if (clang::isa<clang::CompoundStmt>(sub)) {
         auto next = std::next(it);
+        if (next == end) break;
         if (!IsCaseStmt(*next) && next->getStmtClass() != clang::Stmt::BreakStmtClass)
           ReportSyntaxRuleOfSWitchStmt(*next);
       }
