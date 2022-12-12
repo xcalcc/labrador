@@ -283,9 +283,12 @@ void XcalPDB::WriteSymbolInfo(const char* name, const char* kind, bool defined,
   col = PLoc.getColumn();
   filename = PLoc.getFilename();
   auto func = XcalCheckerManager::GetCurrentFunction();
-  const char* funcname = func == NULL ? "" : func->getName().data();
+  const char* funcname = "";
+  if (func != NULL && func->getIdentifier() != NULL)
+    funcname = func->getName().data();
   fprintf(_pdb_file, "%s;;%s;;%d;;%s;;%d:%d;;%s;;%s;;%d;;%d\n",
-          name, kind, defined, filename, line, col, funcname, type, SC, L);
+          name, kind ? kind : "", defined, filename ? filename : "",
+          line, col, funcname, type ? type : "", SC, L);
 }
 
 }  // namespace xsca

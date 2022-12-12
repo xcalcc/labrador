@@ -581,7 +581,7 @@ void AUTOSARDeclRule::CheckUnnecessaryCTor(const clang::CXXRecordDecl *decl) {
         // check parameter
         auto cxx_ctor = clang::dyn_cast<clang::CXXConstructExpr>(init->getInit());
         if (!cxx_ctor) return;
-        for (std::size_t i = 0; i < cxx_ctor->getNumArgs(); i++) {
+        for (std::size_t i = 0; i < cxx_ctor->getNumArgs() && i < ctor->getNumParams(); i++) {
           auto arg = StripAllParenImpCast(cxx_ctor->getArg(i));
           auto param = ctor->getParamDecl(i);
           auto decl_ref = clang::dyn_cast<clang::DeclRefExpr>(arg);

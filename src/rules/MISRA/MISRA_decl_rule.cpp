@@ -726,32 +726,32 @@ void MISRADeclRule::CheckExternalIdentifierUnique() {
 // Note: write out symbol info into pdb for post processing
 void MISRADeclRule::WriteFuncDeclToPDB(const clang::FunctionDecl *decl) {
   XcalPDB *pdb = XcalCheckerManager::GetPDB();
-  if (pdb == NULL)
+  if (pdb == NULL || decl->getIdentifier() == NULL)
     return;
-  // pdb->WriteSymbolInfo(decl->getName().data(), decl->clang::Decl::getDeclKindName(),
-  //                      decl->isThisDeclarationADefinition(), decl->getLocation(),
-  //                      decl->getType().getAsString().c_str(), decl->getStorageClass(),
-  //                      decl->getLinkageInternal());
+  pdb->WriteSymbolInfo(decl->getName().data(), decl->clang::Decl::getDeclKindName(),
+                       decl->isThisDeclarationADefinition(), decl->getLocation(),
+                       decl->getType().getAsString().c_str(), decl->getStorageClass(),
+                       decl->getLinkageInternal());
 }
 
 void MISRADeclRule::WriteParmVarDeclToPDB(const clang::ParmVarDecl *decl) {
   XcalPDB *pdb = XcalCheckerManager::GetPDB();
-  if (pdb == NULL)
+  if (pdb == NULL || decl->getIdentifier() == NULL)
     return;
-  // pdb->WriteSymbolInfo(decl->getName().data(), decl->clang::Decl::getDeclKindName(),
-  //                      decl->isThisDeclarationADefinition(), decl->getLocation(),
-  //                      decl->getType().getAsString().c_str(), decl->getStorageClass(),
-  //                      decl->getLinkageInternal());
+  pdb->WriteSymbolInfo(decl->getName().data(), decl->clang::Decl::getDeclKindName(),
+                       decl->isThisDeclarationADefinition(), decl->getLocation(),
+                       decl->getType().getAsString().c_str(), decl->getStorageClass(),
+                       decl->getLinkageInternal());
 }
 
 void MISRADeclRule::WriteVarDeclToPDB(const clang::VarDecl *decl) {
   XcalPDB *pdb = XcalCheckerManager::GetPDB();
-  if (pdb == NULL)
+  if (pdb == NULL || decl->getIdentifier() == NULL)
     return;
-  // pdb->WriteSymbolInfo(decl->getName().data(), decl->clang::Decl::getDeclKindName(),
-  //                      decl->isThisDeclarationADefinition(), decl->getLocation(),
-  //                      decl->getType().getAsString().c_str(), decl->getStorageClass(),
-  //                      decl->getLinkageInternal());
+  pdb->WriteSymbolInfo(decl->getName().data(), decl->clang::Decl::getDeclKindName(),
+                       decl->isThisDeclarationADefinition(), decl->getLocation(),
+                       decl->getType().getAsString().c_str(), decl->getStorageClass(),
+                       decl->getLinkageInternal());
 }
 
 /* MISRA
@@ -1323,7 +1323,7 @@ void MISRADeclRule::CheckForbiddenHeaderFile() {
       if (!file_ref.hasValue()) continue;
       const clang::FileEntry *file_entry_ptr = &file_ref.getValue().getFileEntry();
       int line = std::stoi(it[2]);
-      auto loc = src_mgr->translateFileLineCol(file_entry_ptr, line, 0);
+      auto loc = src_mgr->translateFileLineCol(file_entry_ptr, line, 1);
       if (loc.isInvalid()) continue;
 
       if (filename.find("stdarg.h") != std::string::npos)
@@ -1567,6 +1567,12 @@ void MISRADeclRule::CheckOverriddenVirtualFuncHasDiffParam(const clang::CXXRecor
         auto o_param = origin_method->getParamDecl(i);
         auto c_param = method->getParamDecl(i);
         if (c_param->hasDefaultArg()) {
+          if (!o_param->hasDefaultArg()) {
+            need_report = true;
+            sinks.push_back(c_param);
+            sinks.push_back(o_param);
+            continue;
+          }
           auto o_default = o_param->getDefaultArg();
           auto c_default = c_param->getDefaultArg();
           clang::Expr::EvalResult o_val, c_val;

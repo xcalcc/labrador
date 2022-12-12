@@ -3709,11 +3709,15 @@ void MISRAStmtRule::CheckMissingCatchStmt(const clang::CXXTryStmt *stmt) {
         bool res = false;
         if (catch_type->isBuiltinType()) {
           if (catch_type->getTypeClass() == type->getTypeClass()) res = true;
-        } else if (catch_type->isRecordType()) {
-          auto catch_record_tp = clang::cast<clang::RecordType>(catch_type);
-          if (auto record_tp = clang::dyn_cast<clang::RecordType>(type)) {
-            if (record_tp->getDecl()->getNameAsString() == catch_record_tp->getDecl()->getNameAsString()) {
-              res = true;
+        } else {
+          if (catch_type->getTypeClass() == clang::Type::Elaborated)
+            catch_type = clang::cast<clang::ElaboratedType>(catch_type)->getNamedType();
+          if (catch_type->isRecordType()) {
+            auto catch_record_tp = clang::cast<clang::RecordType>(catch_type);
+            if (auto record_tp = clang::dyn_cast<clang::RecordType>(type)) {
+              if (record_tp->getDecl()->getNameAsString() == catch_record_tp->getDecl()->getNameAsString()) {
+                res = true;
+              }
             }
           }
         }
