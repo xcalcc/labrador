@@ -118,7 +118,7 @@ bool MISRAStmtRule::HasPersistentSideEffect(const clang::UnaryOperator *stmt) {
 
 // check if the stmt has side effect
 bool MISRAStmtRule::HasSideEffect(const clang::Stmt *stmt) {
-  bool res = false;
+  if (stmt == NULL) return false;
 
   if (auto unary = clang::dyn_cast<clang::UnaryOperator>(stmt)) {
     if (unary->isIncrementDecrementOp()) return true;
