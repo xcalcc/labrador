@@ -2805,6 +2805,9 @@ void MISRAStmtRule::CheckModifyParameters(const clang::BinaryOperator *stmt) {
  */
 void MISRAStmtRule::CheckAddOrSubOnPointer(const clang::BinaryOperator *stmt) {
   if (!stmt->isAdditiveOp() && !stmt->isCompoundAssignmentOp()) return;
+  // Exception:
+  // subject to Rule 18.2, pointer subtraction between two pointers is allowed
+  if (stmt->getOpcode() == clang::BO_Sub) return;
   auto lhs_type = stmt->getLHS()->IgnoreParenImpCasts()->getType();
   auto rhs_type = stmt->getRHS()->IgnoreParenImpCasts()->getType();
   if (lhs_type->isPointerType() || rhs_type->isPointerType()) {
