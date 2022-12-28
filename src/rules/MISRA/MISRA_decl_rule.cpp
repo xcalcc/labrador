@@ -728,7 +728,9 @@ void MISRADeclRule::WriteFuncDeclToPDB(const clang::FunctionDecl *decl) {
   XcalPDB *pdb = XcalCheckerManager::GetPDB();
   if (pdb == NULL || decl->getIdentifier() == NULL)
     return;
-  pdb->WriteSymbolInfo(decl->getName().data(), decl->clang::Decl::getDeclKindName(),
+  std::string name = decl->getQualifiedNameAsString() + "::" + std::to_string(decl->getTemplatedKind());
+
+  pdb->WriteSymbolInfo(name.c_str(), decl->clang::Decl::getKind(),
                        decl->isThisDeclarationADefinition(), decl->getLocation(),
                        decl->getType().getAsString().c_str(), decl->getStorageClass(),
                        decl->getLinkageInternal());
@@ -738,7 +740,7 @@ void MISRADeclRule::WriteParmVarDeclToPDB(const clang::ParmVarDecl *decl) {
   XcalPDB *pdb = XcalCheckerManager::GetPDB();
   if (pdb == NULL || decl->getIdentifier() == NULL)
     return;
-  pdb->WriteSymbolInfo(decl->getName().data(), decl->clang::Decl::getDeclKindName(),
+  pdb->WriteSymbolInfo(decl->getName().data(), decl->clang::Decl::getKind(),
                        decl->isThisDeclarationADefinition(), decl->getLocation(),
                        decl->getType().getAsString().c_str(), decl->getStorageClass(),
                        decl->getLinkageInternal());
@@ -748,10 +750,63 @@ void MISRADeclRule::WriteVarDeclToPDB(const clang::VarDecl *decl) {
   XcalPDB *pdb = XcalCheckerManager::GetPDB();
   if (pdb == NULL || decl->getIdentifier() == NULL)
     return;
-  pdb->WriteSymbolInfo(decl->getName().data(), decl->clang::Decl::getDeclKindName(),
+  pdb->WriteSymbolInfo(decl->getName().data(), decl->clang::Decl::getKind(),
                        decl->isThisDeclarationADefinition(), decl->getLocation(),
                        decl->getType().getAsString().c_str(), decl->getStorageClass(),
                        decl->getLinkageInternal());
+}
+
+void MISRADeclRule::WriteTypedefDeclToPDB(const clang::TypedefDecl *decl) {
+  XcalPDB *pdb = XcalCheckerManager::GetPDB();
+  if (pdb == NULL || decl->getIdentifier() == NULL)
+    return;
+  // do not print out typedef info for 'typedef struct A {} A;' as we've got 'struct A'
+  clang::QualType decl_type = decl->getUnderlyingType();
+  if (decl_type->getTypeClass() == clang::Type::Elaborated)
+    decl_type = clang::cast<clang::ElaboratedType>(decl_type)->getNamedType();
+  if (decl_type->isRecordType()) {
+    const clang::RecordType *record_type = clang::dyn_cast<clang::RecordType>(decl_type);
+    if (record_type != NULL) {
+      clang::RecordDecl *record_decl = record_type->getDecl();
+      if (record_decl != NULL) {
+        if (decl->getNameAsString() == record_decl->getNameAsString())
+          return;
+      }
+    }
+  }
+  pdb->WriteSymbolInfo(decl->getName().data(), decl->clang::Decl::getKind(),
+                       false, decl->getLocation(),
+                       decl->getUnderlyingType().getAsString().c_str(), clang::StorageClass::SC_None,
+                       decl->getLinkageInternal());
+}
+
+void MISRADeclRule::WriteRecordDeclToPDB(const clang::RecordDecl *decl) {
+  XcalPDB *pdb = XcalCheckerManager::GetPDB();
+  if (pdb == NULL || decl->getIdentifier() == NULL)
+    return;
+  pdb->WriteSymbolInfo(decl->getName().data(), decl->clang::Decl::getKind(),
+                       decl->isThisDeclarationADefinition(), decl->getLocation(),
+                       decl->getQualifiedNameAsString().c_str(), clang::StorageClass::SC_None,
+                       decl->getLinkageInternal());
+
+}
+
+void MISRADeclRule::WriteFieldDeclToPDB(const clang::FieldDecl *decl) {
+  XcalPDB *pdb = XcalCheckerManager::GetPDB();
+  if (pdb == NULL || decl->getIdentifier() == NULL)
+    return;
+  clang::QualType decl_type = decl->getType();
+  if (decl_type->getTypeClass() == clang::Type::Elaborated)
+    decl_type = clang::cast<clang::ElaboratedType>(decl_type)->getNamedType();
+  if (!decl_type->isRecordType())
+    return;
+  const clang::RecordType *record_type = clang::dyn_cast<clang::RecordType>(decl_type);
+  if (record_type != NULL) {
+    const clang::RecordDecl *record_decl = record_type->getDecl();
+    if (record_decl != NULL) {
+      WriteRecordDeclToPDB(record_decl);
+    }
+  }
 }
 
 /* MISRA

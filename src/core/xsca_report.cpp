@@ -264,7 +264,7 @@ XcalIssue *XcalReport::ReportIssue(const char *std, const char *rule, const clan
   return issue_ptr;
 }
 
-void XcalPDB::WriteSymbolInfo(const char* name, const char* kind, bool defined,
+void XcalPDB::WriteSymbolInfo(const char* name, const clang::Decl::Kind kind, bool defined,
                               const clang::SourceLocation SL, const char* type,
                               const clang::StorageClass SC, const clang::Linkage L) {
   if (_pdb_file == NULL)
@@ -286,8 +286,8 @@ void XcalPDB::WriteSymbolInfo(const char* name, const char* kind, bool defined,
   const char* funcname = "";
   if (func != NULL && func->getIdentifier() != NULL)
     funcname = func->getName().data();
-  fprintf(_pdb_file, "%s;;%s;;%d;;%s;;%d:%d;;%s;;%s;;%d;;%d\n",
-          name, kind ? kind : "", defined, filename ? filename : "",
+  fprintf(_pdb_file, "%s;;%d;;%d;;%s;;%d:%d;;%s;;%s;;%d;;%d\n",
+          name, kind, defined, filename ? filename : "",
           line, col, funcname, type ? type : "", SC, L);
 }
 

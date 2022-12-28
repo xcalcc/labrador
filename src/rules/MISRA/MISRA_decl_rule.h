@@ -180,6 +180,9 @@ private:
   void WriteFuncDeclToPDB(const clang::FunctionDecl *decl);
   void WriteParmVarDeclToPDB(const clang::ParmVarDecl *decl);
   void WriteVarDeclToPDB(const clang::VarDecl *decl);
+  void WriteTypedefDeclToPDB(const clang::TypedefDecl *decl);
+  void WriteRecordDeclToPDB(const clang::RecordDecl *decl);
+  void WriteFieldDeclToPDB(const clang::FieldDecl *decl);
 
   /* MISRA
    * Rule: 5.9
@@ -530,6 +533,7 @@ public:
     CheckUnionKeyword(decl);
     CheckTypedefOfBasicNumericalType(decl);
     CheckParameterNoIdentifier(decl);
+    WriteTypedefDeclToPDB(decl);
   }
 
   void VisitFunction(const clang::FunctionDecl *decl) {
@@ -555,6 +559,7 @@ public:
     CheckVariableAsArrayLength(decl);
     CheckPointerNestedLevel(decl);
     CheckPointerNestedMoreThanTwoLevel(decl);
+    WriteFieldDeclToPDB(decl);
   }
 
   void VisitRecord(const clang::RecordDecl *decl) {
@@ -562,6 +567,7 @@ public:
     CheckFlexibleArray(decl);
     CheckUnionKeyword(decl);
     CheckSingleBitSignedValue(decl);
+    WriteRecordDeclToPDB(decl);
   }
 
   void VisitCXXRecord(const clang::CXXRecordDecl *decl) {
