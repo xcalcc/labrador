@@ -728,9 +728,7 @@ void MISRADeclRule::WriteFuncDeclToPDB(const clang::FunctionDecl *decl) {
   XcalPDB *pdb = XcalCheckerManager::GetPDB();
   if (pdb == NULL || decl->getIdentifier() == NULL)
     return;
-  std::string name = decl->getQualifiedNameAsString() + "::" + std::to_string(decl->getTemplatedKind());
-
-  pdb->WriteSymbolInfo(name.c_str(), decl->clang::Decl::getKind(),
+  pdb->WriteSymbolInfo(decl->getQualifiedNameAsString().c_str(), decl->clang::Decl::getKind(),
                        decl->isThisDeclarationADefinition(), decl->getLocation(),
                        decl->getType().getAsString().c_str(), decl->getStorageClass(),
                        decl->getLinkageInternal());
@@ -750,7 +748,7 @@ void MISRADeclRule::WriteVarDeclToPDB(const clang::VarDecl *decl) {
   XcalPDB *pdb = XcalCheckerManager::GetPDB();
   if (pdb == NULL || decl->getIdentifier() == NULL)
     return;
-  pdb->WriteSymbolInfo(decl->getName().data(), decl->clang::Decl::getKind(),
+  pdb->WriteSymbolInfo(decl->getQualifiedNameAsString().c_str(), decl->clang::Decl::getKind(),
                        decl->isThisDeclarationADefinition(), decl->getLocation(),
                        decl->getType().getAsString().c_str(), decl->getStorageClass(),
                        decl->getLinkageInternal());
