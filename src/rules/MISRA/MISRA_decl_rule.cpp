@@ -706,9 +706,13 @@ void MISRADeclRule::CheckExternalIdentifierUnique() {
         id_mgr->GetOuterVariables(var_name, vars);
         bool need_report = false;
         if (!vars.empty()) {
+          const clang::VarDecl *definedDecl;
           for (const auto &it : vars) {
-            if (ctx->GetGVALinkageForVariable(&*it) == clang::GVA_StrongExternal)
+            if (ctx->GetGVALinkageForVariable(&*it) == clang::GVA_StrongExternal) {
               need_report = true;
+              definedDecl = &*it;
+              break;
+            }
           }
           if (need_report) {
             auto var_decl = clang::dyn_cast<clang::NamedDecl>(decl);
@@ -718,6 +722,7 @@ void MISRADeclRule::CheckExternalIdentifierUnique() {
                                   "unique: ";
             ref_msg += var_decl->getNameAsString();
             issue->SetRefMsg(ref_msg);
+            issue->AddDecl(definedDecl);
           }
         }
       }, true);
@@ -828,9 +833,13 @@ void MISRADeclRule::CheckInternalIdentifierUnique() {
         bool need_report = false;
 
         if (!vars.empty()) {
+          const clang::VarDecl *definedDecl;
           for (const auto &it : vars) {
-            if ((&*it)->getStorageClass() == clang::StorageClass::SC_Static)
+            if ((&*it)->getStorageClass() == clang::StorageClass::SC_Static) {
               need_report = true;
+              definedDecl = &*it;
+              break;
+            }
           }
           if (need_report) {
             auto var_decl = clang::dyn_cast<clang::NamedDecl>(decl);
@@ -840,6 +849,7 @@ void MISRADeclRule::CheckInternalIdentifierUnique() {
                                   "with internal linkage shall be unique: ";
             ref_msg += var_decl->getNameAsString();
             issue->SetRefMsg(ref_msg);
+            issue->AddDecl(definedDecl);
           }
         }
       }, true);
