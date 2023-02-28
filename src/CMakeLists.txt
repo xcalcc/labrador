@@ -19,6 +19,10 @@ if (NOT CLANG_HOME)
   set (CLANG_HOME "$ENV{CLANG_HOME}")
 endif ()
 
+if (NOT XSCA_HOME)
+  set (XSCA_HOME "$ENV{XSCA_HOME}")
+endif()
+
 if (NOT CLANG_HOME)
   message (FATAL_ERROR "CLANG_HOME isn't set. Use -DCLANG_HOME=<path_too_clang> to specify clang prebuilt files.")
 else ()
@@ -120,4 +124,17 @@ target_link_libraries (xsca
   ${XCSA_LIBS}
   ${XSCA_CLANG_LIBS}
   )
+
+#install conf and doti_parser.py
+if (XSCA_HOME)
+  install(DIRECTORY ../conf
+          DESTINATION ${XSCA_HOME}
+  )
+
+  install(PROGRAMS util/doti_parser.py
+          DESTINATION ${XSCA_HOME}
+  )
+else()
+  message (WARNING "XSCA_HOME isn't set. Use -DXSCA_HOME=<xsca_component_directory> to specify the directory contains the components of xsca.")
+endif()
 

@@ -20,7 +20,11 @@
 ```
 
 ### 1.3 Build xsca
+
+xsca will be built in build directory, and its components will be installed to `$XSCA_HOME`
+
 ```
+ $ export XSCA_HOME=/directory/which/contains/components
  $ cd labrador
  $ ls
  README	doc	src	test
@@ -31,14 +35,7 @@
  $ mkdir build && cd build
  $ cmake ../src
  $ make
-```
-xsca will be built in build directory
-
-### 1.4 Set configure files
-```
- $ cp -f labdrador/conf build
- # or you can put the directory (conf) into any position and then
- $ export XSCA_HOME=/directory/which/contains/conf
+ $ make install
 ```
 
 ### 1.4 Simple run
