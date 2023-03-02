@@ -1,0 +1,201 @@
+This is for GJB8114 with the following rules:
+
+Rule		Kind		Implementation
+--------------+---------------+--------------------------------
+5.1.1.1		PP          CheckRedefineKeywordsByMacro
+5.1.1.2                 GJB5369: 4.1.1.13 -> CheckMacroKeywords
+5.1.1.3                 GJB5369: 4.1.1.17 -> ƒ
+5.1.1.4                 GJB5369: 4.1.1.9 -> redefining the keywords of C/C++ is forbidden
+5.1.1.5     Diag        HandleDiagnostic
+5.1.1.6                 Not sure
+5.1.1.7                 GJB5369: 4.2.1.6
+5.1.1.8     Decl        CheckAnonymousRecord
+5.1.1.9     Decl        CheckAnonymousStructInRecord
+5.1.1.10    Decl        GJB5369: 4.6.1.6 -> CheckSingleBitSignedValue
+5.1.1.11    Decl        GJB5369: 4.6.1.7 -> CheckBitsIfInteger
+5.1.1.12    Decl        CheckUniformityOfBitFields
+5.1.1.13    Decl        GJB5369: 4.1.1.6 and 4.1.1.7
+5.1.1.14                Need to collect error report of clang
+5.1.1.15                GJB5369: 4.1.1.5 -> CheckParameterTypeDecl
+5.1.1.16                Need to handle multiple files
+5.1.1.17    Decl        CheckExternVariableInFunction
+5.1.1.18                GJB5369: 4.1.1.19 -> CheckArrayBoundary
+5.1.1.19    Diag        HandleDiagnostic
+5.1.1.20                GJB5369: 4.1.1.15 -> CheckExplicitCharType
+5.1.1.21                GJB5369: 4.1.1.20 -> CheckAbsolutePathInclude
+5.1.1.22    PP          CheckReIncludeHeadFile
+5.1.1.23                GJB5369: 4.1.1.10 -> CheckParameterTypeDecl
+--------------+------------------------------------------------
+5.1.2.1                 GJB5369: 4.1.2.1  -> CheckTypedefBasicType
+5.1.2.2                 GJB5369: 4.1.1.12 -> CheckUnFunctionLike
+5.1.2.3                 GJB5369: 4.15.2.2 -> CheckMultipleSharp
+5.1.2.4     Decl        CheckVariableDeclPosition
+5.1.2.5     Decl        CheckNestedStructure
+5.2.1.1     Stmt        CheckLoopBodyWithBrace
+5.2.1.2                 GJB5369: 4.2.1.3 -> CheckIfBrace
+5.2.1.3                 Have no idea 😢
+5.2.1.4                 GJB5369: 4.2.1.4 -> CheckLogicExprParen // TODO: with false positive
+5.2.1.5                 GJB5369: 4.2.1.4 -> CheckLogicExprParen // TODO: with false positive
+5.2.1.6                 Have no idea 😢  // TODO: need check comment
+5.2.2.1                 GJB5369: 4.2.2.1 // TODO: not implemented yet
+5.2.2.2                 GJB5369: 4.2.2.2 -> CheckFunctionLength
+5.2.2.3                 Have no idea 😢  // TODO: need check comment
+5.3.1.1                 GJB5369: 4.4.1.2 -> CheckPointerNestedLevel
+5.3.1.2     Diag        HandleDiagnostic
+5.3.1.3     Stmt        CheckAssignToPointerParam
+5.3.1.4     Diag        HandleDiagnostic
+5.3.1.5                 Have no idea 😢  // UAF
+5.3.1.6                 Have no idea 😢  // Setting free pointer to be null
+5.3.1.7     Decl        CheckPointerInitWithNull
+5.3.1.8                 Have no idea 😢
+5.3.1.9     Stmt        CheckUsingNullWithPointer
+5.3.1.10                Not sure, need discuss
+5.3.2.1                 GJB5369: 4.4.1.3 -> CheckFunctionPointer
+5.3.2.2     Decl        CheckVoidPointer
+5.3.2.3                 GJB5369: 4.4.2.1 -> CheckPointerCompareStmt
+5.4.1.1                 GJB5369: 4.3.1.2 -> CheckIfWithoutElseStmt
+5.4.1.2                 Have no idea 😢  // TODO: need check comment
+5.4.1.3                 GJB5369: 4.3.1.5 -> CheckEmptySwitch
+5.4.1.4     Diag        HandleDiagnostic
+5.4.1.5                 GJB5369: 4.3.1.6 -> CheckSwitchWithoutDefaultStmt
+5.4.1.6                 GJB5369: 4.3.1.4 -> CheckSwitchWithoutDefaultStmt
+5.4.1.7                 GJB5369: 4.3.1.7 -> CheckCaseEndWithBreak
+5.4.1.8     Stmt        CheckDifferentHierarchySwitchCase
+5.4.2.1     Stmt        CheckBranchNestedTooMuch
+
+5.5.1.1
+5.5.1.2                 GJB5369: 5.4.2.1 -> CheckSetjumpAndLongjump
+5.5.2.1     Stmt        GJB5369: 4.5.1.2 -> CheckGotoStmt
+5.6.1.1     Diag        HandleDiagnostic
+5.6.1.2     Diag        HandleDiagnostic
+5.6.1.3                 GJB5369: 4.6.1.15 -> CheckAssignInLogicExpr
+5.6.1.4     Stmt        CheckBitwiseOpInLogicStmt
+5.6.1.5     Stmt        CheckIncOrDecUnaryInStmt
+5.6.1.6     Diag        HandleDiagnostic
+5.6.1.7     Diag        HandleDiagnostic
+5.6.1.8                 Have no idea 😢
+5.6.1.9                 Have no idea 😢
+5.6.1.10    Stmt        CheckNotOperatorOnConstant
+5.6.1.11    Stmt        CheckUsingEnumByOtherTypeVar
+5.6.1.12    Diag        HandleDiagnostic
+5.6.1.13                GJB5369: 4.6.2.2 -> CheckSizeofOnExpr
+5.6.1.14                Have no idea 😢
+5.6.1.15                Have no idea 😢
+5.6.1.16                Have no idea 😢
+5.6.1.17                Have no idea 😢
+5.6.1.18    Stmt        CheckUsingGetsFunction      // TODO: need refine
+5.6.1.19                Have no idea 😢
+5.6.2.1                 GJB8114 4.6.1.3 -> CheckShiftOnSignedNumber
+5.6.2.2     Stmt        CheckIntegerDivision
+5.6.2.3                 Have no idea 😢
+5.6.2.4     Stmt        CheckUsingStrcpy            // TODO: need refine with 5.6.1.18
+5.6.2.5
+5.6.2.6                 GJB5369: 4.6.2.1 -> CheckCommaStmt
+5.7.1.1     Diag        HandleDiagnostic
+5.7.1.2                 GJB5369: 4.7.1.9 -> CheckParamTypeMismatch
+5.7.1.3     Diag        HandleDiagnostic
+5.7.1.4                 // TODO: compiler can't parse this partten
+5.7.1.5     Diag        HandleDiagnostic
+5.7.1.6     Diag        HandleDiagnostic
+5.7.1.7     Diag        HandleDiagnostic
+5.7.1.8     Diag        HandleDiagnostic
+5.7.1.9     Diag        HandleDiagnostic
+5.7.1.10                GJB8114 4.9.1.4 -> CheckReturnType
+5.7.1.11    Stmt        CheckUnusedFunctionCast
+5.7.1.12    Stmt        CheckNotRequiredFunctionCast
+5.7.1.13    Decl        CheckUnusedStaticFunction
+5.7.1.14                GJB5369 4.7.1.6 -> CheckMultiCallExprInSingleStmt
+5.7.1.15                GJB5369 4.1.1.8 -> CheckParameterTypeDecl
+5.7.1.16                Have no idea 😢
+5.7.2.1     Decl        CheckTooManyParams
+5.7.2.2                 GJB5369 4.7.2.1 -> CheckUnusedParameters
+5.7.2.3                 GJB5369 4.7.2.3 -> CheckExitAndAbortFunction
+5.7.2.4                 Have no idea 😢
+5.7.2.5                 Have no idea 😢
+5.8.1.1                 Have no idea 😢  // TODO: check in xvsa
+5.8.1.2                 Have no idea 😢  // TODO: check in xvsa
+5.8.1.3                 Have no idea 😢  // TODO: check in xvsa
+5.8.1.4                 Have no idea 😢  // TODO: need to check comment
+5.8.1.5                 CheckLiteralSuffix
+5.8.2.1                 GJB5369: 4.8.2.6 -> CheckNullStmt
+5.8.2.2                 Have no idea 😢  // TODO: check in xvsa
+5.8.2.3                 Have no idea 😢  // TODO: check in xvsa
+5.8.2.4     Stmt        CheckLiteralSuffixInit
+5.9.1.1                 GJB5369: 4.11.1.2 -> CheckLoopVariable
+5.9.1.2                 GJB5369: 4.11.1.1 -> CheckLoopVariable
+5.9.1.3                 Have no idea 😢  // TODO: check in xvsa
+5.9.1.4     Stmt        CheckInfiniteForLoop
+5.9.2.1                 GJB5369: 4.11.2.1 -> CheckInfiniteLoop
+5.9.2.2
+5.9.2.3
+5.10.1.1    Stmt        CheckFloatAssignToInt
+5.10.1.2    Stmt        CheckTruncWithoutCastInAssign
+5.10.1.3    Stmt        CheckDoubleToFloatWithoutCast
+5.10.1.4    Diag        HandleDiagnostic
+5.10.1.5    Stmt        CheckAssignPointerAndNonPointerWithoutCast
+5.10.1.6                GJB5369: 4.12.2.2 -> CheckUnnessaryCast
+5.10.2.1    Stmt        CheckFloatAssignToInt
+5.10.2.2    Stmt        CheckDoubleToFloat
+5.10.2.3    Stmt        CheckIntToShorter
+5.10.2.4    Stmt        CheckAssignPointerAndNonPointerWithoutCast
+5.11.1.1                GJB5369: 4.13.1.4 -> CheckUsedBeforeInit // TODO: with false positive
+5.11.1.2    Decl        CheckOmitInitValueDependOnSystem
+5.11.1.3                GJB5369: 4.13.1.3 -> CheckNestedStruct
+5.11.1.4                GJB5369: 4.13.1.2 -> CheckEnumDeclInit
+5.11.2.1    Decl        CheckInitWithDecl
+5.11.2.2                Have no idea 😢
+5.12.1.1    Stmt        CheckComparedLogicValue
+5.12.1.2                GJB5369: 4.4.2.1 -> CheckPointerCompareStmt
+5.12.1.3                GJB5369: 4.14.1.1 -> CheckComparingRealNumber
+5.12.1.4    Stmt        CheckCompareUnsignedWithZero
+5.12.1.5    Stmt        CheckCompareUnsignedWithSigned
+5.12.2.1    Stmt        CheckCompareConstantWithVariable
+5.13.1.1                GJB5369: 4.15.1.2 -> CheckLocalVarCollideWithGlobal
+5.13.1.2                GJB5369: 4.15.1.3 -> CheckLocalVarCollideWithGlobal
+5.13.1.3    Decl        CheckVariableConflictWithFunction
+5.13.1.4    Decl        CheckVariableConflictWithIdentifiers
+5.13.1.5    Decl        CheckVariableConflictWithEnumElem
+5.13.1.6    Decl        CheckVariableConflictWithTypeDef
+5.13.1.7                GJB5369: 4.15.1.5 -> CheckVariableRedefine
+5.13.1.8                Have no idea 😢
+5.13.1.9                Have no idea 😢
+5.13.1.10               Have no idea 😢
+5.13.1.11               GJB5369: 4.8.1.1 -> CheckIandOUsedAsVariable
+5.13.1.12               Have no idea 😢
+5.13.1.13               GJB5369: 4.15.1.6 -> CheckVolatileTypeVar
+5.13.1.14               Have no idea 😢
+5.13.1.15               CheckAssignNegToUnsignedVar
+5.13.1.16               Have no idea 😢
+5.13.2.1                Have no idea 😢
+5.13.2.2                GJB5369: 4.8.2.7 -> CheckRegisterVariable
+6.1.1.1     Decl        CheckCopyConstructor
+6.1.1.2     Stmt        CheckVirtualBaseClassCastToDerivedClass
+6.1.1.3     Decl        CheckDiamondDerivativeWithoutVirtual
+6.1.1.4     Decl        CheckAssignOperatorOverload
+6.1.2.1     Decl        CheckDerivedFromAbstractClass
+6.1.2.2     Decl        CheckInlineFunction
+6.2.1.1     Stmt        CheckUsingGlobalVarInConstructor
+6.2.1.2     Decl        CheckExplictConstructor
+6.2.1.3     Decl        CheckExplicitConstructorWithSingleParam
+6.2.1.4     Decl        CheckInitFieldsInConstructor
+6.2.1.5     Decl        CheckDerivedClassContainConstructorOfBaseClass
+6.3.1.1     Decl        CheckVirtualDestructor
+6.3.1.2
+6.4.1.1     Decl        CheckDefaultParamChangedInDerivedClassVirtualMethod
+6.4.1.2     Decl        CheckOverriddenVirtualFunction
+6.4.1.3     Decl        CheckNonVirtualMethodOverriddenAsPure
+6.5.1.1     Stmt        CheckUnrelatedCastToObject
+6.5.1.2     Stmt        CheckConstCastOnPointerOrReference
+6.5.2.1     Stmt        CheckCStyleCastInCPPFile
+6.6.1.1                 Have no idea 😢 // TODO: check in xvsa
+6.6.1.2     Diag        HandleDiagnostic
+6.6.1.3                 Have no idea 😢 // TODO: check in xvsa
+6.7.1.1     Stmt        CheckConstLenghtArrayPassToFunction
+6.7.1.2     Decl        CheckReturnNonConstPointerOrReferenceFromConstMethod
+6.7.1.3
+6.7.2.1     Decl        CheckLocationOfMethodsDefination
+6.7.2.2                 Have no idea 😢
+6.8.1.1     Diag        HandleDiagnostic
+6.8.1.2     Stmt        CheckMissingCatchStmt   // TODO: need refine
+6.8.1.3     Stmt        CheckCatchTypeNotReference
+6.8.1.4
