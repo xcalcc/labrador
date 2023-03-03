@@ -204,6 +204,7 @@ private:
    * Rule: 10.1
    * Operands shall not be of an inappropriate essential type
    */
+  clang::QualType StripImplicitCast(const clang::Expr *stmt);
   void ReportInappropriateEssentialType(const clang::Stmt *stmt);
   void CheckInappropriateEssentialTypeOfOperands(const clang::BinaryOperator *stmt);
   void CheckInappropriateEssentialTypeOfOperands(const clang::UnaryOperator *stmt);

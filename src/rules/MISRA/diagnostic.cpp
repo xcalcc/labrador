@@ -58,7 +58,7 @@ void MISRADiagnostic::HandleDiagnostic(clang::DiagnosticsEngine::Level diagnosti
     case 5942:
       AddIssue(M_R_5_2_2, msg, location);
       break;
-    case 4253:  // MISRA_10.1
+    case 4253:  // MISRA_10_1
     case 4281:
     case 4284:
       AddIssue(M_R_10_1, msg, location);

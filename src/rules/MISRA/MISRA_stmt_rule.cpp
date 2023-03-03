@@ -862,18 +862,40 @@ void MISRAStmtRule::ReportNeedConstQualifiedVar() {
  * Rule: 10.1
  * Operands shall not be of an inappropriate essential type
  */
+clang::QualType MISRAStmtRule::StripImplicitCast(const clang::Expr *stmt) {
+  auto *bin_op = clang::dyn_cast<clang::BinaryOperator>(stmt);
+  if (bin_op != nullptr) {
+    auto lhs = bin_op->getLHS()->IgnoreParenImpCasts();
+    auto rhs = bin_op->getRHS()->IgnoreParenImpCasts();
+
+    if (clang::isa<clang::IntegerLiteral>(lhs)) {
+      if (!clang::isa<clang::IntegerLiteral>(rhs))
+        return StripImplicitCast(rhs);
+    } else {
+      if (clang::isa<clang::IntegerLiteral>(rhs))
+        return StripImplicitCast(lhs);
+    }
+  }
+
+  if (clang::isa<clang::IntegerLiteral>(stmt->IgnoreParenImpCasts()))
+    return stmt->getType();
+  else
+    return stmt->IgnoreParenImpCasts()->getType();
+}
+
 void MISRAStmtRule::ReportInappropriateEssentialType(const clang::Stmt *stmt) {
   std::string ref_msg = "Operands shall not be of an inappropriate essential type";
   ReportTemplate(ref_msg, M_R_10_1, stmt);
 }
 
+
 void MISRAStmtRule::CheckInappropriateEssentialTypeOfOperands(const clang::BinaryOperator *stmt) {
   if (stmt->isAssignmentOp()) return;
 
-  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
-  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
-  auto lhs_type = lhs->getType();
-  auto rhs_type = rhs->getType();
+  auto lhs = stmt->getLHS();
+  auto rhs = stmt->getRHS();
+  auto lhs_type = StripImplicitCast(lhs);
+  auto rhs_type = StripImplicitCast(rhs);
   bool status = false;
   clang::BuiltinType::Kind lhs_kind = GetBTKind(lhs_type, status);
   // ignore checking the status, since the type may be EnumeralType
