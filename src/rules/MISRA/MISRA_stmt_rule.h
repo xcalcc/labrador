@@ -847,7 +847,7 @@ public:
     CheckValueTypeForCtype(stmt);
     CheckPrecedenceOfOperator(stmt);
     CheckAssignmentOfPointer(stmt);
-    CheckDeadCode(stmt);
+//    CheckDeadCode(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {
