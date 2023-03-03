@@ -110,6 +110,12 @@ private:
   // get line number from sourceLocation
   uint16_t getLineNumber(clang::SourceLocation loc);
 
+  // remove unnecessary type cast, for example:
+  // -ImplicitCastExpr 0x20a00d8 'unsigned int' <IntegralCast>
+  //  `-ImplicitCastExpr 0x20a00c0 'unsigned char' <LValueToRValue>
+  //    `-DeclRefExpr 0x20a0080 'unsigned char' lvalue Var 0x209fef0 'u8a' 'unsigned char
+  clang::QualType StripImplicitCast(const clang::Expr *stmt);
+
   /* MISRA
    * Directive: 4.8
    * If a pointer to a structure or union is never dereferenced within a
@@ -847,7 +853,7 @@ public:
     CheckValueTypeForCtype(stmt);
     CheckPrecedenceOfOperator(stmt);
     CheckAssignmentOfPointer(stmt);
-    CheckDeadCode(stmt);
+//    CheckDeadCode(stmt);
   }
 
   void VisitCompoundAssignOperator(const clang::CompoundAssignOperator *stmt) {

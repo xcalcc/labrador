@@ -1202,6 +1202,13 @@ void MISRADeclRule::CheckArrayPartialInitialized(const clang::VarDecl *decl) {
         return;
       }
     }
+
+    // check if this init value is a string expr
+    // if so, check the string length
+    if (auto init_type = clang::dyn_cast<clang::ConstantArrayType>(head->getType())) {
+      if (init_type->getElementType()->isCharType() && (init_type == const_array_type))
+        return;
+    }
   }
 
   XcalIssue *issue = nullptr;

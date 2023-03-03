@@ -282,6 +282,28 @@ const clang::Expr *MISRAStmtRule::StripAllParenImpCast(const clang::Expr *stmt) 
   return res;
 }
 
+// remove unnecessary type cast for binary expr
+clang::QualType MISRAStmtRule::StripImplicitCast(const clang::Expr *stmt) {
+  auto *bin_op = clang::dyn_cast<clang::BinaryOperator>(stmt);
+  if (bin_op != nullptr) {
+    auto lhs = bin_op->getLHS()->IgnoreParenImpCasts();
+    auto rhs = bin_op->getRHS()->IgnoreParenImpCasts();
+
+    if (clang::isa<clang::IntegerLiteral>(lhs)) {
+      if (!clang::isa<clang::IntegerLiteral>(rhs))
+        return StripImplicitCast(rhs);
+    } else {
+      if (clang::isa<clang::IntegerLiteral>(rhs))
+        return StripImplicitCast(lhs);
+    }
+  }
+
+  if (clang::isa<clang::IntegerLiteral>(stmt->IgnoreParenImpCasts()))
+    return stmt->getType();
+  else
+    return stmt->IgnoreParenImpCasts()->getType();
+}
+
 uint16_t MISRAStmtRule::getLineNumber(clang::SourceLocation loc) {
   auto src_mgr = XcalCheckerManager::GetSourceManager();
   auto SpellingLoc = src_mgr->getSpellingLoc(loc);
@@ -302,7 +324,7 @@ void MISRAStmtRule::CheckDereferencedDecl(const clang::MemberExpr *stmt) {
   if (!type->isPointerType()) return;
   auto ptr_type = GetUnderlyingType(type->getPointeeType());
   if (auto record_type = clang::dyn_cast<clang::RecordType>(ptr_type)) {
-    const clang::RecordDecl *rd= record_type->getDecl();
+    const clang::RecordDecl *rd = record_type->getDecl();
     rd = rd->getDefinition();
     if (rd) {
       _dereferenced_decl.insert(rd);
@@ -330,7 +352,7 @@ void MISRAStmtRule::CheckDereferencedDecl() {
           }
           if (!type->isPointerType()) return;
           if (auto record_type = clang::dyn_cast<clang::RecordType>(type->getPointeeType())) {
-            const clang::RecordDecl *rd= record_type->getDecl();
+            const clang::RecordDecl *rd = record_type->getDecl();
             rd = rd->getDefinition();
             if (rd) {
               if (dereferenced->find(reinterpret_cast<const clang::RecordDecl *const>(rd)) ==
@@ -368,10 +390,10 @@ void MISRAStmtRule::CheckDynamicMemoryAllocation(const clang::CallExpr *stmt) {
   }
 }
 
-  /* MISRA
-   * Rule: 1.3
-   * There shall be no occurrence of undefined or critical unspecified behaviour
-   */
+/* MISRA
+ * Rule: 1.3
+ * There shall be no occurrence of undefined or critical unspecified behaviour
+ */
 void MISRAStmtRule::CheckCriticalUnspecifiedBehaviour(const clang::CastExpr *stmt) {
   auto ctx = XcalCheckerManager::GetAstContext();
   auto type = stmt->IgnoreParenImpCasts()->getType();
@@ -475,47 +497,47 @@ void MISRAStmtRule::CheckUnusedTag() {
   auto top_scope = scope_mgr->GlobalScope();
 
   top_scope->TraverseAll<IdentifierManager::VAR | IdentifierManager::FIELD,
-    const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
-    [&](const std::string &x, const clang::Decl *decl,
-        IdentifierManager *id_mgr) -> void {
-      if (auto enum_decl = clang::dyn_cast<clang::EnumDecl>(decl->getDeclContext())) {
-        _used_tag.insert(enum_decl);
-      } else if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
-        CheckUnusedTag(var_decl->getType());
-      } else if (auto field_decl = clang::dyn_cast<clang::FieldDecl>(decl)) {
-        CheckUnusedTag(field_decl->getType());
-      }
-    }, true);
+      const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+      [&](const std::string &x, const clang::Decl *decl,
+          IdentifierManager *id_mgr) -> void {
+        if (auto enum_decl = clang::dyn_cast<clang::EnumDecl>(decl->getDeclContext())) {
+          _used_tag.insert(enum_decl);
+        } else if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
+          CheckUnusedTag(var_decl->getType());
+        } else if (auto field_decl = clang::dyn_cast<clang::FieldDecl>(decl)) {
+          CheckUnusedTag(field_decl->getType());
+        }
+      }, true);
 
   constexpr uint32_t kind = IdentifierManager::VALUE |
                             IdentifierManager::TYPE |
                             IdentifierManager::TYPEDEF;
-  auto used_tags= &(this->_used_tag);
+  auto used_tags = &(this->_used_tag);
 
   XcalIssue *issue = nullptr;
   XcalReport *report = XcalCheckerManager::GetReport();
   top_scope->TraverseAll<kind,
-    const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
-    [&](const std::string &x, const clang::Decl *decl,
-        IdentifierManager *id_mgr) -> void {
-      if (auto enum_const_decl = clang::dyn_cast<clang::EnumConstantDecl>(decl)) {
-        if (auto enum_decl = clang::cast<clang::EnumDecl>(enum_const_decl->getDeclContext())) {
-          decl = enum_decl;
+      const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+      [&](const std::string &x, const clang::Decl *decl,
+          IdentifierManager *id_mgr) -> void {
+        if (auto enum_const_decl = clang::dyn_cast<clang::EnumConstantDecl>(decl)) {
+          if (auto enum_decl = clang::cast<clang::EnumDecl>(enum_const_decl->getDeclContext())) {
+            decl = enum_decl;
+          }
+        } else if (auto typeDef_decl = clang::dyn_cast<clang::TypedefDecl>(decl)) {
+          auto type = typeDef_decl->getTypeForDecl();
+          if (!type || !type->isRecordType()) return;
         }
-      } else if (auto typeDef_decl = clang::dyn_cast<clang::TypedefDecl>(decl)) {
-        auto type = typeDef_decl->getTypeForDecl();
-        if (!type || !type->isRecordType()) return;
-      }
 
-      if (used_tags->find(decl) == used_tags->end()) {
-        if (auto record_decl = clang::dyn_cast<clang::RecordDecl>(decl)) {
-          if (record_decl->getName().empty()) return;
+        if (used_tags->find(decl) == used_tags->end()) {
+          if (auto record_decl = clang::dyn_cast<clang::RecordDecl>(decl)) {
+            if (record_decl->getName().empty()) return;
+          }
+          issue = report->ReportIssue(MISRA, M_R_2_4, decl);
+          std::string ref_msg = "A project should not contain unused tag declarations";
+          issue->SetRefMsg(ref_msg);
         }
-        issue = report->ReportIssue(MISRA, M_R_2_4, decl);
-        std::string ref_msg = "A project should not contain unused tag declarations";
-        issue->SetRefMsg(ref_msg);
-      }
-    }, true);
+      }, true);
 }
 
 /* MISRA
@@ -663,8 +685,8 @@ void MISRAStmtRule::CheckLiteralSuffix(const clang::Expr *stmt) {
   }
   auto src_mgr = XcalCheckerManager::GetSourceManager();
   clang::SourceLocation sl = is_string_literal ?
-                               clang::dyn_cast<clang::IntegerLiteral>(stmt)->getLocation() :
-                               clang::dyn_cast<clang::FloatingLiteral>(stmt)->getLocation();
+                             clang::dyn_cast<clang::IntegerLiteral>(stmt)->getLocation() :
+                             clang::dyn_cast<clang::FloatingLiteral>(stmt)->getLocation();
   if (sl.isMacroID()) {
     sl = src_mgr->getSpellingLoc(sl);
   }
@@ -757,7 +779,7 @@ MISRAStmtRule::RecordThrowObjectTypes(const clang::Stmt *stmt) {
  * Rule: 8.13
  * A pointer should point to a const-qualified type whenever possible
  */
-void MISRAStmtRule::CheckModifiedPointerDecl(const clang::Expr* expr) {
+void MISRAStmtRule::CheckModifiedPointerDecl(const clang::Expr *expr) {
   auto ptr_expr = expr;
   if (auto unary = clang::dyn_cast<clang::UnaryOperator>(expr)) {
     ptr_expr = unary->getSubExpr()->IgnoreParenImpCasts();
@@ -799,7 +821,7 @@ void MISRAStmtRule::CheckAssignmentOfPointer(const clang::CallExpr *stmt) {
   auto decl = GetCalleeDecl(stmt);
   if (decl == nullptr) return;
   int i = 0;
-  for (const clang::Expr *arg :  stmt->arguments()) {
+  for (const clang::Expr *arg : stmt->arguments()) {
     if (i >= decl->param_size()) break;
     auto arg_type = arg->IgnoreParenImpCasts()->getType();
     if (!arg_type->isPointerType()) {
@@ -835,27 +857,27 @@ void MISRAStmtRule::ReportNeedConstQualifiedVar() {
   XcalReport *report = XcalCheckerManager::GetReport();
 
   top_scope->TraverseAll<kind,
-    const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
-    [&](const std::string &x, const clang::Decl *decl,
-        IdentifierManager *id_mgr) -> void {
-      if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
-        auto type = var_decl->getType();
-        if (!type->isPointerType()) return;
-        decl = var_decl->getCanonicalDecl();
-        if (_modified_pointer_decl.find(decl) == _modified_pointer_decl.end()) {
-          if (!type->getPointeeType().isConstQualified()) {
-            const clang::DeclContext *decl_context = var_decl->getDeclContext();
-            if (auto func_decl = clang::dyn_cast<clang::FunctionDecl>(decl_context)) {
-              if (!func_decl->getBody()) return;
+      const std::function<void(const std::string &, const clang::Decl *, IdentifierManager *)>>(
+      [&](const std::string &x, const clang::Decl *decl,
+          IdentifierManager *id_mgr) -> void {
+        if (auto var_decl = clang::dyn_cast<clang::VarDecl>(decl)) {
+          auto type = var_decl->getType();
+          if (!type->isPointerType()) return;
+          decl = var_decl->getCanonicalDecl();
+          if (_modified_pointer_decl.find(decl) == _modified_pointer_decl.end()) {
+            if (!type->getPointeeType().isConstQualified()) {
+              const clang::DeclContext *decl_context = var_decl->getDeclContext();
+              if (auto func_decl = clang::dyn_cast<clang::FunctionDecl>(decl_context)) {
+                if (!func_decl->getBody()) return;
+              }
+              issue = report->ReportIssue(MISRA, M_R_8_13, decl);
+              std::string ref_msg = "A pointer should point to a const-qualified type whenever possible: ";
+              ref_msg += var_decl->getNameAsString();
+              issue->SetRefMsg(ref_msg);
             }
-            issue = report->ReportIssue(MISRA, M_R_8_13, decl);
-            std::string ref_msg = "A pointer should point to a const-qualified type whenever possible: ";
-            ref_msg += var_decl->getNameAsString();
-            issue->SetRefMsg(ref_msg);
           }
         }
-      }
-    }, true);
+      }, true);
 }
 
 /* MISRA
@@ -867,13 +889,14 @@ void MISRAStmtRule::ReportInappropriateEssentialType(const clang::Stmt *stmt) {
   ReportTemplate(ref_msg, M_R_10_1, stmt);
 }
 
+
 void MISRAStmtRule::CheckInappropriateEssentialTypeOfOperands(const clang::BinaryOperator *stmt) {
   if (stmt->isAssignmentOp()) return;
 
-  auto lhs = stmt->getLHS()->IgnoreParenImpCasts();
-  auto rhs = stmt->getRHS()->IgnoreParenImpCasts();
-  auto lhs_type = lhs->getType();
-  auto rhs_type = rhs->getType();
+  auto lhs = stmt->getLHS();
+  auto rhs = stmt->getRHS();
+  auto lhs_type = StripImplicitCast(lhs);
+  auto rhs_type = StripImplicitCast(rhs);
   bool status = false;
   clang::BuiltinType::Kind lhs_kind = GetBTKind(lhs_type, status);
   // ignore checking the status, since the type may be EnumeralType
@@ -996,7 +1019,7 @@ void MISRAStmtRule::CheckInappropriateEssentialTypeOfOperands(const clang::Compo
   auto opcode = stmt->getOpcode();
   if (opcode == clang::BO_AddAssign || opcode == clang::BO_SubAssign) {
     if (lhs_type->isBooleanType() || lhs_type->isEnumeralType() ||
-        rhs_type->isBooleanType() ||rhs_type->isEnumeralType()) {
+        rhs_type->isBooleanType() || rhs_type->isEnumeralType()) {
       std::string ref_msg = "Operands shall not be of an inappropriate essential type";
       ReportTemplate(ref_msg, M_R_10_1, stmt);
     }
@@ -1115,7 +1138,10 @@ void MISRAStmtRule::CheckIntToShorter(const clang::BinaryOperator *stmt) {
     if (IsIntegerLiteralExpr(conditional->getLHS()) || IsIntegerLiteralExpr(conditional->getRHS())) return;
   }
 
-  if (auto subStmtBT = clang::dyn_cast<clang::BuiltinType>(rhs_cast->getSubExpr()->IgnoreParenImpCasts()->getType())) {
+  if (auto subStmtBT = clang::dyn_cast<clang::BuiltinType>(
+      StripImplicitCast(rhs_cast->getSubExpr()->IgnoreParenImpCasts()))) {
+    bool need_report = false;
+
     auto stmtBT = clang::dyn_cast<clang::BuiltinType>(rhs_cast->getType());
     // check if stmt is builtin type
     if (stmtBT == nullptr) return;
@@ -1131,8 +1157,13 @@ void MISRAStmtRule::CheckIntToShorter(const clang::BinaryOperator *stmt) {
 
       auto stmtKind = resolve(stmtBT);
       auto subStmtKind = resolve(subStmtBT);
+      need_report = stmtKind < subStmtKind;
+      need_report |= stmtBT->isSignedInteger() ^ subStmtBT->isSignedInteger();
+      need_report |= stmtBT->isBooleanType() ^ subStmtBT->isBooleanType();
+      need_report |= stmtBT->isCharType() ^ subStmtBT->isCharType();
+      need_report |= stmtBT->isFloatingType() ^ subStmtBT->isFloatingType();
 
-      if (stmtKind < subStmtKind) {
+      if (need_report) {
         XcalIssue *issue = nullptr;
         XcalReport *report = XcalCheckerManager::GetReport();
 
@@ -1157,9 +1188,21 @@ void MISRAStmtRule::CheckIntToShorter(const clang::SwitchStmt *stmt) {
     auto cases = clang::dyn_cast<clang::CaseStmt>(head);
     std::vector<const clang::Stmt *> sinks;
 
+    bool is_char = cond_ty->isCharType();
     while (cases) {
-      if (cases->getLHS()->IgnoreParenImpCasts()->getType() != cond_ty) {
-        sinks.push_back(cases);
+      auto lhs = cases->getLHS();
+      if (is_char) {
+        auto const_expr = clang::dyn_cast<clang::ConstantExpr>(lhs);
+        if (const_expr) {
+          auto sub_expr = const_expr->getSubExpr()->IgnoreParenImpCasts();
+          if (!clang::dyn_cast<clang::CharacterLiteral>(sub_expr)) {
+            sinks.push_back(cases);
+          }
+        }
+      } else {
+        if (lhs->IgnoreParenImpCasts()->getType() != cond_ty) {
+          sinks.push_back(cases);
+        }
       }
 
       auto next = cases->getNextSwitchCase();
@@ -3047,7 +3090,7 @@ void MISRAStmtRule::CheckValueTypeForCtype(const clang::BinaryOperator *stmt) {
             XcalReport *report = XcalCheckerManager::GetReport();
             issue = report->ReportIssue(MISRA, M_R_21_13, sub);
             std::string ref_msg = "Any value passed to a function in <ctype.h> shall be representable as "
-                                 "an unsigned char or be the value EOF";
+                                  "an unsigned char or be the value EOF";
             issue->SetRefMsg(ref_msg);
           }
         }
@@ -3110,12 +3153,12 @@ void MISRAStmtRule::CheckDirectManipulationOfFILEPointer(const clang::MemberExpr
 }
 
 void MISRAStmtRule::ReportFILEPointer(const clang::QualType type, const clang::Stmt *stmt) {
-    if (!type->isPointerType()) return;
-    std::string type_name = GetTypeString(type->getPointeeType());
-    if (type_name.find("FILE") != std::string::npos) {
-      std::string ref_msg = "A pointer to a FILE object shall not be dereferenced";
-      ReportTemplate(ref_msg, M_R_22_5, stmt);
-    }
+  if (!type->isPointerType()) return;
+  std::string type_name = GetTypeString(type->getPointeeType());
+  if (type_name.find("FILE") != std::string::npos) {
+    std::string ref_msg = "A pointer to a FILE object shall not be dereferenced";
+    ReportTemplate(ref_msg, M_R_22_5, stmt);
+  }
 }
 
 /* MISRA
