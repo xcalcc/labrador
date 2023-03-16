@@ -63,11 +63,11 @@ std::string XcalReport::WinPathToLinux(const std::string &win_path) {
   std::size_t idx = 0;
 
   // remove the disk letter
-  if (win_path.length() >= 2) {
-    if (std::isalpha(win_path[0]) && (win_path[1] == ':')) {
-      idx = 2;
-    }
-  }
+//  if (win_path.length() >= 2) {
+//    if (std::isalpha(win_path[0]) && (win_path[1] == ':')) {
+//      idx = 2;
+//    }
+//  }
 
   while (idx < win_path.length()) {
     if (win_path[idx] == '\\') {
