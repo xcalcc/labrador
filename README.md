@@ -10,6 +10,11 @@
  # mac
  $ brew install llvm
  
+ # download prebuilt clang libraries
+ $ wget https://github.com/xcalcc/labrador/releases/download/v0.1/clang-11.0.0.tar.xz
+ $ mkdir clang-prebuilt && cd clang-prebuilt
+ $ tar Jxf clang-11.0.0.tar.xz
+ 
  # set CLANG_HOME
  $ export CLANG_HOME=/path/to/clang/libraries
 ```
@@ -19,7 +24,7 @@
  $ git clone https://github.com/xcalcc/labrador.git
 ```
 
-### 1.3 Build xsca
+### 1.3 Build XSCA
 
 xsca will be built in build directory, and its components will be installed to `$XSCA_HOME`
 
