@@ -56,6 +56,31 @@ XcalReport::GetFileIdFromLineTable(const char *fname) {
   return _line_table_offset + line_table.getLineTableFilenameID(fname);
 }
 
+// XcalReport::WinPathToLinux
+// convert path from windows form to linux form
+std::string XcalReport::WinPathToLinux(const std::string &win_path) {
+  std::string path;
+  std::size_t idx = 0;
+
+  // remove the disk letter
+//  if (win_path.length() >= 2) {
+//    if (std::isalpha(win_path[0]) && (win_path[1] == ':')) {
+//      idx = 2;
+//    }
+//  }
+
+  while (idx < win_path.length()) {
+    if (win_path[idx] == '\\') {
+      if (path.back() != '/')
+      path += '/';
+    } else {
+      path += win_path[idx];
+    }
+    idx++;
+  }
+  return path;
+}
+
 // XcalReport::PrintVtxtFileList
 // Print file list to vtxt file to map file id to file name
 void
@@ -81,10 +106,13 @@ XcalReport::PrintVtxtFileList() {
     } else {
       append_comma = true;
     }
+
+    std::string path = WinPathToLinux(it->first->getName().rtrim(".i").rtrim(".ii").str());
+
     // output file entry
     fprintf(_vtxt_file, "  {\n    \"fid\" : %d,\n    \"path\" : \"%s\"\n  }",
             it->first->getUID() + 1,
-            it->first->getName().rtrim(".i").rtrim(".ii").str().c_str());
+            path.c_str());
     ++_line_table_offset;
   }
 
@@ -100,9 +128,12 @@ XcalReport::PrintVtxtFileList() {
     } else {
       append_comma = true;
     }
+
+    std::string path = WinPathToLinux(std::string(fname.data()));
+
     // output file entry
     fprintf(_vtxt_file, "  {\n    \"fid\" : %d,\n    \"path\" : \"%s\"\n  }",
-            i + _line_table_offset, fname.data());
+            i + _line_table_offset, path.c_str());
   }
 
   fprintf(_vtxt_file, "\n]\n");
@@ -134,7 +165,7 @@ XcalReport::PrintVtxtIssue(const XcalIssue *issue) {
   };
 
   char key[1024];
-  std::string ploc_filename = ploc.getFilename();
+  std::string ploc_filename = WinPathToLinux(ploc.getFilename());
   std::string short_filename = getLastToken(ploc_filename, "/");
 
   snprintf(key, sizeof(key), "%s@%s@%s:%d",

@@ -59,6 +59,9 @@ protected:
   // print issue into stdout
   void PrintStdoutIssue(const XcalIssue *issue);
 
+  // convert path from windows form to linux form
+  std::string WinPathToLinux(const std::string &win_path);
+
 
 public:
   // cconstructor
