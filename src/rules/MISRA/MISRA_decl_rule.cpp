@@ -1230,7 +1230,6 @@ void MISRADeclRule::CheckDesignatedInitWithImplicitSizeArray(const clang::VarDec
   if (arr_type && arr_type->getElementType()->isArrayType()) return;
   if (!decl->hasInit()) return;
 
-
   auto src_mgr = XcalCheckerManager::GetSourceManager();
   {
     auto var_loc = decl->getLocation();
@@ -1271,11 +1270,20 @@ void MISRADeclRule::CheckDesignatedInitWithImplicitSizeArray(const clang::VarDec
       with_designated = true;
       break;
     } else {
-      while (*init_pos != ',') {
+      // eat init expr
+      // check if init expr is a string expr which may contain ',' inside
+      bool in_string = false;
+      if (*init_pos == '"') {
+        in_string = true;
+      }
+      while (in_string || *init_pos != ',') {
         init_pos++;
         if (init_pos == end_pos) {
           need_eat = false;
           break;
+        }
+        if (*init_pos == '"') {
+          in_string = false;
         }
         need_eat = true;
       }
